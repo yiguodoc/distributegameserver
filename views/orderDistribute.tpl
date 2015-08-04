@@ -72,11 +72,16 @@
             var order = _.findWhere(orders, {ID: orderID})
             if(order != null){
                 var pos = order.GeoSrc
-                if(pos != null && pos.Lat.length > 0 && pos.Lng.length > 0){
-                    setMapMarker(parseFloat(pos.Lng),parseFloat(pos.Lat),true)
+                if(pos != null){
+                    setMapMarker(pos.Lng, pos.Lat, true)
                 }else{
                     setMapMarker(0, 0)
                 }
+                // if(pos != null && pos.Lat.length > 0 && pos.Lng.length > 0){
+                //     setMapMarker(parseFloat(pos.Lng),parseFloat(pos.Lat),true)
+                // }else{
+                //     setMapMarker(0, 0)
+                // }
             }
         });
         prepareConn()
@@ -125,7 +130,7 @@
                 console.log(msg)
                 msg = JSON.parse(msg)
                 switch(msg.MessageType){
-                    case 1://订单分发
+                    case {{.pro_order_distribution_proposal}}://订单分发
                     var currentIndex = $("#orderIDList").get(0).selectedIndex
                     console.log("新订单推送到，当前选择的订单的索引为 %d", currentIndex)
                     orders = msg.Data
@@ -143,17 +148,17 @@
                     $("#orderIDList").get(0).selectedIndex = currentIndex
                     $("#orderIDList").trigger("change")
                     break
-                    case 3://计时
+                    case {{.pro_timer_count_down}}://计时
                     appendLog("-> "+ msg.Data)
                     break
-                    case 4://开始选择订单
+                    case {{.pro_begin_to_select_order}}://开始选择订单
                     appendLog("开始！")
                     $("#btnSelectOrder").css("color","black")
                     break
-                    case 5://消息广播
+                    case {{.pro_message_broadcast}}://消息广播
                     appendLog(msg.Data)
                     break
-                    case 6://订单分配结果
+                    case {{.pro_order_select_result}}://订单分配结果
                     if(msg.Data.DistributorID == distributorID){
                         appendLog("抢到了订单 "+msg.Data.OrderID)
                     }else{
@@ -161,7 +166,7 @@
                     }
                     console.log(msg.Data)
                     break
-                    case 10://订单满载，可以准备配送了
+                    case {{.pro_distribution_prepared}}://订单满载，可以准备配送了
                     if(msg.Data == distributorID){
                         hideOrderSelectButton()
                         $("#btnStartDistribute").show()
@@ -187,12 +192,12 @@
             alert("订单不能为空")
             return
         }
-        var msg = {MessageType: 2, Data:{OrderID: orderID, DistributorID: distributorID}}
+        var msg = {MessageType: {{.pro_order_select_response}}, Data:{OrderID: orderID, DistributorID: distributorID}}
         send(msg)
         // $("#btnSelectOrder").css("color","white")
     }
     function prepared(){
-        var msg = {MessageType: 9, Data:{DistributorID: distributorID}}
+        var msg = {MessageType: {{.pro_prepared_for_select_order}}, Data:{DistributorID: distributorID}}
         send(msg)
         prepareSelectOrderControls()
     }

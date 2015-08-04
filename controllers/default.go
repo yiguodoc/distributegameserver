@@ -127,30 +127,28 @@ func (m *MainController) AddressEditIndex() {
 func (m *MainController) OrderDistributeIndex() {
 	m.Data["HOST"] = fmt.Sprintf("%s:%d", m.Ctx.Input.Host(), m.Ctx.Input.Port())
 	distributorID := m.GetString("id")
-	// m.Data["ID"] = distributorID
 	d := g_distributors.find(distributorID)
-	// if d != nil {
-	// 	m.Data["Name"] = d.Name
-	// }
 	if d == nil {
 		panic("没有配送员 " + distributorID)
 	}
 	m.Data["distributor"] = d
+	setProData(m)
 	m.TplNames = "orderDistribute.tpl"
+}
+func setProData(m *MainController) {
+	codes := getClientMessageTypeCodeList()
+	for _, code := range codes {
+		m.Data[code.name()] = code
+	}
 }
 func (m *MainController) Orders() {
 	id := m.GetString("id")
 	if len(id) <= 0 {
-		m.Data["json"] = append(g_ordersUndistributed, g_ordersDistributed...)
+		m.Data["json"] = g_orders
 	} else {
-		d := g_ordersUndistributed.findByID(id)
+		d := g_orders.findByID(id)
 		if d == nil {
-			d = g_ordersDistributed.findByID(id)
-			if d == nil {
-				m.Data["json"] = OrderList{}
-			} else {
-				m.Data["json"] = OrderList{d}
-			}
+			m.Data["json"] = OrderList{}
 		} else {
 			m.Data["json"] = OrderList{d}
 		}

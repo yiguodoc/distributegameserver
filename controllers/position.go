@@ -25,6 +25,8 @@ const (
 	POSITION_TYPE_ROUTE_TEMP  = 3 //计算得出的临时点
 )
 
+type positionTypeFilter func(*Position) bool
+
 //位置，订单的产生地
 type Position struct {
 	ID        int
@@ -34,34 +36,45 @@ type Position struct {
 	HasOrder  bool
 	// LinkedPoints PositionList //与该位置直接连接的点
 }
+type PositionList []*Position
 
 func (p *Position) String() string {
 	return fmt.Sprintf("ID: %3d  类型：%d  订单：%t  位置: (%f, %f)  %s", p.ID, p.PointType, p.HasOrder, p.Lng, p.Lat, p.Address)
 }
-func NewPosition(id int, address string, lng, lat float64, ptype int, hasOrder bool) *Position {
+func (p *Position) SimpleString() string {
+	return fmt.Sprintf("(%f, %f)", p.Lng, p.Lat)
+}
+func (p *Position) copy() *Position {
 	return &Position{
-		ID:        id,
-		Address:   address,
-		Lng:       lng,
-		Lat:       lat,
-		PointType: ptype,
-		HasOrder:  hasOrder,
+		ID:        p.ID,
+		Lng:       p.Lng,
+		Lat:       p.Lat,
+		Address:   p.Address,
+		PointType: p.PointType,
+		HasOrder:  p.HasOrder,
 	}
 }
-
-// func (this *Position) getLinks() PositionList {
-// 	return this.LinkedPoints
-// }
-// func (this *Position) addLinks(list ...*Position) {
-// 	// this.LinkedPoints = list
-// 	for _, pos := range list {
-// 		if this.LinkedPoints.contains(pos) == false {
-// 			this.LinkedPoints = append(this.LinkedPoints, pos)
-// 		}
-// 	}
-// }
-
-type PositionList []*Position
+func (p *Position) equals(pos *Position) bool {
+	if p.Lat == pos.Lat && p.Lng == pos.Lng {
+		return true
+	}
+	return false
+}
+func (p *Position) addLngLat(lng, lat float64) {
+	p.Lng += lng
+	p.Lat += lat
+}
+func (p *Position) minus(pos *Position) (lng, lat float64) {
+	return p.Lng - pos.Lng, p.Lat - pos.Lat
+}
+func (pl PositionList) filter(f positionTypeFilter) (l PositionList) {
+	for _, p := range pl {
+		if f(p) {
+			l = append(l, p)
+		}
+	}
+	return
+}
 
 // //从一系列的地点中产生一组订单
 func (pl PositionList) createSimulatedOrders(idGenerator func() string) (list OrderList) {
@@ -71,6 +84,14 @@ func (pl PositionList) createSimulatedOrders(idGenerator func() string) (list Or
 		}
 	}
 	return
+}
+func (pl PositionList) findByID(id int) *Position {
+	for _, p := range pl {
+		if p.ID == id {
+			return p
+		}
+	}
+	return nil
 }
 func (this PositionList) find(pos *Position) *Position {
 	for _, p := range this {
@@ -91,4 +112,21 @@ func (pl PositionList) InfoList() (l []string) {
 		l = append(l, p.String())
 	}
 	return
+}
+
+func NewPosition(id int, address string, lng, lat float64, ptype int, hasOrder bool) *Position {
+	return &Position{
+		ID:        id,
+		Address:   address,
+		Lng:       lng,
+		Lat:       lat,
+		PointType: ptype,
+		HasOrder:  hasOrder,
+	}
+}
+func createPositionFilter(pointType int) positionTypeFilter {
+	f := func(p *Position) bool {
+		return p.PointType == pointType
+	}
+	return f
 }

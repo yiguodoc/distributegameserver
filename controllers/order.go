@@ -16,10 +16,18 @@ func generateOrderID() string {
 
 // 订单
 type Order struct {
-	ID     string
-	GeoSrc *Position
+	ID          string
+	GeoSrc      *Position
+	distributed bool
 }
+type orderDistributeFilter func(*Order) bool
 
+func newOrderDistributeFilter(distributed bool) orderDistributeFilter {
+	f := func(o *Order) bool {
+		return o.distributed == distributed
+	}
+	return f
+}
 func NewOrder(id string, pos *Position) *Order {
 	return &Order{
 		ID:     id,
@@ -57,6 +65,14 @@ func (ol OrderList) ListName() string {
 func (ol OrderList) InfoList() (list []string) {
 	for _, o := range ol {
 		list = append(list, o.String())
+	}
+	return
+}
+func (ol OrderList) Filter(filter orderDistributeFilter) (l OrderList) {
+	for _, o := range ol {
+		if filter(o) == true {
+			l = append(l, o)
+		}
 	}
 	return
 }

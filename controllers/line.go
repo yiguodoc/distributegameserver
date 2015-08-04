@@ -19,11 +19,21 @@ func (ll *LatLng) String() string {
 }
 
 type Line struct {
-	Start, End *LatLng
+	Start, End *Position
+	Distance   float64
 }
 
+func (l *Line) withEnd(pos1, pos2 *Position) bool {
+	if l.Start.equals(pos1) && l.End.equals(pos2) {
+		return true
+	}
+	if l.End.equals(pos1) && l.Start.equals(pos2) {
+		return true
+	}
+	return false
+}
 func (l *Line) String() string {
-	return fmt.Sprintf("line: %s => %s", l.Start, l.End)
+	return fmt.Sprintf("line: %f米 (%f, %f) => (%f, %f)", l.Distance, l.Start.Lng, l.Start.Lat, l.End.Lng, l.End.Lat)
 }
 
 type LineList []*Line
@@ -36,4 +46,12 @@ func (ll LineList) InfoList() (l []string) {
 		l = append(l, line.String())
 	}
 	return
+}
+func (ll LineList) find(pos1, pos2 *Position) *Line {
+	for _, line := range ll {
+		if line.withEnd(pos1, pos2) == true {
+			return line
+		}
+	}
+	return nil
 }

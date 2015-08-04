@@ -6,6 +6,7 @@ import (
 	"github.com/gorilla/websocket"
 	// "math/rand"
 	// "time"
+	"encoding/json"
 )
 
 const (
@@ -35,10 +36,22 @@ type Distributor struct {
 	CurrentPos             *Position       //配送时实时所在的路径
 	MaxAcceptedOrdersCount int             `json:"-"` //配送员可以接收的最大订单数量
 	Conn                   *websocket.Conn `json:"-"` // Only for WebSocket users; otherwise nil.
-	// preparedForOrderSelect bool            `json:"-"` //为分发订单做好准备了
+	Speed                  float64         //运行速度 km/h
+	CurrentSpeed           float64         //当前运行速度，0表示停止
+	Distance               float64         //所在或者将要行驶的路径长度
 	// RejectedOrders         OrderList
 }
 
+func NewDistributorFromJson(bytes []byte) *Distributor {
+	var Distributor Distributor
+	err := json.Unmarshal(bytes, &Distributor)
+	if err != nil {
+		DebugSysF("解析JSON生成 Distributor 时出错：%s", err)
+		return nil
+	} else {
+		return &Distributor
+	}
+}
 func NewDistributor(id, name string, maxCount int, color string) *Distributor {
 	return &Distributor{
 		ID:                     id,
@@ -50,7 +63,13 @@ func NewDistributor(id, name string, maxCount int, color string) *Distributor {
 	}
 }
 func (this *Distributor) String() string {
-	return fmt.Sprintf("ID: %-5s  Name: %-10s 游戏进程：%d  可接收新订单：%t  接收的订单：%2d   online:%t   ", this.ID, this.Name, this.CheckPoint, !this.full(), len(this.AcceptedOrders), this.IsOnline())
+	return fmt.Sprintf("ID: %-3s  Name: %-4s 游戏进程：%d 可接收新订单：%t 接收的订单：%2d online:%t", this.ID, this.Name, this.CheckPoint, !this.full(), len(this.AcceptedOrders), this.IsOnline())
+}
+func (d *Distributor) PosString() string {
+	if d.CurrentPos == nil {
+		return fmt.Sprintf("ID: %-3s  Name: %-4s  未设定当前位置", d.ID, d.Name)
+	}
+	return fmt.Sprintf("ID: %-3s  Name: %-4s  (%f, %f)", d.ID, d.Name, d.CurrentPos.Lng, d.CurrentPos.Lat)
 }
 func (this *Distributor) full() bool {
 	return len(this.AcceptedOrders) >= this.MaxAcceptedOrdersCount

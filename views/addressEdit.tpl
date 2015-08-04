@@ -7,7 +7,8 @@
 		body, html,#allmap {width: 100%;height: 100%;overflow: hidden;margin:0;font-family:"微软雅黑";}
 	</style>
 	<script src="javascripts/jquery.js"></script>
-	<script src="javascripts/underscore.js"></script>
+	<!-- // <script src="javascripts/underscore.js"></script> -->
+	<script src="javascripts/lodash.js"></script>
 	<script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=kU4NWwyP5SwguC2W2WAfO1bO"></script>
 	<script type="text/javascript" src="http://api.map.baidu.com/library/CurveLine/1.5/src/CurveLine.min.js"></script>
 	<title>系统地图编辑器</title>
@@ -21,6 +22,7 @@
         <input id="btnRemoveRoute" type="button" value="移除路径" onclick="switchControl(3)" style="margin-bottom: 10px;">
         <input id="btnAddOrder" type="button" value="添加订单" onclick="switchControl(4)" style="margin-bottom: 10px;">
         <input id="btnRemoveOrder" type="button" value="移除订单" onclick="switchControl(5)" style="margin-bottom: 10px;">
+        <input id="btnClearMapData" type="button" value="清除地图数据" onclick="clearMapData()" style="margin-bottom: 10px;">
 
 	</div>
 	<div id="allmap"  style="height:60%;"></div>
@@ -49,7 +51,7 @@
 		$.get("/mapData", function(data){
 			console.log(data)
 		    mapInit()
-		    _.each(data.Points, function(p){
+		    _.forEach(data.Points, function(p){
 		    	var m =addMapMarker(new BMap.Point(p.Lng,p.Lat))
 		    	if(m != null){
 		    		m.address = p.Address
@@ -63,7 +65,7 @@
 		    	}
 		    })
 		    var lineCount = 0
-		    _.each(data.Lines, function(line, index){
+		    _.forEach(data.Lines, function(line, index){
 		    	var l = addLine(new BMap.Point(line.Start.Lng,line.Start.Lat), new BMap.Point(line.End.Lng,line.End.Lat))
 		    	if(l != null){
 		    		lineCount ++
@@ -244,6 +246,8 @@
 			return null
 		}
 		var line = new BMap.Polyline(points, {strokeColor:"blue", strokeWeight:5, strokeOpacity:0.5}); //创建弧线对象
+		var distance = map.getDistance(startPoint, destPoint)//米
+		line.Distance = distance
 		map.addOverlay(line); //添加到地图中
 		lines.push(line)
 		line.addEventListener("click", function(e){
@@ -259,21 +263,41 @@
     	console.log("当前操作 %d", optSelect)
     	clearAddRouteStates()
 	}
+	function clearMapData(){
+		var r = confirm("将清除所有的点和路径，不可恢复，确定吗？")
+		if(r){
+			_.forEach(markers, function(m){
+				map.removeOverlay(m)
+			})
+			markers = []
+			_.forEach(lines, function(line){
+				map.removeOverlay(line)
+			})
+			lines=[]
+		}
+	}
 	function onSaveData(){
 		console.log("保存地图数据")
 		//保存两类数据，点和线
-		var linesData = _.map(lines, function(line){
-			var points = line.getPath()
-			return {Start: {Lat: points[0].lat, Lng: points[0].lng}, End: {Lat: points[1].lat, Lng: points[1].lng}}
-			// return _.map(points, function(p){
-			// 	return {Lat: p.lat, Lng: p.lng}
-			// })
-		})
+
 		// console.log(linesData)
 		var pointsData = _.map(markers, function(marker,index){
 			var p = marker.getPosition()
 			return {ID: index+1, Lat: p.lat, Lng: p.lng, PointType: marker.pointType, HasOrder: marker.hasOrder, Address: marker.address}
 		})
+
+		var linesData = _.map(lines, function(line){
+			var points = line.getPath()
+			var start = _.find(pointsData, function(pnt){
+				return points[0].lat == pnt.Lat && pnt.Lng == points[0].lng
+			})
+			var stop = _.find(pointsData, function(pnt){
+				return points[1].lat == pnt.Lat && pnt.Lng == points[1].lng
+			})
+			return {Start: start, End: stop, Distance: line.Distance}
+			// return {Start: {Lat: points[0].lat, Lng: points[0].lng}, End: {Lat: points[1].lat, Lng: points[1].lng}, Distance: line.Distance}
+		})		
+		
 		var uploadMapData = {Points: pointsData, Lines: linesData}
 		console.log(uploadMapData)
 		console.log(JSON.stringify(uploadMapData))
