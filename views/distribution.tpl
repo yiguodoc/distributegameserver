@@ -40,7 +40,7 @@
         </div>
         <div>
         </div>
-        <!-- <div id="allmap" style="height:300px;width:500px;margin-top:10px;"></div> -->
+        <div id="allmap" style="height:200px;width:500px;margin-top:10px;"></div>
     </div>
 <!--     <div id="btnSelectOrder" onclick="selectOrder()" style="text-decoration: underline; padding-bottom: 10px; font-weight: 500; font-size: 25px; color: white;">
       抢订单
@@ -54,11 +54,11 @@
     var conn;
     var output;
     var distributorID = "{{.distributor.ID}}"
-    var map = null
     var marker = null
     var distributor = null
     var mapData = null
     var currentLng,currentLat, maxSpeed, currentSpeed, destLng, destLat
+    var map = new BMap.Map("allmap");
 
     $(function() {
         output = $("#output")
@@ -73,6 +73,9 @@
         // hideAllControls()
         appendLog("正在初始化基础数据")
         prepareConn()
+        initMap()
+        resetMap2Initial()
+
         $("#nodeSelect").dblclick(function(){
             var option = $("option:selected", this)
             var pointID = option.val()
@@ -85,7 +88,7 @@
             }else{
                 // dCloned = _.clone(distributor, true)
                 // dCloned.DestPos = p
-                send({MessageType: 13, Data: {PositionID: p.ID, DistributorID: distributor.ID}})//请求重置目标点
+                send({MessageType: {{.pro_reset_destination_request}}, Data: {PositionID: p.ID, DistributorID: distributor.ID}})//请求重置目标点
             }
         })
     })
@@ -94,21 +97,28 @@
         console.log(msg)
         msg = JSON.parse(msg)
         switch(msg.MessageType){
-            case 10://pro_distribution_prepared 地图基础数据
+            case {{.pro_distribution_prepared}}://pro_distribution_prepared 地图基础数据
             console.dir(msg.Data)
             distributor = msg.Data.Distributor
             mapData = msg.Data.MapData
             setDistributorInfoShow()
             refreshNodeToSelect()
             break
-            case 12://pro__reset_destination
+            case {{.pro_reset_destination}}://pro__reset_destination
             console.info("目标点重置")
             distributor = msg.Data
             setDistributorInfoShow()
             refreshNodeToSelect()
             break
-            case 15://pro_reset_change_state
+            case {{.pro_change_state}}://pro_reset_change_state
             distributor = msg.Data
+            console.log("currentSpeed: ", distributor.CurrentSpeed)
+            setDistributorInfoShow()
+            refreshNodeToSelect()
+            break
+            case {{.pro_move_to_new_position}}:
+            distributor = msg.Data
+            console.log("move to new possition :", distributor.CurrentPos)
             setDistributorInfoShow()
             break
         }
@@ -118,18 +128,20 @@
         var btnChangeMoveState = $("#btnChangeMoveState")
         var state = btnChangeMoveState.attr("state")
         if(state == "0"){//未运行状态
-            send({MessageType: 14, Data: {State: 1, DistributorID: distributor.ID}})//请求重置目标点
+            send({MessageType: {{.pro_change_state_request}}, Data: {State: 1, DistributorID: distributor.ID}})//请求重置运动状态
         }else{
-            send({MessageType: 14, Data: {State: 0, DistributorID: distributor.ID}})//请求重置目标点
+            send({MessageType: {{.pro_change_state_request}}, Data: {State: 0, DistributorID: distributor.ID}})//请求重置运动状态
         }
     }
     function setDistributorInfoShow(){
         //标识当前位置
         if(distributor.CurrentPos != null){
             var pos = distributor.CurrentPos
-            currentLng.text(pos.Lng)
-            currentLat.text(pos.Lat)
+            currentLng.text(pos.Lng.toFixed(6))
+            currentLat.text(pos.Lat.toFixed(6))
+            setMapMarker(pos.Lng, pos.Lat, true)
         }else{
+            resetMap2Initial()
             console.error("当前位置不能为空")
             return
         }
@@ -155,6 +167,7 @@
         }      
     }
     function refreshNodeToSelect(){
+
         //查找可以走向的路径节点
         //这里有两种情况，正处于路径节点上和在两个节点之间
         //对于第一种情况，应该查找所有与该点相关的路径
@@ -186,16 +199,26 @@
     }
     function addNodeToSelect(points){
         var options = $("#nodeSelect option").remove()
+        points = _.remove(points, null)
         _.each(points, function(p){
-            $("#nodeSelect").append(String.format('<option value="{0}">({1}, {2}) {3}</option>', p.ID, p.Lng, p.Lat, p.Address));
+            $("#nodeSelect").append(String.format('<option value="{0}">ID: {0}  ({1}, {2}) {3}</option>', p.ID, p.Lng, p.Lat, p.Address));
         })        
     }
     function isDistributorOnNode(dst){
         var crt = dst.CurrentPos
-        var start = dst.StartPos
-        if(crt.Lat == start.Lat && crt.Lng == start.Lng){
+        if(crt != null && crt.ID > 0){
             return true
         }
+        // var start = dst.StartPos
+        // var dest = des.DestPos
+        // if(crt == null) return false
+        // if(crt.ID == start.ID){
+        //     return true
+        // }
+
+        // if(crt.Lat == start.Lat && crt.Lng == start.Lng){
+        //     return true
+        // }
         return false
     }
     function prepareConn(){
@@ -219,24 +242,24 @@
         console.log("send => ",msg)
         conn.send(JSON.stringify(msg))
     }
-    function selectOrder(){
-        orderID = $("#orderIDList").find("option:selected").val();
-        if(orderID == null || orderID.length <= 0){
-            alert("订单不能为空")
-            return
+    //将地图设置为初始状态，目的是不突出任何信息
+    function resetMap2Initial(){
+        setMapMarker(116.404, 39.915, false)
+    }
+    function initMap(){
+        // map.centerAndZoom(new BMap.Point(116.404, 39.915), 16);
+        map.addControl(new BMap.ZoomControl());  //添加地图缩放控件
+    }
+    function setMapMarker(lng,lat, bAddMarker){
+        map.removeOverlay(marker)
+        if(lng > 0 || lat > 0){
+            map.centerAndZoom(new BMap.Point(lng, lat), 16);
+            // map.addControl(new BMap.ZoomControl());  //添加地图缩放控件
+            if(bAddMarker == true){
+                marker = new BMap.Marker(new BMap.Point(lng, lat));  //创建标注
+                map.addOverlay(marker);                 // 将标注添加到地图中            
+            }
         }
-        var msg = {MessageType: 2, Data:{OrderID: orderID, DistributorID: distributorID}}
-        send(msg)
-        // $("#btnSelectOrder").css("color","white")
-    }
-    function prepared(){
-        var msg = {MessageType: 9, Data:{DistributorID: distributorID}}
-        send(msg)
-        prepareSelectOrderControls()
-    }
-    function prepareSelectOrderControls(){
-        $("#btnPrepared").hide()
-        showOrderSelectButton()
     }
     function hideOrderSelectButton(){
         // $("#btnAccept").hide()

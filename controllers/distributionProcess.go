@@ -19,52 +19,44 @@ var (
 	timePerFrame             float64 = 1
 )
 
-func orderDistributionProcess(event *SysEvent) {
-	DebugTraceF("执行事件：%d: %s", event.eventCode, event.eventCode.name())
-	switch event.eventCode {
+func orderDistributionProcess(msg *MessageWithClient, unit *DistributorProcessUnit) {
+	DebugTraceF("执行事件：%d: %s", msg.MessageType, msg.MessageType.name())
+	switch msg.MessageType {
 
-	case sys_event_distribution_prepared:
-		distributor := event.data.(*Distributor)
-		distributor.CheckPoint = checkpoint_flag_order_distribute
-		// g_room_distributor.broadcastMsgToSubscribers(pro_distribution_prepared, distributor.ID)
-		DebugInfoF("%s 配送准备完成", distributor.Name)
-		triggerSysEvent(NewSysEvent(sys_event_start_order_distribution, distributor))
+	// case sys_event_start_order_distribution:
+	// distributor := event.data.(*Distributor)
+	// if distributor.CurrentPos == nil { //没有保存的位置信息，设置仓库为默认的出发点
+	// 	warehouses := g_mapData.Points.filter(createPositionFilter(POSITION_TYPE_WAREHOUSE))
+	// 	if len(warehouses) > 0 {
+	// 		distributor.CurrentPos = warehouses[0].copy()
+	// 	} else {
+	// 		DebugSysF("无法设置出发点")
+	// 	}
+	// }
+	// if distributor.Speed <= 0 {
+	// 	distributor.Speed = defaultSpeed
+	// }
+	// if distributor.StartPos == nil {
+	// 	distributor.StartPos = distributor.CurrentPos.copy()
+	// }
+	// triggerSysEvent(NewSysEvent(sys_event_order_distribute_additional_msg, distributor.ID))
+	//启动经纬度值的计算
 
-	case sys_event_start_order_distribution:
-		distributor := event.data.(*Distributor)
-		if distributor.CurrentPos == nil { //没有保存的位置信息，设置仓库为默认的出发点
-			warehouses := g_mapData.Points.filter(createPositionFilter(POSITION_TYPE_WAREHOUSE))
-			if len(warehouses) > 0 {
-				distributor.CurrentPos = warehouses[0].copy()
-			} else {
-				DebugSysF("无法设置出发点")
-			}
-		}
-		if distributor.Speed <= 0 {
-			distributor.Speed = defaultSpeed
-		}
-		if distributor.StartPos == nil {
-			distributor.StartPos = distributor.CurrentPos.copy()
-		}
-		triggerSysEvent(NewSysEvent(sys_event_order_distribute_additional_msg, distributor.ID))
-		//启动经纬度值的计算
-		// go startRunning(distributor)
+	// case sys_event_order_distribute_additional_msg:
+	// 	id := event.data.(string)
+	// 	distributor := g_distributors.find(id)
+	// 	type d struct {
+	// 		Distributor *Distributor
+	// 		MapData     *MapData
+	// 	}
+	// 	g_room_distributor.sendMsgToSpecialSubscriber(id, pro_distribution_prepared, &d{distributor, g_mapData})
+	// g_room_distributor.sendMsgToSpecialSubscriber(id, pro_distribution_prepared, g_mapData)
 
-	case sys_event_order_distribute_additional_msg:
-		id := event.data.(string)
-		distributor := g_distributors.find(id)
-		type d struct {
-			Distributor *Distributor
-			MapData     *MapData
-		}
-		g_room_distributor.sendMsgToSpecialSubscriber(id, pro_distribution_prepared, &d{distributor, g_mapData})
-		// g_room_distributor.sendMsgToSpecialSubscriber(id, pro_distribution_prepared, g_mapData)
-
-	case sys_event_reset_destination_request:
-		m := event.data.(map[string]interface{})
+	case pro_reset_destination_request:
+		m := msg.Data.(map[string]interface{})
 		if list, err := mappedValue(m).Getter("PositionID", "DistributorID"); err == nil {
-			pos := g_mapData.Points.findByID(int(list[0].(float64)))
-			if pos == nil {
+			posWanted := g_mapData.Points.findByID(int(list[0].(float64)))
+			if posWanted == nil {
 				DebugMustF("重置目标点出错，不存在编号为 %d 的节点", int(list[0].(float64)))
 				return
 			}
@@ -73,27 +65,59 @@ func orderDistributionProcess(event *SysEvent) {
 				DebugMustF("重置目标点出错，不存在配送员[%s]", distributor.ID)
 				return
 			}
-			if pos.equals(distributor.CurrentPos) {
+			if distributor.CurrentPos.equals(posWanted) {
 				DebugMustF("重置目标点出错，不能和当前所在点相同")
+				DebugTraceF("%s => %s", distributor.PosString(), posWanted.String())
+				DebugPrintList_Info(g_mapData.Points)
+
 				return
 			}
-			//两点需要在同一条线上
-			line := g_mapData.Lines.find(pos, distributor.CurrentPos)
-			if line == nil {
-				DebugMustF("重置目标点出错，两点不属于同一条路径")
-				return
+
+			/*
+			* 当前位置有两种情况，在节点和在节点之间
+			* 如果在节点上，判断目标点与当前节点是否在同一条路径上，是则可以设为终点
+			* 如果在节点之间，那么终点只可以设为两个节点之一，这里只需要注意方向即可
+			 */
+			if distributor.CurrentPos.equals(distributor.StartPos) || distributor.CurrentPos.equals(distributor.DestPos) { //在节点上
+				//两点需要在同一条线上
+				line := g_mapData.Lines.find(posWanted, distributor.StartPos)
+				// line := g_mapData.Lines.find(posWanted, distributor.CurrentPos)
+				if line == nil {
+					DebugMustF("重置目标点出错，两点不属于同一条路径")
+					DebugTraceF("%s => %s", distributor.PosString(), posWanted.String())
+					return
+				}
+				distributor.DestPos = g_mapData.Points.findLngLat(posWanted.Lng, posWanted.Lat)
+				distributor.Distance = line.Distance
+				g_room_distributor.sendMsgToSpecialSubscriber(distributor.ID, pro_reset_destination, distributor)
+				DebugInfoF("配送员设置目标点为 %s , 与当前位置 %s 距离为 %f 米", distributor.DestPos.SimpleString(), distributor.CurrentPos.SimpleString(), distributor.Distance)
+			} else { //在节点之间
+				//如果已经设置了终点，那么新设的点如果和当前的终点相同直接返回
+				if distributor.DestPos != nil && distributor.DestPos.equals(posWanted) {
+					return
+				}
+				//如果新设置的点是起点，相当于掉头回去，需要将起始点和终点交换
+				if distributor.StartPos.equals(posWanted) {
+					p := distributor.StartPos
+					distributor.StartPos = distributor.DestPos
+					distributor.DestPos = p
+					return
+				}
+				DebugInfoF("没有操作的飞过")
 			}
-			distributor.DestPos = pos.copy()
-			distributor.Distance = line.Distance
-			g_room_distributor.sendMsgToSpecialSubscriber(distributor.ID, pro_reset_destination, distributor)
 		} else {
 			DebugMustF("客户端数据格式错误: %s", err)
 		}
-	case sys_event_change_state_request:
-		if list, err := mappedValue(event.data.(map[string]interface{})).Getter("DistributorID", "State"); err == nil {
-			distributor := g_distributors.find(list[0].(string))
-			if distributor == nil {
-				DebugMustF("重置目标点出错，不存在配送员[%s]", distributor.ID)
+	case pro_change_state_request:
+		if list, err := mappedValue(msg.Data.(map[string]interface{})).Getter("DistributorID", "State"); err == nil {
+			// distributor := g_distributors.find(list[0].(string))
+			// if distributor == nil {
+			// 	DebugMustF("重置目标点出错，不存在配送员[%s]", distributor.ID)
+			// 	return
+			// }
+			distributor := unit.distributor
+			if distributor.ID != list[0].(string) {
+				DebugMustF("重置目标点出错，不存在配送员[%s]", list[0].(string))
 				return
 			}
 			state := int(list[1].(float64))
@@ -103,10 +127,11 @@ func orderDistributionProcess(event *SysEvent) {
 				distributor.CurrentSpeed = distributor.Speed
 			}
 			g_room_distributor.sendMsgToSpecialSubscriber(distributor.ID, pro_change_state, distributor)
+			DebugTraceF("配送员 %s 当前速度：%f", unit.distributor.Name, unit.distributor.CurrentSpeed)
 		} else {
 			DebugMustF("客户端数据格式错误: %s", err)
 		}
-	case sys_event_order_distribute_result:
+		// case sys_event_order_distribute_result:
 
 	}
 }

@@ -7,6 +7,11 @@ import (
 	// "time"
 )
 
+// type objectOperate interface {
+// 	GetClone(id interface{}) interface{}
+
+// }
+
 /*
 
 * 作为系统中的位置点，设计上分为三类：仓库位置和路径点，而路径点包括能产生订单的点和不能产生订单的点
@@ -19,10 +24,11 @@ import (
  */
 
 const (
-	POSITION_TYPE_WAREHOUSE   = 0 //仓库
-	POSITION_TYPE_ORDER_ROUTE = 1 //路径节点
-	POSITION_TYPE_ROUTE_ONLY  = 2 //途经点
-	POSITION_TYPE_ROUTE_TEMP  = 3 //计算得出的临时点
+	POSITION_TYPE_TEMP        = -1 //临时点的标志
+	POSITION_TYPE_WAREHOUSE   = 0  //仓库
+	POSITION_TYPE_ORDER_ROUTE = 1  //路径节点
+	POSITION_TYPE_ROUTE_ONLY  = 2  //途经点
+	POSITION_TYPE_ROUTE_TEMP  = 3  //计算得出的临时点
 )
 
 type positionTypeFilter func(*Position) bool
@@ -34,6 +40,7 @@ type Position struct {
 	Address   string
 	PointType int
 	HasOrder  bool
+	mutable   bool
 	// LinkedPoints PositionList //与该位置直接连接的点
 }
 type PositionList []*Position
@@ -44,7 +51,17 @@ func (p *Position) String() string {
 func (p *Position) SimpleString() string {
 	return fmt.Sprintf("(%f, %f)", p.Lng, p.Lat)
 }
-func (p *Position) copy() *Position {
+func (p *Position) checkMutable() {
+	if p.mutable == false {
+		panic("position imutable")
+	}
+}
+func (p *Position) copyTemp(mutable bool) *Position {
+	temp := p.copyAll(mutable)
+	temp.PointType = POSITION_TYPE_TEMP
+	return temp
+}
+func (p *Position) copyAll(mutable bool) *Position {
 	return &Position{
 		ID:        p.ID,
 		Lng:       p.Lng,
@@ -52,6 +69,7 @@ func (p *Position) copy() *Position {
 		Address:   p.Address,
 		PointType: p.PointType,
 		HasOrder:  p.HasOrder,
+		mutable:   mutable,
 	}
 }
 func (p *Position) equals(pos *Position) bool {
@@ -60,7 +78,13 @@ func (p *Position) equals(pos *Position) bool {
 	}
 	return false
 }
+func (p *Position) setLngLat(lng, lat float64) {
+	p.checkMutable()
+	p.Lng = lng
+	p.Lat = lat
+}
 func (p *Position) addLngLat(lng, lat float64) {
+	p.checkMutable()
 	p.Lng += lng
 	p.Lat += lat
 }
@@ -93,16 +117,16 @@ func (pl PositionList) findByID(id int) *Position {
 	}
 	return nil
 }
-func (this PositionList) find(pos *Position) *Position {
+func (this PositionList) findLngLat(lng, lat float64) *Position {
 	for _, p := range this {
-		if p.Lat == pos.Lat && p.Lng == pos.Lng {
+		if p.Lat == lat && p.Lng == lng {
 			return p
 		}
 	}
 	return nil
 }
 func (this PositionList) contains(pos *Position) bool {
-	return this.find(pos) != nil
+	return this.findLngLat(pos.Lng, pos.Lat) != nil
 }
 func (pl PositionList) ListName() string {
 	return "关键点"

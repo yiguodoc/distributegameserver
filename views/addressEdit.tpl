@@ -28,6 +28,7 @@
 	<div id="allmap"  style="height:60%;"></div>
 	<div id ="addressEditBox" style="margin-top: 20px;">
 		<span>当前地址：</span><input id="address" type="text" value="" style="width:90%;"></br>
+		<span>地址坐标：</span><span id="lnglat"></span></br>
         <input id="btnSetAddress" type="button" value="保存" onclick="saveMarkerAddress()" style="">
 	</div>
 	<div style="margin-top:10px;margin-bottom:5px;">
@@ -311,6 +312,11 @@
 
 		selectedMarker.setAnimation(BMAP_ANIMATION_BOUNCE); //跳动的动画
 		var inputAddress = $("#address")
+		var lnglat = $("#lnglat")
+
+			// lnglat.val("")
+		var p = selectedMarker.getPosition()
+		lnglat.text("("+p.lng+", "+p.lat+")")
 		if(selectedMarker.address == null){
 			inputAddress.val("")
 		}else{

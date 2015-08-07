@@ -18,10 +18,12 @@ const (
 
 var error_no_websocket_connection = errors.New("error_no_websocket_connection")
 
+type CheckPoint int
+
 var (
-	checkpoint_flag_origin           = 0
-	checkpoint_flag_order_select     = 1
-	checkpoint_flag_order_distribute = 2
+	checkpoint_flag_origin           CheckPoint = 0
+	checkpoint_flag_order_select     CheckPoint = 1
+	checkpoint_flag_order_distribute CheckPoint = 2
 )
 
 // 配送员
@@ -29,7 +31,7 @@ type Distributor struct {
 	ID                     string
 	Name                   string
 	AcceptedOrders         OrderList
-	CheckPoint             int //所处的关卡
+	CheckPoint             CheckPoint //所处的关卡
 	Online                 bool
 	Color                  string          //地图上marker颜色
 	StartPos, DestPos      *Position       //配送时设置的出发和目的路径点
@@ -69,7 +71,10 @@ func (d *Distributor) PosString() string {
 	if d.CurrentPos == nil {
 		return fmt.Sprintf("ID: %-3s  Name: %-4s  未设定当前位置", d.ID, d.Name)
 	}
-	return fmt.Sprintf("ID: %-3s  Name: %-4s  (%f, %f)", d.ID, d.Name, d.CurrentPos.Lng, d.CurrentPos.Lat)
+	if d.DestPos == nil {
+		return fmt.Sprintf("ID: %-3s  Name: %-4s  (%f, %f) %fkm/h", d.ID, d.Name, d.CurrentPos.Lng, d.CurrentPos.Lat, d.CurrentSpeed)
+	}
+	return fmt.Sprintf("ID: %-3s  Name: %-4s  (%f, %f) => (%f, %f) %fkm/h", d.ID, d.Name, d.CurrentPos.Lng, d.CurrentPos.Lat, d.DestPos.Lng, d.DestPos.Lat, d.CurrentSpeed)
 }
 func (this *Distributor) full() bool {
 	return len(this.AcceptedOrders) >= this.MaxAcceptedOrdersCount
@@ -112,6 +117,9 @@ func (d *Distributor) SetOffline() error {
 	}
 	// d.preparedForOrderSelect = false
 	return nil
+}
+func (d *Distributor) setCheckPoint(check CheckPoint) {
+	d.CheckPoint = check
 }
 
 // func (this *Distributor) startListening() {
@@ -163,6 +171,18 @@ func (l DistributorList) preparedForOrderSelect(id string) {
 		d.CheckPoint = checkpoint_flag_order_select
 	}
 }
+func (l DistributorList) setCheckPoint(id string, checkPoint CheckPoint) {
+	if checkPoint != checkpoint_flag_origin &&
+		checkPoint != checkpoint_flag_order_select &&
+		checkPoint != checkpoint_flag_order_distribute {
+		return
+	}
+	d := l.find(id)
+	if d != nil {
+		d.CheckPoint = checkPoint
+	}
+}
+
 func (l DistributorList) allPreparedForOrderSelect() bool {
 	for _, d := range l {
 		if d.CheckPoint < checkpoint_flag_order_select {

@@ -51,6 +51,7 @@ func (m *MainController) DistributionIndex() {
 		panic("没有配送员 " + distributorID)
 	}
 	m.Data["distributor"] = d
+	setProData(m)
 	m.TplNames = "distribution.tpl"
 }
 

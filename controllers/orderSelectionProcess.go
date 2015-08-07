@@ -3,7 +3,7 @@ package controllers
 import (
 	"errors"
 	// "fmt"
-	"time"
+	// "time"
 )
 
 var (
@@ -34,7 +34,28 @@ func orderSelectionProcess(msg *MessageWithClient, unit *DistributorProcessUnit)
 				broadOrderSelectProposal()
 			case checkpoint_flag_order_distribute:
 				DebugTraceF("配送员上线，状态 %d 配送中", checkpoint_flag_order_distribute)
+				warehouses := g_mapData.Points.filter(createPositionFilter(POSITION_TYPE_WAREHOUSE))
+				if len(warehouses) > 0 {
+					if distributor.StartPos == nil {
+						distributor.StartPos = warehouses[0] //.copy(false)
+					}
+					if distributor.CurrentPos == nil { //没有保存的位置信息，设置仓库为默认的出发点
+						distributor.CurrentPos = distributor.StartPos.copyTemp(true)
+					}
+				} else {
+					DebugSysF("无法设置出发点")
+				}
+				if distributor.Speed <= 0 {
+					distributor.Speed = defaultSpeed
+				}
 				// triggerSysEvent(NewSysEvent(sys_event_start_order_distribution, distributor))
+				// id := event.data.(string)
+				// distributor := g_distributors.find(id)
+				type d struct {
+					Distributor *Distributor
+					MapData     *MapData
+				}
+				g_room_distributor.sendMsgToSpecialSubscriber(distributor.ID, pro_distribution_prepared, &d{distributor, g_mapData})
 			}
 		}
 
@@ -67,25 +88,25 @@ func orderSelectionProcess(msg *MessageWithClient, unit *DistributorProcessUnit)
 		}
 	case pro_order_select_response:
 		unit.center.allUnitsProcess(msg)
-	// case sys_event_start_select_order:
-	//倒数
-	case pro_timer_count_down:
-		g_room_distributor.broadcastMsgToSubscribers(pro_message_broadcast, "配送员全部准备完毕")
-		g_room_distributor.broadcastMsgToSubscribers(pro_message_broadcast, "一大波订单即将到来")
-		//倒计时
-		timer := time.Tick(1 * time.Second)
-		count := 3
-		DebugInfo("start timer...")
-		for {
-			<-timer
-			DebugTraceF("timer count : %d", count)
-			if count <= 0 {
-				break
-			}
-			g_room_distributor.broadcastMsgToSubscribers(pro_timer_count_down, count)
-			count--
-		}
-		triggerSysEvent(NewSysEvent(sys_event_give_out_order, nil))
+		// case sys_event_start_select_order:
+		//倒数
+		// case pro_timer_count_down:
+		// 	g_room_distributor.broadcastMsgToSubscribers(pro_message_broadcast, "配送员全部准备完毕")
+		// 	g_room_distributor.broadcastMsgToSubscribers(pro_message_broadcast, "一大波订单即将到来")
+		// 	//倒计时
+		// 	timer := time.Tick(1 * time.Second)
+		// 	count := 3
+		// 	DebugInfo("start timer...")
+		// 	for {
+		// 		<-timer
+		// 		DebugTraceF("timer count : %d", count)
+		// 		if count <= 0 {
+		// 			break
+		// 		}
+		// 		g_room_distributor.broadcastMsgToSubscribers(pro_timer_count_down, count)
+		// 		count--
+		// 	}
+		// 	triggerSysEvent(NewSysEvent(sys_event_give_out_order, nil))
 
 		// case sys_event_give_order_select_result:
 		// 	distributionResult := data.(*OrderDistribution)

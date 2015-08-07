@@ -3,7 +3,7 @@ package controllers
 import (
 	// "github.com/gorilla/websocket"
 	"encoding/json"
-	"time"
+	// "time"
 	// "strings"
 	// "fmt"
 )
@@ -70,9 +70,9 @@ func init() {
 	//测试用
 	//将订单分配给配送员
 	// g_distributors[0].AcceptedOrders = g_ordersUndistributed[0:3]
-	// g_distributors[0].CheckPoint = checkpoint_flag_order_distribute
+	g_distributors[0].setCheckPoint(checkpoint_flag_order_distribute)
 	// g_distributors[1].AcceptedOrders = g_ordersUndistributed[3:]
-	// g_distributors[1].CheckPoint = checkpoint_flag_order_distribute
+	g_distributors[1].setCheckPoint(checkpoint_flag_order_distribute)
 	// g_ordersDistributed = g_ordersUndistributed[:]
 	// g_ordersUndistributed = g_ordersUndistributed[0:0]
 	//--------------------------------------------------------------------------
@@ -89,7 +89,7 @@ func distributorRoomEventHandler(code, data interface{}) {
 			return
 		}
 		// distributor := data.(*Distributor)
-		g_UnitCenter.newUnit(distributor, orderSelectionProcess)
+		g_UnitCenter.newUnit(distributor, orderSelectionProcess, orderDistributionProcess)
 		g_UnitCenter.singleUnitprocess(distributor.ID, msg)
 		DebugTraceF("配送员上线 ：%s", distributor.String())
 
@@ -256,75 +256,75 @@ func initEventSubscribe() {
 // 	g_room_distributor.broadcastMsgToSubscribers(pro_message_broadcast, event.data)
 // }
 
-//持续向客户端发送倒计时消息
-func onCountDown(event *SysEvent) {
-	if event.data == nil {
-		DebugMustF("倒计时参数错误")
-		return
-	}
-	count := event.data.(int)
-	if count < 0 {
-		DebugInfoF("倒计时参数太小：%d", count)
-	}
-	timer := time.Tick(1 * time.Second)
-	DebugInfo("start timer...")
-	for {
-		<-timer
-		DebugTraceF("timer count : %d", count)
-		if count <= 0 {
-			break
-		}
-		g_room_distributor.broadcastMsgToSubscribers(pro_timer_count_down, count)
-		count--
-	}
-	if event.nextEvent != nil {
-		triggerSysEvent(event.nextEvent)
-	}
-}
+// //持续向客户端发送倒计时消息
+// func onCountDown(event *SysEvent) {
+// 	if event.data == nil {
+// 		DebugMustF("倒计时参数错误")
+// 		return
+// 	}
+// 	count := event.data.(int)
+// 	if count < 0 {
+// 		DebugInfoF("倒计时参数太小：%d", count)
+// 	}
+// 	timer := time.Tick(1 * time.Second)
+// 	DebugInfo("start timer...")
+// 	for {
+// 		<-timer
+// 		DebugTraceF("timer count : %d", count)
+// 		if count <= 0 {
+// 			break
+// 		}
+// 		g_room_distributor.broadcastMsgToSubscribers(pro_timer_count_down, count)
+// 		count--
+// 	}
+// 	if event.nextEvent != nil {
+// 		triggerSysEvent(event.nextEvent)
+// 	}
+// }
 
-//持续向客户端发送倒计时消息
-func onCountDownSilent(event *SysEvent) {
-	if event.data == nil {
-		DebugMustF("倒计时参数错误")
-		return
-	}
-	count := event.data.(int)
-	if count < 0 {
-		DebugInfoF("倒计时参数太小：%d", count)
-	}
-	timer := time.Tick(1 * time.Second)
-	DebugInfo("start timer...")
-	for {
-		<-timer
-		DebugTraceF("timer count : %d", count)
-		if count <= 0 {
-			break
-		}
-		// g_room_distributor.broadcastMsgToSubscribers(pro_timer_count_down, count)
-		count--
-	}
-	if event.nextEvent != nil {
-		triggerSysEvent(event.nextEvent)
-	}
-}
+// //持续向客户端发送倒计时消息
+// func onCountDownSilent(event *SysEvent) {
+// 	if event.data == nil {
+// 		DebugMustF("倒计时参数错误")
+// 		return
+// 	}
+// 	count := event.data.(int)
+// 	if count < 0 {
+// 		DebugInfoF("倒计时参数太小：%d", count)
+// 	}
+// 	timer := time.Tick(1 * time.Second)
+// 	DebugInfo("start timer...")
+// 	for {
+// 		<-timer
+// 		DebugTraceF("timer count : %d", count)
+// 		if count <= 0 {
+// 			break
+// 		}
+// 		// g_room_distributor.broadcastMsgToSubscribers(pro_timer_count_down, count)
+// 		count--
+// 	}
+// 	if event.nextEvent != nil {
+// 		triggerSysEvent(event.nextEvent)
+// 	}
+// }
 
-//系统事件监听
-func initSysEventRoute() {
-	// isTherePkgRunning := false //有没有正在处理的事件包，有的话不开启新的
-	go func() {
-		for {
-			select {
-			case event := <-g_chanEvents:
-				DebugTraceF("接收到系统事件：%d: %s", event.eventCode, event.eventCode.name())
-				// g_sysEventSubscribeList.notifyEventSubscribers(event)
-			}
+// //系统事件监听
+// func initSysEventRoute() {
+// 	// isTherePkgRunning := false //有没有正在处理的事件包，有的话不开启新的
+// 	go func() {
+// 		for {
+// 			select {
+// 			case event := <-g_chanEvents:
+// 				DebugTraceF("接收到系统事件：%d: %s", event.eventCode, event.eventCode.name())
+// 				// g_sysEventSubscribeList.notifyEventSubscribers(event)
+// 			}
 
-		}
-	}()
-}
+// 		}
+// 	}()
+// }
 
-//触发系统事件
-func triggerSysEvent(event *SysEvent) {
-	// DebugTraceF("触发系统事件：%d  %s", event.eventCode, event.eventCode.name())
-	g_chanEvents <- event
-}
+// //触发系统事件
+// func triggerSysEvent(event *SysEvent) {
+// 	// DebugTraceF("触发系统事件：%d  %s", event.eventCode, event.eventCode.name())
+// 	g_chanEvents <- event
+// }

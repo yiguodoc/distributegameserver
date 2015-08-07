@@ -60,7 +60,8 @@ var (
 	pro_change_state_request              ClientMessageTypeCode = 14 //配送员向服务端请求改变运行状态，0 停止  1 运行
 	pro_change_state                      ClientMessageTypeCode = 15 //服务端通知配送员改变运行状态，0 停止  1 运行
 	pro_timer_count_down                  ClientMessageTypeCode = 16 //倒计时
-	pro_max                               ClientMessageTypeCode = 17
+	pro_move_to_new_position              ClientMessageTypeCode = 17 //通知客户端新位置
+	pro_max                               ClientMessageTypeCode = 18
 )
 
 func (c ClientMessageTypeCode) name() (s string) {
@@ -97,6 +98,8 @@ func (c ClientMessageTypeCode) name() (s string) {
 		s = "pro_change_state"
 	case pro_order_distribution_proposal_first:
 		s = "pro_order_distribution_proposal_first"
+	case pro_move_to_new_position:
+		s = "pro_move_to_new_position"
 	default:
 		if (c) < pro_max {
 			panic(fmt.Sprintf("客户端事件(%3d)定义描述不完全", int(c)))
