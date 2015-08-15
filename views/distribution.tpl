@@ -14,38 +14,30 @@
 <body>
     <h1>{{.distributor.Name}}</h1>
     <div>
-        <!-- <input id="btnPrepared" type="button" value="准备完毕" onclick="prepared()" style="margin-bottom: 10px;"></br> -->
-        <!-- <input id="btnAccept" type="button" value="接受订单" onclick="selectOrder()" style="margin-bottom: 10px;"> -->
-        <!-- <input id="btnPass" type="button" value="暂不考虑" onclick="" style="margin-bottom: 10px;margin-left: 70px;"></br> -->
         <div>
-            <div style="margin-bottom:5px;font-size:18px;font-weight: 500;"> 当前位置： </div>
-            <span id= "currentLng">0</span>
-            <span id= "currentLat" style="margin-left: 20px;">0</span>
-
-            <div style="margin-bottom:5px;font-size:18px;font-weight: 500;margin-top:15px;"> 目标位置： </div>
-            <span id= "destLng">0</span>
-            <span id= "destLat" style="margin-left: 20px;">0</span>
+            <div style="margin-bottom:15px;font-size:18px;font-weight: 500;"> 
+                <span style="margin-left: 20px;">当前位置：</span> <span id= "currentLngLat" style="margin-left: 10px;">(0,0)</span>
+                <span style="margin-left: 20px;">目标位置：</span> <span id= "destLngLat" style="margin-left: 10px;">(0,0)</span>
+            </div>
+           
+            <div style="margin-bottom:5px;font-size:18px;font-weight: 500;margin-top:15px;">  
+                <span style="margin-left: 20px;">最高时速：</span> <span id= "maxSpeed" style="margin-left: 10px;">0</span>
+                <span style="margin-left: 20px;">当前时速：</span>  <span id= "currentSpeed" style="margin-left: 10px;">0</span>
+            </div>
             
-            <div style="margin-bottom:5px;font-size:18px;font-weight: 500;margin-top:15px;"> 最高时速： </div>
-            <span id= "maxSpeed" style="margin-left: 0px;">0</span>
+            <div style="margin-bottom:5px;font-size:18px;font-weight: 500;margin-top:15px;margin-left:20px;"> 可选路径节点： </br>
+                <select multiple id="nodeSelect" style="width:60%;"></select></br>
+                <input id="btnChangeMoveState" type="button" value="启动" state = "0" onclick="onChangeMoveState()" style="margin-bottom: 10px; width: 100px; height: 30px; font-size: 20px; margin-top: 3px;"></br>
+            </div>
             
-            <div style="margin-bottom:5px;font-size:18px;font-weight: 500;margin-top:15px;"> 当前时速： </div>
-            <span id= "currentSpeed" style="margin-left: 0px;">0</span>
-
-            <div style="margin-bottom:5px;font-size:18px;font-weight: 500;margin-top:15px;"> 可选路径节点： </div>
-            <select multiple id="nodeSelect" style="width:60%;"></select></br>
-            <input id="btnChangeMoveState" type="button" value="启动" state = "0" onclick="onChangeMoveState()" style="margin-bottom: 10px; width: 100px; height: 30px; font-size: 20px; margin-top: 3px;"></br>
-
+            <div style="margin-bottom:5px;font-size:18px;font-weight: 500;margin-top:15px;margin-left:20px;"> 可签收的订单： </br>
+                <select multiple id="ordersSelect" style="width:60%;"></select></br>
+                <input  type="button" value="签收" state = "0" onclick="onOrderSign()" style="margin-bottom: 10px; width: 100px; height: 30px; font-size: 20px; margin-top: 3px;"></br>
+            </div>
 
         </div>
-        <div>
-        </div>
-        <div id="allmap" style="height:200px;width:500px;margin-top:10px;"></div>
+        <div id="allmap" style="height:200px;width:60%;margin-top:10px;margin-left:20px;"></div>
     </div>
-<!--     <div id="btnSelectOrder" onclick="selectOrder()" style="text-decoration: underline; padding-bottom: 10px; font-weight: 500; font-size: 25px; color: white;">
-      抢订单
-    </div>
- -->
     <div style="  font-size: 23px; margin-bottom: 10px; margin-top: 20px;">信息提示</div>
      <div id="output"></div>
 
@@ -57,16 +49,13 @@
     var marker = null
     var distributor = null
     var mapData = null
-    var currentLng,currentLat, maxSpeed, currentSpeed, destLng, destLat
+    var currentLngLat, maxSpeed, currentSpeed, destLngLat
     var map = new BMap.Map("allmap");
 
     $(function() {
         output = $("#output")
-        currentLng = $("#currentLng")
-        currentLat = $("#currentLat")
-        destLng = $("#destLng")
-        destLat = $("#destLat")
-
+        currentLngLat = $("#currentLngLat")
+        destLngLat = $("#destLngLat")
         maxSpeed = $("#maxSpeed")
         currentSpeed = $("#currentSpeed")
         // mapInit()
@@ -86,8 +75,6 @@
                 console.warn("没有查找到选中的点")
                 return
             }else{
-                // dCloned = _.clone(distributor, true)
-                // dCloned.DestPos = p
                 send({MessageType: {{.pro_reset_destination_request}}, Data: {PositionID: p.ID, DistributorID: distributor.ID}})//请求重置目标点
             }
         })
@@ -114,12 +101,30 @@
             distributor = msg.Data
             console.log("currentSpeed: ", distributor.CurrentSpeed)
             setDistributorInfoShow()
-            refreshNodeToSelect()
             break
             case {{.pro_move_to_new_position}}:
             distributor = msg.Data
             console.log("move to new possition :", distributor.CurrentPos)
             setDistributorInfoShow()
+            break
+            case {{.pro_reach_route_node}}:
+            console.log("reach route node:", distributor.StartPos)
+            setDistributorInfoShow()
+            refreshNodeToSelect()
+            refreshOrderList()
+            break
+            case {{.pro_sign_order}}:
+            console.info("订单签收结果反馈")
+            distributor = msg.Data
+            var signedOrders = _.filter(distributor.AcceptedOrders, function(order){
+                return order.Signed == true
+            })
+            console.info("订单签收进度：%d/%d", _.size(signedOrders), _.size(distributor.AcceptedOrders))
+            // if(_.size(unsignedOrders) <= 0){
+            //     console.info("订单已经全部签收")
+            // }else{
+            //     console.info("剩余 %d 个订单尚未签收", _.size(unsignedOrders))
+            // }
             break
         }
         // distributionProposals = JSON.parse(distributionProposals)        
@@ -133,12 +138,21 @@
             send({MessageType: {{.pro_change_state_request}}, Data: {State: 0, DistributorID: distributor.ID}})//请求重置运动状态
         }
     }
+    function onOrderSign(){
+        var option = $("#ordersSelect option:selected")
+        var orderID = option.val()
+        if(orderID.length <= 0){
+            alert("没有订单被选中")
+            return
+        }
+        console.log("选中订单 ",orderID)
+        send({MessageType: {{.pro_sign_order_request}}, Data: {OrderID: orderID, DistributorID: distributor.ID}})//请求重置目标点
+    }
     function setDistributorInfoShow(){
         //标识当前位置
         if(distributor.CurrentPos != null){
             var pos = distributor.CurrentPos
-            currentLng.text(pos.Lng.toFixed(6))
-            currentLat.text(pos.Lat.toFixed(6))
+            currentLngLat.text(String.format("({0}, {1})", pos.Lng.toFixed(6), pos.Lat.toFixed(6)))
             setMapMarker(pos.Lng, pos.Lat, true)
         }else{
             resetMap2Initial()
@@ -147,13 +161,11 @@
         }
         if(distributor.DestPos != null){
             var pos = distributor.DestPos
-            destLng.text(pos.Lng)
-            destLat.text(pos.Lat)
+            destLngLat.text(String.format("({0}, {1})", pos.Lng.toFixed(6), pos.Lat.toFixed(6)))
         }else{
-            destLng.text(0)
-            destLat.text(0)
+            destLngLat.text(String.format("({0}, {1})", 0, 0))
         }
-        maxSpeed.text(distributor.Speed)
+        maxSpeed.text(distributor.NormalSpeed)
         // currentSpeed.text(distributor.CurrentSpeed)
         var btnChangeMoveState = $("#btnChangeMoveState")
         if(distributor.CurrentSpeed <= 0){
@@ -166,8 +178,22 @@
             btnChangeMoveState.val("停止")
         }      
     }
-    function refreshNodeToSelect(){
+    function refreshOrderList(){
+        var options = $("#ordersSelect option").remove()
 
+        var pos = distributor.StartPos
+        //查看配送员在当前节点有没有订单
+        var orders = distributor.AcceptedOrders
+        var ordersCurrentNode = _.filter(orders, function(order){
+            // var p = order.GeoSrc
+            // return pos.
+            return order.GeoSrc.ID == pos.ID && order.Signed == false
+        })
+        _.each(ordersCurrentNode, function(order){
+            $("#ordersSelect").append(String.format('<option value="{0}">ID: {1}</option>', order.ID, order.ID));
+        })    
+    }
+    function refreshNodeToSelect(){
         //查找可以走向的路径节点
         //这里有两种情况，正处于路径节点上和在两个节点之间
         //对于第一种情况，应该查找所有与该点相关的路径

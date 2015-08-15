@@ -42,6 +42,22 @@ type MapData struct {
 	Lines  LineList
 }
 
+func (m *MainController) Index() {
+	m.Data["HOST"] = fmt.Sprintf("%s:%d", m.Ctx.Input.Host(), m.Ctx.Input.Port())
+	distributorID := m.GetString("id")
+	d := g_distributors.find(distributorID)
+	if d == nil {
+		panic("没有配送员 " + distributorID)
+	}
+	m.Data["distributor"] = d
+	setProData(m)
+
+	m.TplNames = "index.tpl"
+}
+func (m *MainController) Login() {
+	m.TplNames = "login.tpl"
+}
+
 //配送页面
 func (m *MainController) DistributionIndex() {
 	m.Data["HOST"] = fmt.Sprintf("%s:%d", m.Ctx.Input.Host(), m.Ctx.Input.Port())

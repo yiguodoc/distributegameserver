@@ -79,6 +79,18 @@ func (dpc *DistributorProcessUnitCenter) start() *DistributorProcessUnitCenter {
 					} else {
 						DebugMustF("客户端数据格式错误: %s", err)
 					}
+				case pro_move_from_route_to_node:
+					line := msg.Data.(*Line)
+					if line.DistributorsCount() < 2 {
+						line.nobusy()
+						DebugInfoF("line NOBUSY %s ", line)
+					}
+				case pro_move_from_node_to_route:
+					line := msg.Data.(*Line)
+					if line.DistributorsCount() >= 2 {
+						line.busy()
+						DebugInfoF("line BUSY %s", line)
+					}
 				default:
 				}
 			}
@@ -94,12 +106,6 @@ func (dpc *DistributorProcessUnitCenter) allUnitsProcess(msg *MessageWithClient)
 //id : Distributor ID
 func (dpc *DistributorProcessUnitCenter) singleUnitprocess(id string, msg *MessageWithClient) {
 	go func() {
-		// var msg MessageWithClient
-		// err := json.Unmarshal(data.([]byte), &msg)
-		// if err != nil {
-		// 	DebugSysF("解析数据出错：%s", err)
-		// 	continue
-		// }
 		if unit, ok := dpc.units[id]; ok {
 			unit.process(msg)
 		} else {
@@ -166,36 +172,49 @@ func (u *DistributorProcessUnit) start() {
 				distributor := u.distributor
 				//----------------------------------------------------------------------------
 				//计算行走的坐标位置
-				if u.distributor.CurrentSpeed > 0 {
-					if u.distributor.StartPos != nil && u.distributor.DestPos != nil {
+				if u.distributor.NormalSpeed > 0 {
+					if u.distributor.StartPos != nil && u.distributor.DestPos != nil && u.distributor.line != nil {
 						if u.distributor.StartPos.equals(u.distributor.DestPos) == false {
-							DebugInfoF("配送员 %s 运行路线 %s => %s", u.distributor.Name, u.distributor.StartPos.SimpleString(), u.distributor.DestPos.SimpleString())
-							totalTime := u.distributor.Distance * 60 * 60 / (u.distributor.CurrentSpeed * 1000) / realityToSystemTimeRatio //系统中运行路程所花费的时间
-							totalFrames := totalTime / timePerFrame                                                                        //一共大约这么多帧就可以走完
+							DebugTraceF("配送员 %s 运行路线 %s => %s", u.distributor.Name, u.distributor.StartPos.SimpleString(), u.distributor.DestPos.SimpleString())
+							line := u.distributor.line
+							crtSpeed := u.distributor.NormalSpeed
+							if line.isBusy() == true {
+								crtSpeed = crtSpeed * 0.5
+							}
+							u.distributor.CurrentSpeed = crtSpeed
+							totalTime := u.distributor.Distance * 60 * 60 / (crtSpeed * 1000) / realityToSystemTimeRatio //系统中运行路程所花费的时间
+							totalFrames := totalTime / timePerFrame                                                      //一共大约这么多帧就可以走完
 							//使用绝对值差距大的作为分片的标准
 							totalLng := u.distributor.DestPos.Lng - u.distributor.StartPos.Lng
 							totalLat := u.distributor.DestPos.Lat - u.distributor.StartPos.Lat
 							lngPerFrame := totalLng / totalFrames
 							latPerFrame := totalLat / totalFrames
-							DebugTraceF("pos change per frame lng %f  lat %f", lngPerFrame, latPerFrame)
+							// DebugTraceF("pos change per frame lng %f  lat %f", lngPerFrame, latPerFrame)
 							lng, lat := u.distributor.DestPos.minus(u.distributor.CurrentPos) //是否已经足够接近目标点
-							DebugTraceF("pos gap lng %f  lat %f", lng, lat)
+							// DebugTraceF("pos gap lng %f  lat %f", lng, lat)
 							if math.Abs(lng) < math.Abs(lngPerFrame) || math.Abs(lat) < math.Abs(latPerFrame) {
 								u.distributor.CurrentPos.addLngLat(lng, lat)
 								//已经到达目标点，运动停止
-								// u.distributor.CurrentSpeed = 0
 								// u.distributor.StartPos.setLngLat(u.distributor.DestPos.Lng, u.distributor.DestPos.Lat) //
 								u.distributor.StartPos = g_mapData.Points.findLngLat(u.distributor.DestPos.Lng, distributor.DestPos.Lat)
 								u.distributor.DestPos = nil
+								line.removeDistributor(u.distributor.ID)
+								u.distributor.line = nil
 								g_room_distributor.sendMsgToSpecialSubscriber(u.distributor.ID, pro_move_to_new_position, u.distributor) //通知客户端移动到新坐标
-								g_room_distributor.sendMsgToSpecialSubscriber(u.distributor.ID, pro_change_state, u.distributor)         //通知客户端移动到新坐标
+								g_room_distributor.sendMsgToSpecialSubscriber(u.distributor.ID, pro_reach_route_node, u.distributor)     //通知客户端移动到新坐标
 								DebugInfoF("配送员已经行驶到目标点 %s", u.distributor)
 								DebugTraceF("配送员实时位置：%s", u.distributor.PosString())
+								//配送员从路上转移到节点
+								u.center.allUnitsProcess(NewMessageWithClient(pro_move_from_route_to_node, line))
 							} else {
 								u.distributor.CurrentPos.addLngLat(lngPerFrame, latPerFrame)
 								g_room_distributor.sendMsgToSpecialSubscriber(u.distributor.ID, pro_move_to_new_position, u.distributor) //通知客户端移动到新坐标
 								DebugTraceF("配送员实时位置：%s", u.distributor.PosString())
+								//配送员从节点到路上
+								line.addDistributor(u.distributor)
+								u.center.allUnitsProcess(NewMessageWithClient(pro_move_from_node_to_route, line))
 							}
+
 						}
 					}
 				}
@@ -205,36 +224,4 @@ func (u *DistributorProcessUnit) start() {
 		}
 	}
 	go f()
-}
-
-func ddd() {
-	// if u.distributor.StartPos.equals(u.distributor.DestPos) == false {
-	// 	DebugInfoF("配送员 %s 运行路线 %s => %s", u.distributor.Name, u.distributor.StartPos.SimpleString(), u.distributor.DestPos.SimpleString())
-	// 	totalTime := u.distributor.Distance * 60 * 60 / (u.distributor.CurrentSpeed * 1000) / realityToSystemTimeRatio //系统中运行路程所花费的时间
-	// 	totalFrames := totalTime / timePerFrame                                                                        //一共大约这么多帧就可以走完
-	// 	//使用绝对值差距大的作为分片的标准
-	// 	totalLng := u.distributor.DestPos.Lng - u.distributor.StartPos.Lng
-	// 	totalLat := u.distributor.DestPos.Lat - u.distributor.StartPos.Lat
-	// 	lngPerFrame := totalLng / totalFrames
-	// 	latPerFrame := totalLat / totalFrames
-	// 	DebugTraceF("pos change per frame lng %f  lat %f", lngPerFrame, latPerFrame)
-	// 	lng, lat := u.distributor.DestPos.minus(u.distributor.CurrentPos) //是否已经足够接近目标点
-	// 	DebugTraceF("pos gap lng %f  lat %f", lng, lat)
-	// 	if math.Abs(lng) < math.Abs(lngPerFrame) || math.Abs(lat) < math.Abs(latPerFrame) {
-	// 		u.distributor.CurrentPos.addLngLat(lng, lat)
-	// 		//已经到达目标点，运动停止
-	// 		u.distributor.CurrentSpeed = 0
-	// 		u.distributor.StartPos.setLngLat(u.distributor.DestPos.Lng, u.distributor.DestPos.Lat) //
-	// 		u.distributor.DestPos = nil
-	// 		g_room_distributor.sendMsgToSpecialSubscriber(u.distributor.ID, pro_move_to_new_position, u.distributor) //通知客户端移动到新坐标
-	// 		g_room_distributor.sendMsgToSpecialSubscriber(u.distributor.ID, pro_change_state, u.distributor)         //通知客户端移动到新坐标
-	// 		DebugInfoF("配送员已经行驶到目标点 %s", u.distributor)
-	// 		DebugTraceF("配送员实时位置：%s", u.distributor.PosString())
-	// 	} else {
-	// 		u.distributor.CurrentPos.addLngLat(lngPerFrame, latPerFrame)
-	// 		g_room_distributor.sendMsgToSpecialSubscriber(u.distributor.ID, pro_move_to_new_position, u.distributor) //通知客户端移动到新坐标
-	// 		DebugTraceF("配送员实时位置：%s", u.distributor.PosString())
-	// 	}
-	// }
-
 }

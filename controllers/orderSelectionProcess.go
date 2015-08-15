@@ -45,9 +45,9 @@ func orderSelectionProcess(msg *MessageWithClient, unit *DistributorProcessUnit)
 				} else {
 					DebugSysF("无法设置出发点")
 				}
-				if distributor.Speed <= 0 {
-					distributor.Speed = defaultSpeed
-				}
+				// if distributor.NormalSpeed <= 0 {
+				// 	distributor.NormalSpeed = defaultSpeed
+				// }
 				// triggerSysEvent(NewSysEvent(sys_event_start_order_distribution, distributor))
 				// id := event.data.(string)
 				// distributor := g_distributors.find(id)
@@ -153,7 +153,7 @@ func disposeOrderSelectResponse(orderID, distributorID string) error {
 		DebugMustF("系统异常，分配不存在的订单：%s", orderID)
 		return ERR_cannot_find_order
 	}
-	if order.distributed == true {
+	if order.isDistributed() == true {
 		DebugInfoF("订单[%s]已经被分配", orderID)
 		return ERR_order_already_selected
 	}
@@ -169,7 +169,7 @@ func disposeOrderSelectResponse(orderID, distributorID string) error {
 	}
 
 	//确定结果
-	order.distributed = true
+	order.distribute()
 	distributor.acceptOrder(order)
 	DebugTraceF("未分配订单减少到 %d 个", len(g_orders.Filter(newOrderDistributeFilter(false))))
 	return nil

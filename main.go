@@ -11,6 +11,7 @@ func main() {
 	beego.SetStaticPath("/images", "static/img")
 	beego.SetStaticPath("/dataTable", "static/dataTable")
 	beego.SetStaticPath("/stylesheets", "static/css")
+	beego.SetStaticPath("/framework7", "static/Framework7")
 
 	beego.Run()
 }

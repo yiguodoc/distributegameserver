@@ -38,9 +38,10 @@ type Distributor struct {
 	CurrentPos             *Position       //配送时实时所在的路径
 	MaxAcceptedOrdersCount int             `json:"-"` //配送员可以接收的最大订单数量
 	Conn                   *websocket.Conn `json:"-"` // Only for WebSocket users; otherwise nil.
-	Speed                  float64         //运行速度 km/h
+	NormalSpeed            float64         //运行速度 km/h
 	CurrentSpeed           float64         //当前运行速度，0表示停止
 	Distance               float64         //所在或者将要行驶的路径长度
+	line                   *Line
 	// RejectedOrders         OrderList
 }
 

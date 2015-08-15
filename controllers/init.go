@@ -69,10 +69,10 @@ func init() {
 
 	//测试用
 	//将订单分配给配送员
-	// g_distributors[0].AcceptedOrders = g_ordersUndistributed[0:3]
-	g_distributors[0].setCheckPoint(checkpoint_flag_order_distribute)
-	// g_distributors[1].AcceptedOrders = g_ordersUndistributed[3:]
-	g_distributors[1].setCheckPoint(checkpoint_flag_order_distribute)
+	// g_distributors[0].AcceptedOrders = g_orders[0:]
+	// g_distributors[0].setCheckPoint(checkpoint_flag_order_distribute)
+	// g_distributors[1].AcceptedOrders = g_orders[2:]
+	// g_distributors[1].setCheckPoint(checkpoint_flag_order_distribute)
 	// g_ordersDistributed = g_ordersUndistributed[:]
 	// g_ordersUndistributed = g_ordersUndistributed[0:0]
 	//--------------------------------------------------------------------------

@@ -18,13 +18,14 @@ func generateOrderID() string {
 type Order struct {
 	ID          string
 	GeoSrc      *Position
-	distributed bool
+	Distributed bool //分配状态
+	Signed      bool //签收状态
 }
 type orderDistributeFilter func(*Order) bool
 
 func newOrderDistributeFilter(distributed bool) orderDistributeFilter {
 	f := func(o *Order) bool {
-		return o.distributed == distributed
+		return o.Distributed == distributed
 	}
 	return f
 }
@@ -36,7 +37,19 @@ func NewOrder(id string, pos *Position) *Order {
 }
 
 func (o *Order) String() string {
-	return fmt.Sprintf("ID: %s  Address: %s", o.ID, o.GeoSrc.Address)
+	return fmt.Sprintf("ID: %s Signed: %t  Distributed: %t Address: %s ", o.ID, o.Signed, o.Distributed, o.GeoSrc.Address)
+}
+func (o *Order) isDistributed() bool {
+	return o.Distributed
+}
+func (o *Order) isSigned() bool {
+	return o.Signed
+}
+func (o *Order) sign() {
+	o.Signed = true
+}
+func (o *Order) distribute() {
+	o.Distributed = true
 }
 
 type OrderList []*Order
@@ -48,6 +61,9 @@ func (l OrderList) findByID(id string) *Order {
 		}
 	}
 	return nil
+}
+func (l OrderList) contains(id string) bool {
+	return l.findByID(id) != nil
 }
 
 //

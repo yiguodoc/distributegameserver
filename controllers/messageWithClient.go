@@ -61,7 +61,12 @@ var (
 	pro_change_state                      ClientMessageTypeCode = 15 //服务端通知配送员改变运行状态，0 停止  1 运行
 	pro_timer_count_down                  ClientMessageTypeCode = 16 //倒计时
 	pro_move_to_new_position              ClientMessageTypeCode = 17 //通知客户端新位置
-	pro_max                               ClientMessageTypeCode = 18
+	pro_reach_route_node                  ClientMessageTypeCode = 18 //到达一个路径节点
+	pro_sign_order_request                ClientMessageTypeCode = 19 //
+	pro_sign_order                        ClientMessageTypeCode = 20 //
+	pro_move_from_node_to_route           ClientMessageTypeCode = 21 //配送员从节点上路
+	pro_move_from_route_to_node           ClientMessageTypeCode = 22 //
+	pro_max                               ClientMessageTypeCode = 23 //
 )
 
 func (c ClientMessageTypeCode) name() (s string) {
@@ -100,6 +105,16 @@ func (c ClientMessageTypeCode) name() (s string) {
 		s = "pro_order_distribution_proposal_first"
 	case pro_move_to_new_position:
 		s = "pro_move_to_new_position"
+	case pro_reach_route_node:
+		s = "pro_reach_route_node"
+	case pro_sign_order_request:
+		s = "pro_sign_order_request"
+	case pro_sign_order:
+		s = "pro_sign_order"
+	case pro_move_from_node_to_route:
+		s = "pro_move_from_node_to_route"
+	case pro_move_from_route_to_node:
+		s = "pro_move_from_route_to_node"
 	default:
 		if (c) < pro_max {
 			panic(fmt.Sprintf("客户端事件(%3d)定义描述不完全", int(c)))
