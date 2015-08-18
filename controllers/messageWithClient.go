@@ -15,9 +15,19 @@ func clientMessageTypeCodeCheck() {
 	}
 }
 func getClientMessageTypeCodeList() (l []ClientMessageTypeCode) {
-	for i := 1; i < int(pro_max); i++ {
-		l = append(l, ClientMessageTypeCode(i))
+	f := func(start, stop int) (l []ClientMessageTypeCode) {
+		for i := start; i <= stop; i++ {
+			l = append(l, ClientMessageTypeCode(i))
+		}
+		return
 	}
+	l = append(append(l, f(pro_min+1, int(pro_max)-1)...), f(pro_2c_min+1, int(pro_2c_max)-1)...)
+	// for i := pro_min + 1; i < int(pro_max); i++ {
+	// 	l = append(l, ClientMessageTypeCode(i))
+	// }
+	// for i := pro_2c_min + 1; i < int(pro_2c_max); i++ {
+	// 	l = append(l, ClientMessageTypeCode(i))
+	// }
 	return
 }
 
@@ -29,6 +39,18 @@ type MessageWithClientHandlerGenerator (func(interface{}) MessageWithClientHandl
 // type MessageWithClientHandlerGenerator (func(*DistributorProcessUnit) MessageWithClientHandler)
 type ProHandlerGeneratorMap map[ClientMessageTypeCode]MessageWithClientHandlerGenerator
 type ProHandlerMap map[ClientMessageTypeCode]MessageWithClientHandler
+
+func (p ProHandlerGeneratorMap) generateHandlerMap(codes []ClientMessageTypeCode, obj interface{}) ProHandlerMap {
+	m := make(ProHandlerMap)
+	for _, code := range codes {
+		if generator, ok := p[code]; ok {
+			m[code] = generator(obj)
+		} else {
+			DebugSysF("未定义事件 %s 的处理函数", code.name())
+		}
+	}
+	return m
+}
 
 //*******************************************************************************************************************
 var handler_map = ProHandlerGeneratorMap{
@@ -43,22 +65,12 @@ var handler_map = ProHandlerGeneratorMap{
 	pro_sign_order_request:                pro_sign_order_request_handlerGenerator,
 	pro_move_from_node_to_route:           pro_move_from_node_to_route_handlerGenerator,
 	pro_move_from_route_to_node:           pro_move_from_route_to_node_handlerGenerator,
-}
-
-func (p ProHandlerGeneratorMap) generateHandlerMap(codes []ClientMessageTypeCode, obj interface{}) ProHandlerMap {
-	m := make(ProHandlerMap)
-	for _, code := range codes {
-		if generator, ok := p[code]; ok {
-			m[code] = generator(obj)
-		} else {
-			DebugSysF("未定义事件 %s 的处理函数", code.name())
-		}
-	}
-	return m
+	pro_distributor_info_request:          pro_distributor_info_request_handlerGenerator,
 }
 
 //后端与前端交互的消息类型的定义
 var (
+	pro_min                                                     = 0
 	pro_on_line                           ClientMessageTypeCode = 1  //配送员上线
 	pro_off_line                          ClientMessageTypeCode = 2  //配送员下线
 	pro_prepared_for_select_order         ClientMessageTypeCode = 3  //配送员准备好抢订单了,当所有配送员都准备好之后，就可以分发订单了
@@ -72,21 +84,31 @@ var (
 	pro_move_from_node_to_route           ClientMessageTypeCode = 11 //配送员从节点上路
 	pro_move_from_route_to_node           ClientMessageTypeCode = 12 //
 	pro_game_time_tick                    ClientMessageTypeCode = 13 //系统时间流逝出发
-	pro_2c_message_broadcast              ClientMessageTypeCode = 14 //向配送员广播消息
-	pro_2c_order_distribution_proposal    ClientMessageTypeCode = 15 //向配送员分发订单
-	pro_2c_order_select_result            ClientMessageTypeCode = 16 //订单最终归属结果，向客户端推送
-	pro_2c_distribution_prepared          ClientMessageTypeCode = 17 //向配送员发送，可以开始配送，附带的数据包括配送员的所有信息
-	pro_2c_reset_destination              ClientMessageTypeCode = 18 //服务端通知配送员重置了目标点
-	pro_2c_change_state                   ClientMessageTypeCode = 19 //服务端通知配送员改变运行状态，0 停止  1 运行
-	pro_2c_move_to_new_position           ClientMessageTypeCode = 20 //通知客户端新位置
-	pro_2c_reach_route_node               ClientMessageTypeCode = 21 //到达一个路径节点
-	pro_2c_sign_order                     ClientMessageTypeCode = 22 //
-	pro_max                               ClientMessageTypeCode = 23 //
-	// pro_2c_begin_to_select_order          ClientMessageTypeCode = 5  //通知客户端可以开始抢订单了
+	pro_distributor_info_request          ClientMessageTypeCode = 14 //系统时间流逝出发
+	pro_max                                                     = 15
+
+	pro_2c_min                                               = 400
+	pro_2c_message_broadcast           ClientMessageTypeCode = 401 //向配送员广播消息
+	pro_2c_order_distribution_proposal ClientMessageTypeCode = 402 //向配送员分发订单
+	pro_2c_order_select_result         ClientMessageTypeCode = 403 //订单最终归属结果，向客户端推送
+	pro_2c_map_data                    ClientMessageTypeCode = 404 //向配送员发送地图信息
+	pro_2c_reset_destination           ClientMessageTypeCode = 405 //服务端通知配送员重置了目标点
+	pro_2c_change_state                ClientMessageTypeCode = 406 //服务端通知配送员改变运行状态，0 停止  1 运行
+	pro_2c_move_to_new_position        ClientMessageTypeCode = 407 //通知客户端新位置
+	pro_2c_reach_route_node            ClientMessageTypeCode = 408 //到达一个路径节点
+	pro_2c_sign_order                  ClientMessageTypeCode = 409 //
+	pro_2c_distributor_info            ClientMessageTypeCode = 410 //
+	pro_2c_order_full                  ClientMessageTypeCode = 411 //订单满载
+	pro_2c_max                                               = 412
+	// pro_max                               ClientMessageTypeCode = 23 //
 )
 
 func (c ClientMessageTypeCode) name() (s string) {
 	switch c {
+	case pro_2c_order_full:
+		s = "pro_2c_order_full"
+	case pro_2c_distributor_info:
+		s = "pro_2c_distributor_info"
 	case pro_game_time_tick:
 		s = "pro_game_time_tick"
 	case pro_2c_order_distribution_proposal:
@@ -95,8 +117,8 @@ func (c ClientMessageTypeCode) name() (s string) {
 		s = "pro_order_select_response"
 	case pro_timer_count_down:
 		s = "pro_timer_count_down"
-	// case pro_2c_begin_to_select_order:
-	// 	s = "pro_2c_begin_to_select_order"
+	case pro_distributor_info_request:
+		s = "pro_distributor_info_request"
 	case pro_2c_message_broadcast:
 		s = "pro_2c_message_broadcast"
 	case pro_2c_order_select_result:
@@ -107,8 +129,8 @@ func (c ClientMessageTypeCode) name() (s string) {
 		s = "pro_off_line"
 	case pro_prepared_for_select_order:
 		s = "pro_prepared_for_select_order"
-	case pro_2c_distribution_prepared:
-		s = "pro_2c_distribution_prepared"
+	case pro_2c_map_data:
+		s = "pro_2c_map_data"
 	case pro_distribution_start_request:
 		s = "pro_distribution_start_request"
 	case pro_2c_reset_destination:
@@ -134,9 +156,10 @@ func (c ClientMessageTypeCode) name() (s string) {
 	case pro_move_from_route_to_node:
 		s = "pro_move_from_route_to_node"
 	default:
-		if (c) < pro_max {
-			panic(fmt.Sprintf("客户端事件(%3d)定义描述不完全", int(c)))
-		}
+		DebugSysF("客户端事件(%3d)定义描述不完全", int(c))
+		// if (c) < pro_max {
+		// 	panic(fmt.Sprintf("客户端事件(%3d)定义描述不完全", int(c)))
+		// }
 	}
 	return
 }

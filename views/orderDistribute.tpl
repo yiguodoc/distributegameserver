@@ -44,24 +44,13 @@
     var map = new BMap.Map("allmap");
     var marker = null
     var orders = []
+    var distributor = null
 
     $(function() {
         output = $("#output")
         hideAllControls()
         appendLog("正在初始化基础数据")
-        $.get("/distributors?id={{.distributor.ID}}",function(data){
-            console.log(data)
-            if(_.size(data) > 0){
-                var distributor = data[0]
-                console.log(distributor)
-                if(distributor.CheckPoint <= 0){//还在初始化阶段
-                    $("#btnPrepared").show()
-
-                }else{//已经初始化过，中间可能掉线
-                    showOrderSelectButton()
-                }
-            }
-        })
+        setMapMarker(116.404, 39.915, false)
 
         $("#orderIDList").change(function(){//code...
             var orderID = $("#orderIDList").find("option:selected").val();
@@ -85,17 +74,6 @@
             }
         });
         prepareConn()
-
-        // var point = new BMap.Point(); 
-        setMapMarker(116.404, 39.915, false)
-                    // $("#btnSelectOrder").css("color","black")
-        // var selectOptions = $("#orderIDList option").remove()
-        // var selectOptionCount = selectOptions.length
-        // console.log("%d 个 option", selectOptionCount)
-        // for (var i = 0; i < selectOptionCount; i++) {
-        //     console.log(selectOptions[i].text)
-        // };
-
     })
     function setMapMarker(lng,lat, bAddMarker){
         map.removeOverlay(marker)
@@ -130,48 +108,53 @@
                 console.log(msg)
                 msg = JSON.parse(msg)
                 switch(msg.MessageType){
-                    case {{.pro_order_distribution_proposal}}://订单分发
-                    var currentIndex = $("#orderIDList").get(0).selectedIndex
-                    console.log("新订单推送到，当前选择的订单的索引为 %d", currentIndex)
-                    orders = msg.Data
-                    $("#orderIDList option").remove()
-                    _.each(orders, function(order){
-                        var orderTip = "编号："+order.ID
-                        if (order.GeoSrc != null){
-                            orderTip += "  位置:"+order.GeoSrc.Address
-                        } 
-                        $("#orderIDList").append('<option value="'+ order.ID +'">'+ orderTip +'</option>');
-                    })
-                    if(currentIndex < 0){
-                        currentIndex = 0
-                    }
-                    $("#orderIDList").get(0).selectedIndex = currentIndex
-                    $("#orderIDList").trigger("change")
+                    case {{.pro_2c_order_distribution_proposal}}://订单分发
+                        var currentIndex = $("#orderIDList").get(0).selectedIndex
+                        console.log("新订单推送到，当前选择的订单的索引为 %d", currentIndex)
+                        orders = msg.Data
+                        $("#orderIDList option").remove()
+                        _.each(orders, function(order){
+                            var orderTip = "编号："+order.ID
+                            if (order.GeoSrc != null){
+                                orderTip += "  位置:"+order.GeoSrc.Address
+                            } 
+                            $("#orderIDList").append('<option value="'+ order.ID +'">'+ orderTip +'</option>');
+                        })
+                        if(currentIndex < 0){
+                            currentIndex = 0
+                        }
+                        $("#orderIDList").get(0).selectedIndex = currentIndex
+                        $("#orderIDList").trigger("change")
                     break
                     case {{.pro_timer_count_down}}://计时
-                    appendLog("-> "+ msg.Data)
+                        appendLog("-> "+ msg.Data)
                     break
-                    case {{.pro_begin_to_select_order}}://开始选择订单
-                    appendLog("开始！")
-                    $("#btnSelectOrder").css("color","black")
+                    case {{.pro_2c_message_broadcast}}://消息广播
+                        appendLog(msg.Data)
                     break
-                    case {{.pro_message_broadcast}}://消息广播
-                    appendLog(msg.Data)
+                    case {{.pro_2c_order_select_result}}://订单分配结果
+                        if(msg.Data.DistributorID == distributorID){
+                            appendLog("抢到了订单 "+msg.Data.OrderID)
+                        }else{
+                            appendLog("没有抢到订单 "+msg.Data.OrderID)
+                        }
+                        console.log(msg.Data)
                     break
-                    case {{.pro_order_select_result}}://订单分配结果
-                    if(msg.Data.DistributorID == distributorID){
-                        appendLog("抢到了订单 "+msg.Data.OrderID)
-                    }else{
-                        appendLog("没有抢到订单 "+msg.Data.OrderID)
-                    }
-                    console.log(msg.Data)
+                    case {{.pro_2c_order_full}}://订单满载，可以准备配送了
+                        if(msg.Data == distributorID){
+                            hideOrderSelectButton()
+                            $("#btnStartDistribute").show()
+                        }
                     break
-                    case {{.pro_distribution_prepared}}://订单满载，可以准备配送了
-                    if(msg.Data == distributorID){
-                        hideOrderSelectButton()
-                        $("#btnStartDistribute").show()
-                    }
-
+                    case {{.pro_2c_distributor_info}}:
+                        var data = msg.Data
+                        console.log(data)
+                        distributor = data
+                        if(distributor.CheckPoint <= 0){//还在初始化阶段
+                            $("#btnPrepared").show()
+                        }else{//已经初始化过，中间可能掉线
+                            showOrderSelectButton()
+                        }
                     break
                 }
                 // distributionProposals = JSON.parse(distributionProposals)

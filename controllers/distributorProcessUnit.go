@@ -173,6 +173,7 @@ func (dpc *DistributorProcessUnitCenter) newUnit(distributor *Distributor, gener
 				pro_change_state_request,
 				pro_sign_order_request,
 				pro_prepared_for_select_order,
+				pro_distributor_info_request,
 			},
 			// processors:  processors,
 		}

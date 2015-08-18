@@ -84,36 +84,40 @@
         console.log(msg)
         msg = JSON.parse(msg)
         switch(msg.MessageType){
-            case {{.pro_distribution_prepared}}://pro_distribution_prepared 地图基础数据
-            console.dir(msg.Data)
-            distributor = msg.Data.Distributor
-            mapData = msg.Data.MapData
-            setDistributorInfoShow()
-            refreshNodeToSelect()
+            case {{.pro_2c_distributor_info}}://pro_2c_distributor_info 地图基础数据
+                console.dir(msg.Data)
+                distributor = msg.Data
+                setDistributorInfoShow()
+                // refreshNodeToSelect()
             break
-            case {{.pro_reset_destination}}://pro__reset_destination
+            case {{.pro_2c_map_data}}:
+                mapData = msg.Data
+                setDistributorInfoShow()
+                refreshNodeToSelect()
+            break
+            case {{.pro_2c_reset_destination}}://
             console.info("目标点重置")
             distributor = msg.Data
             setDistributorInfoShow()
             refreshNodeToSelect()
             break
-            case {{.pro_change_state}}://pro_reset_change_state
+            case {{.pro_2c_change_state}}://
             distributor = msg.Data
             console.log("currentSpeed: ", distributor.CurrentSpeed)
             setDistributorInfoShow()
             break
-            case {{.pro_move_to_new_position}}:
+            case {{.pro_2c_move_to_new_position}}:
             distributor = msg.Data
             console.log("move to new possition :", distributor.CurrentPos)
             setDistributorInfoShow()
             break
-            case {{.pro_reach_route_node}}:
+            case {{.pro_2c_reach_route_node}}:
             console.log("reach route node:", distributor.StartPos)
             setDistributorInfoShow()
             refreshNodeToSelect()
             refreshOrderList()
             break
-            case {{.pro_sign_order}}:
+            case {{.pro_2c_sign_order}}:
             console.info("订单签收结果反馈")
             distributor = msg.Data
             var signedOrders = _.filter(distributor.AcceptedOrders, function(order){
