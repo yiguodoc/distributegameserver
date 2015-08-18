@@ -14,58 +14,49 @@ import (
 事件触发上有单独
 */
 var (
-	g_mapData *MapData
+	// g_mapData          *MapData
+	// g_room_distributor *WsRoom = NewRoom()
+	g_UnitCenter  *DistributorProcessUnitCenter
+	g_room_viewer *WsRoom //= NewRoom(eventReceiver)
+	// g_orders                   = OrderList{} //所有的订单
 
-	g_distributors DistributorList = DistributorList{ //配送员列表
-		NewDistributor("d01", "张军", 2, color_orange),
-		NewDistributor("d02", "刘晓莉", 2, color_red),
-		// NewDistributor("d03", "桑鸿庆", 3, color_purple),
-	}
-	g_chanEvents                                          = make(chan *SysEvent)    //系统事件中转站
-	g_chanEventPkgOver                                    = make(chan int64)        //接收事件包的id，表明该事件包执行完毕，每个事件包监测到自己没有后续事件执行时，发送自己的id
-	g_sysEventSubscribeList                               = SysEventSubscribeList{} //对各种事件的订阅函数列表
-	g_orders                                              = OrderList{}             //所有的订单
-	g_room_distributor      *WsRoom                       = NewRoom()
-	g_UnitCenter            *DistributorProcessUnitCenter = NewDistributorProcessUnitCenter()
-	g_room_viewer           *WsRoom                       //= NewRoom(eventReceiver)
+	// g_distributors DistributorList = DistributorList{ //配送员列表
+	// 	NewDistributor("d01", "张军", 2, color_orange),
+	// 	NewDistributor("d02", "刘晓莉", 2, color_red),
+	// 	// NewDistributor("d03", "桑鸿庆", 3, color_purple),
+	// }
+	// g_sysEventSubscribeList         = SysEventSubscribeList{} //对各种事件的订阅函数列表
+	// g_chanEvents                    = make(chan *SysEvent)    //系统事件中转站
+	// g_chanEventPkgOver                                    = make(chan int64)        //接收事件包的id，表明该事件包执行完毕，每个事件包监测到自己没有后续事件执行时，发送自己的id
 	// g_distributorUnits                                    = make(DistributorProcessUnitList)
 )
 
 func init() {
-	sysEventCodeCheck()
+	// sysEventCodeCheck()
 	clientMessageTypeCodeCheck()
 	// initEventSubscribe()
 	// initSysEventRoute() //系统事件的分发处理
 
 	// g_room_viewer.init()
-	g_room_distributor.init()
-	g_room_distributor.addEventSubscriber(distributorRoomEventHandler,
+
+	distributors := DistributorList{ //配送员列表
+		NewDistributor("d01", "张军", 2, color_orange),
+		NewDistributor("d02", "刘晓莉", 2, color_red),
+		// NewDistributor("d03", "桑鸿庆", 3, color_purple),
+	}
+	mapData := loadMapData()
+	//加载地图数据
+	orders := mapData.Points.createSimulatedOrders(generateOrderID) //生成模拟订单
+	DebugPrintList_Info(orders)
+	// orders := OrderList{} //所有的订单
+
+	room := NewRoom()
+	room.init()
+	room.addEventSubscriber(distributorRoomEventHandler,
 		WsRoomEventCode_Online, WsRoomEventCode_Offline, WsRoomEventCode_Other)
 
+	g_UnitCenter = NewDistributorProcessUnitCenter(room, distributors, orders, mapData, handler_map)
 	g_UnitCenter.start()
-	// g_room_distributor.addEventSubscriber(onDistributorOfflineChange, WsRoomEventCode_Offline)
-	//订单分发
-	// g_room_distributor.addEventSubscriber(NewProcessNode(orderSelectionProcess).init().NodeEventProcessor(),
-	// 	sys_event_user_online,
-	// 	sys_event_start_select_order,
-	// 	sys_event_give_out_order,
-	// 	sys_event_give_order_select_result,
-	// 	sys_event_order_select_additional_msg,
-	// 	sys_event_select_order_prepared,
-	// 	sys_event_order_select_response)
-
-	// g_room_distributor.addEventSubscriber(NewProcessNode(orderDistributionProcess).init().NodeEventProcessor(),
-	// 	sys_event_user_online,
-	// 	sys_event_start_order_distribution,
-	// 	sys_event_distribution_prepared,
-	// 	sys_event_order_distribute_additional_msg,
-	// 	sys_event_reset_destination_request,
-	// 	sys_event_change_state_request,
-	// 	sys_event_order_distribute_result)
-
-	loadMapData()                                                      //加载地图数据
-	g_orders = g_mapData.Points.createSimulatedOrders(generateOrderID) //生成模拟订单
-	DebugPrintList_Info(g_orders)
 
 	//测试用
 	//将订单分配给配送员
@@ -80,25 +71,31 @@ func init() {
 
 func distributorRoomEventHandler(code, data interface{}) {
 	c := WsRoomEventCode(code.(int))
+
 	switch c {
 	case WsRoomEventCode_Online:
 		msg := data.(*MessageWithClient)
-		distributor := g_distributors.find(msg.Data.(string))
+		distributor := g_UnitCenter.distributors.find(msg.TargetID)
 		if distributor == nil {
 			DebugSysF("未查找到配送员 %s", msg.Data.(string))
 			return
 		}
 		// distributor := data.(*Distributor)
-		g_UnitCenter.newUnit(distributor, orderSelectionProcess, orderDistributionProcess)
-		g_UnitCenter.singleUnitprocess(distributor.ID, msg)
+		// unit := g_UnitCenter.newUnit(distributor)
+		// unit.addProcessor(handler_map)
+		// msg.TargetID = distributor.ID
+		g_UnitCenter.Process(msg)
+		// g_UnitCenter.singleUnitprocess(distributor.ID, msg)
 		DebugTraceF("配送员上线 ：%s", distributor.String())
 
 	case WsRoomEventCode_Offline:
 		msg := data.(*MessageWithClient)
-		id := msg.Data.(string)
+		// id := msg.Data.(string)
+		// msg := NewMessageWithClient(pro_off_line, id, nil)
 		// subscriber := data.(Subscriber)
-		g_UnitCenter.removeUnit(id)
-		DebugTraceF("配送员下线 ：%s", id)
+		// g_UnitCenter.removeUnit(id)
+		g_UnitCenter.Process(msg)
+		// DebugTraceF("配送员下线 ：%s", id)
 
 	case WsRoomEventCode_Other:
 		roommsg := data.(*roomMessage)
@@ -108,7 +105,9 @@ func distributorRoomEventHandler(code, data interface{}) {
 			DebugSysF("解析数据出错：%s", err)
 			return
 		}
-		g_UnitCenter.singleUnitprocess(roommsg.targetID, &msg)
+		msg.TargetID = roommsg.targetID
+		g_UnitCenter.Process(&msg)
+		// g_UnitCenter.singleUnitprocess(roommsg.targetID, &msg)
 	}
 }
 

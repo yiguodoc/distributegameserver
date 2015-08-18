@@ -45,7 +45,7 @@ type MapData struct {
 func (m *MainController) Index() {
 	m.Data["HOST"] = fmt.Sprintf("%s:%d", m.Ctx.Input.Host(), m.Ctx.Input.Port())
 	distributorID := m.GetString("id")
-	d := g_distributors.find(distributorID)
+	d := g_UnitCenter.distributors.find(distributorID)
 	if d == nil {
 		panic("没有配送员 " + distributorID)
 	}
@@ -62,7 +62,7 @@ func (m *MainController) Login() {
 func (m *MainController) DistributionIndex() {
 	m.Data["HOST"] = fmt.Sprintf("%s:%d", m.Ctx.Input.Host(), m.Ctx.Input.Port())
 	distributorID := m.GetString("id")
-	d := g_distributors.find(distributorID)
+	d := g_UnitCenter.distributors.find(distributorID)
 	if d == nil {
 		panic("没有配送员 " + distributorID)
 	}
@@ -72,20 +72,23 @@ func (m *MainController) DistributionIndex() {
 }
 
 //载入地图数据
-func loadMapData() {
+func loadMapData() *MapData {
+	var mapData MapData
 	file := "mapdata/data.toml"
 	if dry.FileExists(file) == false {
 		DebugInfoF("地图文件 %s 不存在", file)
-		return
+		return nil
 	}
-	_, err := toml.DecodeFile(file, &g_mapData)
+	_, err := toml.DecodeFile(file, &mapData)
 	if err != nil {
 		DebugMustF("载入地图数据时出错：%s", err)
+		return nil
 	} else {
-		DebugInfoF("载入地图数据成功，统计：%d 个关键点  %d 条路径", len(g_mapData.Points), len(g_mapData.Lines))
-		DebugPrintList_Info(g_mapData.Points)
-		DebugPrintList_Info(g_mapData.Lines)
+		DebugInfoF("载入地图数据成功，统计：%d 个关键点  %d 条路径", len(mapData.Points), len(mapData.Lines))
+		DebugPrintList_Info(mapData.Points)
+		DebugPrintList_Info(mapData.Lines)
 	}
+	return &mapData
 }
 
 //上传编辑后的地图数据
@@ -133,7 +136,7 @@ func (m *MainController) UploadMapData() {
 
 //查询输出地图数据
 func (m *MainController) MapData() {
-	m.Data["json"] = g_mapData
+	m.Data["json"] = g_UnitCenter.mapData
 	m.ServeJson()
 }
 
@@ -144,7 +147,7 @@ func (m *MainController) AddressEditIndex() {
 func (m *MainController) OrderDistributeIndex() {
 	m.Data["HOST"] = fmt.Sprintf("%s:%d", m.Ctx.Input.Host(), m.Ctx.Input.Port())
 	distributorID := m.GetString("id")
-	d := g_distributors.find(distributorID)
+	d := g_UnitCenter.distributors.find(distributorID)
 	if d == nil {
 		panic("没有配送员 " + distributorID)
 	}
@@ -161,9 +164,9 @@ func setProData(m *MainController) {
 func (m *MainController) Orders() {
 	id := m.GetString("id")
 	if len(id) <= 0 {
-		m.Data["json"] = g_orders
+		m.Data["json"] = g_UnitCenter.orders
 	} else {
-		d := g_orders.findByID(id)
+		d := g_UnitCenter.orders.findByID(id)
 		if d == nil {
 			m.Data["json"] = OrderList{}
 		} else {
@@ -176,9 +179,9 @@ func (m *MainController) Orders() {
 func (m *MainController) Distributors() {
 	id := m.GetString("id")
 	if len(id) <= 0 {
-		m.Data["json"] = g_distributors
+		m.Data["json"] = g_UnitCenter.distributors
 	} else {
-		d := g_distributors.find(id)
+		d := g_UnitCenter.distributors.find(id)
 		if d == nil {
 			m.Data["json"] = DistributorList{}
 		} else {

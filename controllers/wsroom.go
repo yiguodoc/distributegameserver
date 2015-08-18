@@ -134,14 +134,14 @@ func (w *WsRoom) newMessage(id string, content []byte) {
 // broadcastWebSocket broadcasts messages to WebSocket users.
 func (w *WsRoom) broadcastMsgToSubscribers(protocal ClientMessageTypeCode, obj interface{}) {
 	// DebugTraceF("broadcastWebSocket => %s", event)
-	msg := &MessageWithClient{protocal, obj}
+	msg := &MessageWithClient{protocal, "", obj}
 	w.chanPublishToSubscribers <- &roomMessage{content: msg}
 }
 
 // send messages to WebSocket special user.
 func (w *WsRoom) sendMsgToSpecialSubscriber(id string, protocal ClientMessageTypeCode, obj interface{}) {
 	// DebugTraceF("broadcastWebSocket => %s", event)
-	msg := &MessageWithClient{protocal, obj}
+	msg := &MessageWithClient{protocal, id, obj}
 	w.chanPublishToSubscribers <- &roomMessage{targetID: id, content: msg}
 	DebugTraceF("send msg to %s : %s", id, msg)
 }
@@ -242,7 +242,7 @@ func (w *WsRoom) setUserOffline(id string) {
 	if sub != nil {
 		if err := sub.SetOffline(); err == nil {
 			// w.triggerSysEvent(sys_event_user_offline, sub)
-			w.eventSubscribers.notifyEventSubscribers(int(WsRoomEventCode_Offline), NewMessageWithClient(pro_off_line, id))
+			w.eventSubscribers.notifyEventSubscribers(int(WsRoomEventCode_Offline), NewMessageWithClient(pro_off_line, id, id))
 		} else {
 			DebugMustF("[%s] OffLine,But  err: %s", id, err)
 		}
@@ -260,7 +260,7 @@ func (w *WsRoom) newUserOnline(sub Subscriber) {
 	if subTemp == nil {
 		w.subscribers = append(w.subscribers, sub)
 		// w.triggerSysEvent(sys_event_user_online, sub)
-		w.eventSubscribers.notifyEventSubscribers(int(WsRoomEventCode_Online), NewMessageWithClient(pro_on_line, sub.GetID()))
+		w.eventSubscribers.notifyEventSubscribers(int(WsRoomEventCode_Online), NewMessageWithClient(pro_on_line, sub.GetID(), sub.GetID()))
 	}
 	DebugTraceF("上线后，最新用户人数：%d", len(w.subscribers))
 }
