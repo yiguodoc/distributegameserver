@@ -47,7 +47,7 @@
 		    <div class="pages navbar-through">
 		        <!-- Page, "data-page" contains page name -->
 		        
-		        <div data-page="process1" class="page" id="1">
+		        <div data-page="processSelectOrder" class="page" id="1">
 		              <!-- Scrollable page content -->
 		              <div class="page-content "> 
 				        <div class="content-block" style="margin-top: 20px;  margin-bottom: 15px;">
@@ -62,7 +62,7 @@
 			               <div class="swiper-container">
 			                 <div class="swiper-pagination"></div>
 			                 <div class="swiper-wrapper">
-			                   <div class="swiper-slide">
+<!-- 			                   <div class="swiper-slide">
 				                   	<span class="slide-title">订单编号01</span>
 				                   	<span class="slide-content">地址01</span>
 			                   </div>
@@ -75,7 +75,7 @@
 			                   <div class="swiper-slide">
 				                   	<span class="slide-title">订单编号03</span>
 				                   	<span class="slide-content">地址03</span>
-			                   </div>
+			                   </div> -->
 			                 </div>
 			               </div>
 			               <div class="swiper-button-prev"></div>
@@ -99,10 +99,10 @@
                       <div class="page-content "> 
         		        <div class="content-block" style="margin-top: 100px;">
         		                <!-- <p style="text-align: center;">我是{{.distributor.Name}}</p> -->
-        		                <p style="text-align: center;">等待中...</p>
-        		                <div class=" login-btn-content">
-        		                      <a href="#process1" class="button button-big button-fill" id="" onclick="viewRouteToPage(mainView, 'process1')">进入游戏</a>
-        		                </div>
+        		                <p id="waitingInfo" style="text-align: center;">等待其他人进入...</p>
+        		                <!-- <div class=" login-btn-content">
+        		                      <a href="#processSelectOrder" class="button button-big button-fill" id="" onclick="viewRouteToPage(mainView, 'processSelectOrder')">进入游戏</a>
+        		                </div> -->
 
         	            </div>
 
@@ -274,9 +274,10 @@
 	    var wsUrl = "ws://{{.HOST}}/wsOrderDistribution?id={{.distributor.ID}}" 
 	    var MessageHandlers = [
 	    	{MessageType: {{.pro_2c_all_prepared_4_select_order}}, handler: function(msg){
-	    		console.log("route to %s", 'process1')
-	        	viewRouteToPage(mainView, 'process1')
+	    		console.log("route to %s", 'processSelectOrder')
+	        	viewRouteToPage(mainView, 'processSelectOrder')
 	    	}},
+	    	{MessageType: {{.pro_2c_message_broadcast_before_game_start}}, handler: pro_2c_message_broadcast_before_game_start_handler},
 	    	{MessageType: {{.pro_2c_order_distribution_proposal}}, handler: pro_2c_order_distribution_proposal_handler},
 	    	{MessageType: {{.pro_timer_count_down}}, handler: pro_timer_count_down_handler},
 	    	{MessageType: {{.pro_2c_message_broadcast}}, handler: pro_2c_message_broadcast_handler},
@@ -285,16 +286,18 @@
 	    	{MessageType: {{.pro_2c_distributor_info}}, handler: pro_2c_distributor_info_handler}
 	    ]
 
-
+	    function pro_2c_message_broadcast_before_game_start_handler(msg){
+	    	$$("#waitingInfo").text(msg.Data)
+	    }
 	    function pro_2c_order_distribution_proposal_handler(msg){
 	    	mySwiper.removeAllSlides();
 	    	orders = msg.Data
 	    	_.each(orders, function(order){
-	    	    var orderTip = "编号："+order.ID
-	    	    if (order.GeoSrc != null){
-	    	        orderTip += "  位置:"+order.GeoSrc.Address
-	    	    } 
-	    	    mySwiper.appendSlide(String.format('<div class="swiper-slide"> <span class="slide-title">{0}</span> <span class="slide-content">{1}</span> </div>',order.ID, orderTip))
+	    	    // var orderTip = "编号："+order.ID
+	    	    // if (order.GeoSrc != null){
+	    	    //     orderTip += "  位置:"+order.GeoSrc.Address
+	    	    // } 
+	    	    mySwiper.appendSlide(String.format('<div class="swiper-slide"> <span class="slide-title">{0}</span> <span class="slide-content">{1}</span> </div>',order.ID, order.GeoSrc.Address))
 	    	})
 	    }
 	    function pro_timer_count_down_handler(msg){
@@ -331,7 +334,23 @@
 	    	    // showOrderSelectButton()
 	    	}
 	    }
+	    function selectOrder(){
+	        var index = mySwiper.activeIndex
+	        if(index >= 0){
+	            var slide = mySwiper.slides[index]          
+	            console.log("选择了第 %d 个Slide", index)
+	            // console.log(slide)
+	            var $slide = $(slide)
+	            var $title = $(".slide-title", $slide)
+	            var orderID = $title.text()
+	            console.log("获取的订单ID为：%s", orderID)
+	            var msg = {MessageType: {{.pro_order_select_response}}, Data:{OrderID: orderID, DistributorID: distributorID}}
+	            send(msg)
 
+	            // mySwiper.removeSlide(index)
+	            // mySwiper.appendSlide('<div class="swiper-slide"> <span class="slide-title">订单编号04</span> <span class="slide-content">地址04</span> </div>')
+	        }
+	    }
 	    function onPreparedToStartGame(){
         	viewRouteToPage(mainView, 'waiting')
 	        	// viewRouteToPage(mainView, 'process1')

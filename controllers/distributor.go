@@ -122,84 +122,95 @@ func (d *Distributor) SetOffline() error {
 func (d *Distributor) setCheckPoint(check CheckPoint) {
 	d.CheckPoint = check
 }
-
-// func (this *Distributor) startListening() {
-// 	go func() {
-// 		msg := <-this.chBroadcastOrder
-// 		if msg.msgType == BROADCASTMSGTYPE_ORDER_DISTRIBUTE {
-// 			if this.full() == false {
-// 				time.Sleep(time.Duration(rand.Intn(2)) * time.Second)
-// 				msg.chMsg <- this
-// 				// DebugTraceF("%s try to accept order %s", this.ID, msg.order.ID)
-// 			}
-// 		}
-// 	}()
-// 	go func() {
-// 		msg := <-this.chBroadcastOrderResult
-// 		if msg.msgType == BROADCASTMSGTYPE_ORDER_DISTRIBUTE_RESULT {
-// 			resultDistributor := msg.distributor
-// 			// order := msg.order
-// 			if resultDistributor.ID == this.ID {
-// 				// DebugTraceF("ME %s Get order %s", this.ID, order.ID)
-// 				// this.AcceptedOrders = append(this.AcceptedOrders, order)
-// 			} else {
-// 				// DebugTraceF("NOT ME %s But %s get order %s", this.ID, resultDistributor.ID, order.ID)
-// 			}
-// 		}
-// 	}()
-// }
-
-// //订单分配通知
-// func (this *Distributor) orderComing(order *Order, chMsg chan *Distributor) {
-// 	if this.full() == false {
-// 		time.Sleep(time.Duration(rand.Intn(2)) * time.Second)
-// 		chMsg <- this
-// 		// DebugTraceF("%s try to accept order %s", this.ID, order.ID)
-// 		resultDistributor := <-chMsg
-// 		if resultDistributor.ID == this.ID {
-// 			// DebugTraceF("ME %s Get order %s", this.ID, order.ID)
-// 		} else {
-// 			// DebugTraceF("NOT ME But %s get order %s", resultDistributor.ID, order.ID)
-// 		}
-// 	}
-// }
+func (d *Distributor) copyAll() *Distributor {
+	return &Distributor{
+		ID:                     d.ID,
+		Name:                   d.Name,
+		AcceptedOrders:         OrderList{},
+		MaxAcceptedOrdersCount: d.MaxAcceptedOrdersCount,
+		CheckPoint:             d.CheckPoint,
+		Color:                  d.Color,
+	}
+}
 
 type DistributorList []*Distributor
 
-func (l DistributorList) preparedForOrderSelect(id string) {
-	d := l.find(id)
-	if d != nil {
-		d.CheckPoint = checkpoint_flag_order_select
-	}
-}
-func (l DistributorList) setCheckPoint(id string, checkPoint CheckPoint) {
-	if checkPoint != checkpoint_flag_origin &&
-		checkPoint != checkpoint_flag_order_select &&
-		checkPoint != checkpoint_flag_order_distribute {
-		return
-	}
-	d := l.find(id)
-	if d != nil {
-		d.CheckPoint = checkPoint
-	}
-}
-
-func (l DistributorList) allPreparedForOrderSelect() bool {
-	for _, d := range l {
-		if d.CheckPoint < checkpoint_flag_order_select {
-			return false
+func (dl DistributorList) clone(f predictor) (l DistributorList) {
+	for _, d := range dl {
+		if f == nil || f(d) {
+			l = append(l, d.copyAll())
 		}
 	}
-	return true
+	return
 }
-func (d DistributorList) find(id string) *Distributor {
-	for _, d := range d {
-		if d.ID == id {
-			return d
+func (dl DistributorList) forEach(f func(*Distributor)) {
+	for _, d := range dl {
+		if f != nil {
+			f(d)
+		}
+	}
+}
+func (dl DistributorList) filter(f predictor) (l DistributorList) {
+	for _, d := range dl {
+		if f == nil || f(d) {
+			l = append(l, d)
+		}
+	}
+	return
+}
+func (dl DistributorList) findOne(f predictor) *Distributor {
+	for _, p := range dl {
+		if f(p) {
+			return p
 		}
 	}
 	return nil
 }
+func (this DistributorList) ListName() string {
+	return "配送员信息"
+}
+func (this DistributorList) InfoList() (list []string) {
+	for _, d := range this {
+		list = append(list, d.String())
+	}
+	return
+}
+
+// func (l DistributorList) preparedForOrderSelect(id string) {
+// 	d := l.find(id)
+// 	if d != nil {
+// 		d.CheckPoint = checkpoint_flag_order_select
+// 	}
+// }
+// func (l DistributorList) setCheckPoint(id string, checkPoint CheckPoint) {
+// 	if checkPoint != checkpoint_flag_origin &&
+// 		checkPoint != checkpoint_flag_order_select &&
+// 		checkPoint != checkpoint_flag_order_distribute {
+// 		return
+// 	}
+// 	d := l.find(id)
+// 	if d != nil {
+// 		d.CheckPoint = checkPoint
+// 	}
+// }
+
+// func (l DistributorList) allPreparedForOrderSelect() bool {
+// 	for _, d := range l {
+// 		if d.CheckPoint < checkpoint_flag_order_select {
+// 			return false
+// 		}
+// 	}
+// 	return true
+// }
+
+// func (d DistributorList) find(id string) *Distributor {
+// 	for _, d := range d {
+// 		if d.ID == id {
+// 			return d
+// 		}
+// 	}
+// 	return nil
+// }
 
 // func (this DistributorList) startListening() {
 // 	for _, d := range this {
@@ -211,14 +222,14 @@ func (d DistributorList) find(id string) *Distributor {
 // 		go d.orderComing(order, chMsg)
 // 	}
 // }
-func (this DistributorList) notFull() (list DistributorList) {
-	for _, d := range this {
-		if d.full() == false {
-			list = append(list, d)
-		}
-	}
-	return
-}
+// func (this DistributorList) notFull() (list DistributorList) {
+// 	for _, d := range this {
+// 		if d.full() == false {
+// 			list = append(list, d)
+// 		}
+// 	}
+// 	return
+// }
 
 // func (this DistributorList) setBroadcastChannel(chOrder, chResult <-chan *broadcastMsg) {
 // 	for _, d := range this {
@@ -227,13 +238,3 @@ func (this DistributorList) notFull() (list DistributorList) {
 // 	}
 
 // }
-
-func (this DistributorList) ListName() string {
-	return "配送员信息"
-}
-func (this DistributorList) InfoList() (list []string) {
-	for _, d := range this {
-		list = append(list, d.String())
-	}
-	return
-}

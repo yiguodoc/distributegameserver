@@ -54,57 +54,60 @@ func (p ProHandlerGeneratorMap) generateHandlerMap(codes []ClientMessageTypeCode
 
 //*******************************************************************************************************************
 var handler_map = ProHandlerGeneratorMap{
-	pro_on_line:                           pro_on_line_handlerGenerator,
-	pro_off_line:                          pro_off_line_handlerGenerator,
-	pro_prepared_for_select_order:         pro_prepared_for_select_order_handlerGenerator,
-	pro_order_distribution_proposal_first: pro_order_distribution_proposal_first_handlerGenerator,
-	pro_order_select_response:             pro_order_select_response_handlerGenerator,
-	pro_reset_destination_request:         pro_reset_destination_request_handlerGenerator,
-	pro_game_time_tick:                    pro_game_time_tick_handlerGenerator,
-	pro_change_state_request:              pro_change_state_request_handlerGenerator,
-	pro_sign_order_request:                pro_sign_order_request_handlerGenerator,
-	pro_move_from_node_to_route:           pro_move_from_node_to_route_handlerGenerator,
-	pro_move_from_route_to_node:           pro_move_from_route_to_node_handlerGenerator,
-	pro_distributor_info_request:          pro_distributor_info_request_handlerGenerator,
+	pro_on_line:                   pro_on_line_handlerGenerator,
+	pro_off_line:                  pro_off_line_handlerGenerator,
+	pro_prepared_for_select_order: pro_prepared_for_select_order_handlerGenerator,
+	pro_game_start:                pro_game_start_handlerGenerator,
+	pro_order_select_response:     pro_order_select_response_handlerGenerator,
+	pro_reset_destination_request: pro_reset_destination_request_handlerGenerator,
+	pro_game_time_tick:            pro_game_time_tick_handlerGenerator,
+	pro_change_state_request:      pro_change_state_request_handlerGenerator,
+	pro_sign_order_request:        pro_sign_order_request_handlerGenerator,
+	pro_move_from_node_to_route:   pro_move_from_node_to_route_handlerGenerator,
+	pro_move_from_route_to_node:   pro_move_from_route_to_node_handlerGenerator,
+	pro_distributor_info_request:  pro_distributor_info_request_handlerGenerator,
 }
 
 //后端与前端交互的消息类型的定义
 var (
-	pro_min                                                     = 0
-	pro_on_line                           ClientMessageTypeCode = 1  //配送员上线
-	pro_off_line                          ClientMessageTypeCode = 2  //配送员下线
-	pro_prepared_for_select_order         ClientMessageTypeCode = 3  //配送员准备好抢订单了,当所有配送员都准备好之后，就可以分发订单了
-	pro_order_distribution_proposal_first ClientMessageTypeCode = 4  //第一次向配送员分发订单，自带倒数
-	pro_order_select_response             ClientMessageTypeCode = 5  //单个配送员对订单的选择，向服务端提交
-	pro_distribution_start_request        ClientMessageTypeCode = 6  //配送员向服务端请求开始订单的配送
-	pro_reset_destination_request         ClientMessageTypeCode = 7  //配送员向服务端请求重置目标点
-	pro_change_state_request              ClientMessageTypeCode = 8  //配送员向服务端请求改变运行状态，0 停止  1 运行
-	pro_timer_count_down                  ClientMessageTypeCode = 9  //倒计时
-	pro_sign_order_request                ClientMessageTypeCode = 10 //
-	pro_move_from_node_to_route           ClientMessageTypeCode = 11 //配送员从节点上路
-	pro_move_from_route_to_node           ClientMessageTypeCode = 12 //
-	pro_game_time_tick                    ClientMessageTypeCode = 13 //系统时间流逝出发
-	pro_distributor_info_request          ClientMessageTypeCode = 14 //系统时间流逝出发
-	pro_max                                                     = 15
+	pro_min                                              = 0
+	pro_on_line                    ClientMessageTypeCode = 1  //配送员上线
+	pro_off_line                   ClientMessageTypeCode = 2  //配送员下线
+	pro_prepared_for_select_order  ClientMessageTypeCode = 3  //配送员准备好抢订单了,当所有配送员都准备好之后，就可以分发订单了
+	pro_game_start                 ClientMessageTypeCode = 4  //第一次向配送员分发订单，自带倒数
+	pro_order_select_response      ClientMessageTypeCode = 5  //单个配送员对订单的选择，向服务端提交
+	pro_distribution_start_request ClientMessageTypeCode = 6  //配送员向服务端请求开始订单的配送
+	pro_reset_destination_request  ClientMessageTypeCode = 7  //配送员向服务端请求重置目标点
+	pro_change_state_request       ClientMessageTypeCode = 8  //配送员向服务端请求改变运行状态，0 停止  1 运行
+	pro_timer_count_down           ClientMessageTypeCode = 9  //倒计时
+	pro_sign_order_request         ClientMessageTypeCode = 10 //
+	pro_move_from_node_to_route    ClientMessageTypeCode = 11 //配送员从节点上路
+	pro_move_from_route_to_node    ClientMessageTypeCode = 12 //
+	pro_game_time_tick             ClientMessageTypeCode = 13 //系统时间流逝出发
+	pro_distributor_info_request   ClientMessageTypeCode = 14 //系统时间流逝出发
+	pro_max                                              = 15
 
-	pro_2c_min                                               = 400
-	pro_2c_message_broadcast           ClientMessageTypeCode = 401 //向配送员广播消息
-	pro_2c_order_distribution_proposal ClientMessageTypeCode = 402 //向配送员分发订单
-	pro_2c_order_select_result         ClientMessageTypeCode = 403 //订单最终归属结果，向客户端推送
-	pro_2c_map_data                    ClientMessageTypeCode = 404 //向配送员发送地图信息
-	pro_2c_reset_destination           ClientMessageTypeCode = 405 //服务端通知配送员重置了目标点
-	pro_2c_change_state                ClientMessageTypeCode = 406 //服务端通知配送员改变运行状态，0 停止  1 运行
-	pro_2c_move_to_new_position        ClientMessageTypeCode = 407 //通知客户端新位置
-	pro_2c_reach_route_node            ClientMessageTypeCode = 408 //到达一个路径节点
-	pro_2c_sign_order                  ClientMessageTypeCode = 409 //
-	pro_2c_distributor_info            ClientMessageTypeCode = 410 //
-	pro_2c_order_full                  ClientMessageTypeCode = 411 //订单满载
-	pro_2c_all_prepared_4_select_order ClientMessageTypeCode = 412
-	pro_2c_max                         ClientMessageTypeCode = 413
+	pro_2c_min                                                       = 400
+	pro_2c_message_broadcast                   ClientMessageTypeCode = 401 //向配送员广播消息
+	pro_2c_order_distribution_proposal         ClientMessageTypeCode = 402 //向配送员分发订单
+	pro_2c_order_select_result                 ClientMessageTypeCode = 403 //订单最终归属结果，向客户端推送
+	pro_2c_map_data                            ClientMessageTypeCode = 404 //向配送员发送地图信息
+	pro_2c_reset_destination                   ClientMessageTypeCode = 405 //服务端通知配送员重置了目标点
+	pro_2c_change_state                        ClientMessageTypeCode = 406 //服务端通知配送员改变运行状态，0 停止  1 运行
+	pro_2c_move_to_new_position                ClientMessageTypeCode = 407 //通知客户端新位置
+	pro_2c_reach_route_node                    ClientMessageTypeCode = 408 //到达一个路径节点
+	pro_2c_sign_order                          ClientMessageTypeCode = 409 //
+	pro_2c_distributor_info                    ClientMessageTypeCode = 410 //
+	pro_2c_order_full                          ClientMessageTypeCode = 411 //订单满载
+	pro_2c_all_prepared_4_select_order         ClientMessageTypeCode = 412
+	pro_2c_message_broadcast_before_game_start ClientMessageTypeCode = 413
+	pro_2c_max                                 ClientMessageTypeCode = 414
 )
 
 func (c ClientMessageTypeCode) name() (s string) {
 	switch c {
+	case pro_2c_message_broadcast_before_game_start:
+		s = "pro_2c_message_broadcast_before_game_start"
 	case pro_2c_all_prepared_4_select_order:
 		s = "pro_2c_all_prepared_4_select_order"
 	case pro_2c_order_full:
@@ -143,8 +146,8 @@ func (c ClientMessageTypeCode) name() (s string) {
 		s = "pro_change_state_request"
 	case pro_2c_change_state:
 		s = "pro_2c_change_state"
-	case pro_order_distribution_proposal_first:
-		s = "pro_order_distribution_proposal_first"
+	case pro_game_start:
+		s = "pro_game_start"
 	case pro_2c_move_to_new_position:
 		s = "pro_2c_move_to_new_position"
 	case pro_2c_reach_route_node:

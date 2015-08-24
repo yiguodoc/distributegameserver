@@ -8,6 +8,9 @@ import (
 	"time"
 )
 
+type DataWithID interface {
+	GetID() string
+}
 type DistributorProcessUnitList map[string]*DistributorProcessUnit
 
 type DistributorProcessUnitCenter struct {
@@ -16,7 +19,7 @@ type DistributorProcessUnitCenter struct {
 	processors        map[ClientMessageTypeCode]MessageWithClientHandler
 	supportPro        []ClientMessageTypeCode
 	distributors      DistributorList
-	distributorFilter func(*Distributor) bool
+	distributorFilter func(interface{}) bool
 	orders            OrderList
 	mapData           *MapData
 	mapDataLoader     func() *MapData
@@ -25,32 +28,47 @@ type DistributorProcessUnitCenter struct {
 	// chanResult chan bool //返回执行的结果
 }
 
-func NewDistributorProcessUnitCenter(wsRoom *WsRoom, distributors DistributorList, orders OrderList, mapData *MapData, generators ProHandlerGeneratorMap) *DistributorProcessUnitCenter {
+func NewDistributorProcessUnitCenter(wsRoom *WsRoom, distributors []string, orders OrderList, mapData *MapData) *DistributorProcessUnitCenter {
+
+	filterGenerator := func(idList []string) func(interface{}) bool {
+		return func(d interface{}) bool {
+			for _, id := range idList {
+				if id == d.(DataWithID).GetID() {
+					return true
+				}
+			}
+			return false
+		}
+	}
 	center := &DistributorProcessUnitCenter{
-		units:        DistributorProcessUnitList{},
-		chanEvent:    make(chan *MessageWithClient),
-		distributors: distributors,
-		orders:       orders,
-		mapData:      mapData,
-		wsRoom:       wsRoom,
+		units:             DistributorProcessUnitList{},
+		chanEvent:         make(chan *MessageWithClient),
+		orders:            orders,
+		mapData:           mapData,
+		wsRoom:            wsRoom,
+		processors:        make(ProHandlerMap),
+		distributorFilter: filterGenerator(distributors),
 		supportPro: []ClientMessageTypeCode{
-			pro_order_distribution_proposal_first,
+			pro_game_start,
 			pro_order_select_response,
 			pro_move_from_route_to_node,
 			pro_move_from_node_to_route,
 			pro_on_line,
 			pro_off_line,
+			pro_prepared_for_select_order,
 		},
-		processors: make(ProHandlerMap),
+
+		// distributors: distributors,
 	}
-	center.processors = generators.generateHandlerMap(center.supportPro, center)
-	for _, distributor := range center.distributors {
-		center.newUnit(distributor, generators)
-	}
+	center.processors = handler_map.generateHandlerMap(center.supportPro, center)
 	return center
 }
 
 func (dpc *DistributorProcessUnitCenter) start() *DistributorProcessUnitCenter {
+	dpc.distributors = g_distributorStore.clone(dpc.distributorFilter)
+	for _, distributor := range dpc.distributors {
+		dpc.newUnit(distributor)
+	}
 	if dpc.mapDataLoader != nil {
 		dpc.mapData = dpc.mapDataLoader()
 	}
@@ -61,79 +79,14 @@ func (dpc *DistributorProcessUnitCenter) start() *DistributorProcessUnitCenter {
 			case msg := <-dpc.chanEvent:
 				DebugInfoF("%s", msg)
 				if processor, ok := dpc.processors[msg.MessageType]; ok { //首先自行处理
-					processor(msg)
+					go processor(msg)
 				} else {
 					if unit, ok := dpc.units[msg.TargetID]; ok { //之后交于处理单位处理
-						unit.process(msg)
+						go unit.process(msg)
 					} else {
 						DebugSysF("未找到消息处理单位：%s", msg)
 					}
 				}
-				// switch msg.MessageType {
-				// case pro_order_distribution_proposal_first: //全体倒计时
-				// 	g_room_distributor.broadcastMsgToSubscribers(pro_message_broadcast, "配送员全部准备完毕")
-				// 	g_room_distributor.broadcastMsgToSubscribers(pro_message_broadcast, "一大波订单即将到来")
-				// 	//倒计时
-				// 	timer := time.Tick(1 * time.Second)
-				// 	count := 3
-				// 	// DebugInfo("start timer...")
-				// 	for {
-				// 		<-timer
-				// 		DebugTraceF("timer count : %d", count)
-				// 		if count <= 0 {
-				// 			break
-				// 		}
-				// 		g_room_distributor.broadcastMsgToSubscribers(pro_timer_count_down, count)
-				// 		count--
-				// 	}
-				// 	if len(g_distributors.notFull()) > 0 {
-				// 		broadOrderSelectProposal()
-				// 	}
-
-				// case pro_order_select_response:
-				// 	m := msg.Data.(map[string]interface{})
-				// 	if list, err := mappedValue(m).Getter("OrderID", "DistributorID"); err == nil {
-				// 		orderID := list[0].(string)
-				// 		distributorID := list[1].(string)
-				// 		if err := disposeOrderSelectResponse(orderID, distributorID); err != nil {
-				// 			DebugInfoF("处理订单分配时的信息提示：%s", err)
-				// 		} else {
-				// 			//将分配结果通知到各方，包括获得订单的客户端、群通知，并引发分配结果事件，使得观察者也可以得到通知
-				// 			distributionResult := NewOrderDistribution(orderID, distributorID)
-				// 			distributor := g_distributors.find(distributorID)
-				// 			g_room_distributor.sendMsgToSpecialSubscriber(distributorID, pro_order_select_result, distributionResult)
-
-				// 			msg := fmt.Sprintf("订单[%s]已经由配送员[%s]选定", distributionResult.OrderID, distributor.Name)
-				// 			g_room_distributor.broadcastMsgToSubscribers(pro_message_broadcast, msg)
-				// 			DebugInfo(msg)
-
-				// 			if distributor.full() == true { //配送员的订单满载了
-				// 				g_room_distributor.broadcastMsgToSubscribers(pro_message_broadcast, fmt.Sprintf("配送员 %s 订单满载", distributor.Name))
-				// 				g_room_distributor.broadcastMsgToSubscribers(pro_distribution_prepared, distributor.ID)
-				// 				distributor.setCheckPoint(checkpoint_flag_order_distribute)
-				// 				// triggerSysEvent(NewSysEvent(sys_event_distribution_prepared, distributor))
-				// 			}
-				// 			if len(g_distributors.notFull()) > 0 {
-				// 				broadOrderSelectProposal()
-				// 			}
-				// 		}
-				// 	} else {
-				// 		DebugMustF("客户端数据格式错误: %s", err)
-				// 	}
-				// case pro_move_from_route_to_node:
-				// 	line := msg.Data.(*Line)
-				// 	if line.DistributorsCount() < 2 {
-				// 		line.nobusy()
-				// 		DebugInfoF("line NOBUSY %s ", line)
-				// 	}
-				// case pro_move_from_node_to_route:
-				// 	line := msg.Data.(*Line)
-				// 	if line.DistributorsCount() >= 2 {
-				// 		line.busy()
-				// 		DebugInfoF("line BUSY %s", line)
-				// 	}
-				// default:
-				// }
 			case <-timer:
 				for _, unit := range dpc.units {
 					go unit.process(NewMessageWithClient(pro_game_time_tick, "", nil))
@@ -144,25 +97,11 @@ func (dpc *DistributorProcessUnitCenter) start() *DistributorProcessUnitCenter {
 	return dpc
 }
 
-// func (dpc *DistributorProcessUnitCenter) addProcessor(generators ProHandlerGeneratorMap) {
-// 	dpc.processors = generators.generateHandlerMap(dpc.supportPro, dpc)
-// }
 func (dpc *DistributorProcessUnitCenter) Process(msg *MessageWithClient) {
-	// func (dpc *DistributorProcessUnitCenter) Process(data interface{}) {
 	dpc.chanEvent <- msg
 }
 
-// //id : Distributor ID
-// func (dpc *DistributorProcessUnitCenter) singleUnitprocess(id string, msg *MessageWithClient) {
-// 	go func() {
-// 		if unit, ok := dpc.units[id]; ok {
-// 			unit.process(msg)
-// 		} else {
-// 			DebugSysF("没有找到可以处理的配送单元，系统异常")
-// 		}
-// 	}()
-// }
-func (dpc *DistributorProcessUnitCenter) newUnit(distributor *Distributor, generators ProHandlerGeneratorMap) *DistributorProcessUnit {
+func (dpc *DistributorProcessUnitCenter) newUnit(distributor *Distributor) *DistributorProcessUnit {
 	// func (dpc *DistributorProcessUnitCenter) newUnit(distributor *Distributor, processors ...(func(ClientMessageTypeCode, interface{}, *DistributorProcessUnit))) {
 	if u, ok := dpc.units[distributor.ID]; ok {
 		DebugInfoF("配送处理单元 %s 重复添加", distributor.ID)
@@ -178,13 +117,13 @@ func (dpc *DistributorProcessUnitCenter) newUnit(distributor *Distributor, gener
 				pro_reset_destination_request,
 				pro_change_state_request,
 				pro_sign_order_request,
-				pro_prepared_for_select_order,
 				pro_distributor_info_request,
+				// pro_prepared_for_select_order,
 			},
 			// processors:  processors,
 		}
 		dpc.units[distributor.ID] = unit
-		unit.processors = generators.generateHandlerMap(unit.supportPro, unit)
+		unit.processors = handler_map.generateHandlerMap(unit.supportPro, unit)
 		// unit.start()
 		return unit
 	}

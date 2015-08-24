@@ -58,6 +58,9 @@ func (p *Position) checkMutable() {
 		panic("position imutable")
 	}
 }
+func (p *Position) setMutabel(b bool) {
+	p.mutable = b
+}
 func (p *Position) copyTemp(mutable bool) *Position {
 	temp := p.copyAll(mutable)
 	temp.PointType = POSITION_TYPE_TEMP
@@ -95,7 +98,12 @@ func (p *Position) minus(pos *Position) (lng, lat float64) {
 }
 
 func (pl PositionList) clone(f predictor) (l PositionList) {
-
+	for _, p := range pl {
+		if f == nil || f(p) {
+			l = append(l, p.copyAll(true))
+		}
+	}
+	return
 }
 
 func (pl PositionList) filter(f predictor) (l PositionList) {

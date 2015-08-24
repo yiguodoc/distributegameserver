@@ -30,6 +30,9 @@ require(['jquery', 'lodash', 'Framework7', 'Chart'], function ($, _, Framework7,
       // Do something here when page loaded and initialized
         var page = e.detail.page
         console.log("%s loaded...", page.name)
+        if(page.name == "processSelectOrder"){
+
+        }
     })        
     mainView = myApp.addView('.view-main', {
         // Because we use fixed-through navbar we can enable dynamic navbar
@@ -169,19 +172,7 @@ function t(){
 
 
 
-function selectOrder(){
-    var index = mySwiper.activeIndex
-    if(index >= 0){
-        var slide = mySwiper.slides[index]          
-        console.log("选择了第 %d 个Slide", index)
-        console.log(slide)
-        var $slide = $(slide)
-        var $title = $(".slide-title", $slide)
-        console.log("获取的订单ID为：%s", $title.text())
-        mySwiper.removeSlide(index)
-        mySwiper.appendSlide('<div class="swiper-slide"> <span class="slide-title">订单编号04</span> <span class="slide-content">地址04</span> </div>')
-    }
-}
+
 //将地图设置为初始状态，目的是不突出任何信息
 function resetMap2Initial(){
     setMapMarker(116.404, 39.915, false)

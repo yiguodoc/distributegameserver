@@ -31,7 +31,8 @@ func (this *MainController) ServerWSOrderDistribution() {
 	// beego.Debug(requestURI)
 	// beego.Trace(ws.LocalAddr())
 	// Join chat room.
-	g_UnitCenter.wsRoom.join(Subscriber(g_UnitCenter.distributors.find(userID)), ws)
+	distributor := g_UnitCenter.distributors.findOne(func(o interface{}) bool { return o.(DataWithID).GetID() == userID })
+	g_UnitCenter.wsRoom.join(Subscriber(distributor), ws)
 	// g_room_distributor.join(userID, subscriber_type_distributor, ws)
 	defer g_UnitCenter.wsRoom.leave(userID)
 	// Message receive loop.

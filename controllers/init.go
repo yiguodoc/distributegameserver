@@ -11,31 +11,28 @@ import (
 )
 
 var (
-	g_UnitCenter     *DistributorProcessUnitCenter
-	g_room_viewer    *WsRoom            //= NewRoom(eventReceiver)
-	distributorStore = DistributorList{ //配送员列表
+	g_UnitCenter       *DistributorProcessUnitCenter
+	g_room_viewer      *WsRoom            //= NewRoom(eventReceiver)
+	g_distributorStore = DistributorList{ //配送员列表
 		NewDistributor("d01", "张军", 2, color_orange),
 		NewDistributor("d02", "刘晓莉", 2, color_red),
 		// NewDistributor("d03", "桑鸿庆", 3, color_purple),
+	}
+	g_regions = RegionList{
+		NewRegion("1", "#111111", 39.932725, 39.934789, 116.622593, 116.628198),
+		NewRegion("2", "#222222", 39.932725, 39.934789, 116.628198, 116.632007),
+		NewRegion("3", "#333333", 39.932725, 39.934789, 116.632007, 116.639374),
 	}
 )
 
-func withoutNil(list []interface{}) (l []interface{}) {
-	for _, item := range list {
-		if item != nil {
-			l = append(l, item)
-		}
-	}
-	return
-}
 func init() {
 	clientMessageTypeCodeCheck()
 
-	distributors := DistributorList{ //配送员列表
-		NewDistributor("d01", "张军", 2, color_orange),
-		NewDistributor("d02", "刘晓莉", 2, color_red),
-		// NewDistributor("d03", "桑鸿庆", 3, color_purple),
-	}
+	// distributors := DistributorList{ //配送员列表
+	// 	NewDistributor("d01", "张军", 2, color_orange),
+	// 	NewDistributor("d02", "刘晓莉", 2, color_red),
+	// 	// NewDistributor("d03", "桑鸿庆", 3, color_purple),
+	// }
 	mapData := loadMapData()
 	//加载地图数据
 	f := func(o interface{}) interface{} {
@@ -54,7 +51,7 @@ func init() {
 	room.addEventSubscriber(distributorRoomEventHandler,
 		WsRoomEventCode_Online, WsRoomEventCode_Offline, WsRoomEventCode_Other)
 
-	g_UnitCenter = NewDistributorProcessUnitCenter(room, distributors, orders, mapData, handler_map)
+	g_UnitCenter = NewDistributorProcessUnitCenter(room, []string{"d01", "d02"}, orders, mapData)
 	g_UnitCenter.start()
 
 	//测试用
@@ -74,7 +71,8 @@ func distributorRoomEventHandler(code, data interface{}) {
 	switch c {
 	case WsRoomEventCode_Online:
 		msg := data.(*MessageWithClient)
-		distributor := g_UnitCenter.distributors.find(msg.TargetID)
+		distributor := g_UnitCenter.distributors.findOne(func(o interface{}) bool { return o.(DataWithID).GetID() == msg.TargetID })
+		// distributor := g_UnitCenter.distributors.find(msg.TargetID)
 		if distributor == nil {
 			DebugSysF("未查找到配送员 %s", msg.Data.(string))
 			return

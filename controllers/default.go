@@ -45,7 +45,8 @@ type MapData struct {
 func (m *MainController) Index() {
 	m.Data["HOST"] = fmt.Sprintf("%s:%d", m.Ctx.Input.Host(), m.Ctx.Input.Port())
 	distributorID := m.GetString("id")
-	d := g_UnitCenter.distributors.find(distributorID)
+	d := g_UnitCenter.distributors.findOne(func(o interface{}) bool { return o.(DataWithID).GetID() == distributorID })
+	// d := g_UnitCenter.distributors.find(distributorID)
 	if d == nil {
 		panic("没有配送员 " + distributorID)
 	}
@@ -62,7 +63,8 @@ func (m *MainController) Login() {
 func (m *MainController) DistributionIndex() {
 	m.Data["HOST"] = fmt.Sprintf("%s:%d", m.Ctx.Input.Host(), m.Ctx.Input.Port())
 	distributorID := m.GetString("id")
-	d := g_UnitCenter.distributors.find(distributorID)
+	d := g_UnitCenter.distributors.findOne(func(o interface{}) bool { return o.(DataWithID).GetID() == distributorID })
+	// d := g_UnitCenter.distributors.find(distributorID)
 	if d == nil {
 		panic("没有配送员 " + distributorID)
 	}
@@ -147,7 +149,8 @@ func (m *MainController) AddressEditIndex() {
 func (m *MainController) OrderDistributeIndex() {
 	m.Data["HOST"] = fmt.Sprintf("%s:%d", m.Ctx.Input.Host(), m.Ctx.Input.Port())
 	distributorID := m.GetString("id")
-	d := g_UnitCenter.distributors.find(distributorID)
+	d := g_UnitCenter.distributors.findOne(func(o interface{}) bool { return o.(DataWithID).GetID() == distributorID })
+	// d := g_UnitCenter.distributors.find(distributorID)
 	if d == nil {
 		panic("没有配送员 " + distributorID)
 	}
@@ -166,7 +169,8 @@ func (m *MainController) Orders() {
 	if len(id) <= 0 {
 		m.Data["json"] = g_UnitCenter.orders
 	} else {
-		d := g_UnitCenter.orders.findByID(id)
+		d := g_UnitCenter.orders.findOne(func(o interface{}) bool { return o.(*Order).ID == id })
+		// d := g_UnitCenter.orders.findByID(id)
 		if d == nil {
 			m.Data["json"] = OrderList{}
 		} else {
@@ -181,7 +185,8 @@ func (m *MainController) Distributors() {
 	if len(id) <= 0 {
 		m.Data["json"] = g_UnitCenter.distributors
 	} else {
-		d := g_UnitCenter.distributors.find(id)
+		d := g_UnitCenter.distributors.findOne(func(o interface{}) bool { return o.(DataWithID).GetID() == id })
+		// d := g_UnitCenter.distributors.find(id)
 		if d == nil {
 			m.Data["json"] = DistributorList{}
 		} else {
