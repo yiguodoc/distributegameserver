@@ -53,15 +53,6 @@ func (s SysEventSubscribeList) contains(code interface{}) bool {
 	return ok
 }
 
-// func (s SysEventSubscribeList) find(code interface{}) *SysEventSubscribe {
-// 	c := code.(int)
-// 	for _, sub := range s {
-// 		if sub.code == c {
-// 			return sub
-// 		}
-// 	}
-// 	return nil
-// }
 func (s SysEventSubscribeList) notifyEventSubscribers(code, para interface{}) {
 	// func (s SysEventSubscribeList) notifyEventSubscribers(sysEvent *SysEvent) {
 	// sub := s.find(code)
@@ -75,25 +66,14 @@ func (s SysEventSubscribeList) notifyEventSubscribers(code, para interface{}) {
 	} else {
 		DebugSysF("can NOT find code %d", code)
 	}
-	// if sub != nil {
-	// 	DebugTraceF("notifyEventSubscribers %d => %d  ", code, len(sub.eventSubscribers))
-	// 	for _, f := range sub.eventSubscribers {
-	// 		go f(code, para)
-	// 	}
-	// } else {
-	// 	DebugSysF("can NOT find code %d", code)
-	// }
+
 }
 func (s SysEventSubscribeList) removeEventSubscriber(code interface{}, process eventProcessor) {
 	// func (s SysEventSubscribeList) removeEventSubscriber(code sysEventCode, flag string) {
 	if s.contains(code.(int)) {
 		s[code.(int)].removeSubscriber(process)
 	}
-	// sub := s.find(code.(int))
-	// if sub != nil {
-	// 	// delete(sub.eventSubscribers, flag)
-	// 	sub.removeSubscriber(process)
-	// }
+
 }
 
 // func (s SysEventSubscribeList) addEventSubscriber(code sysEventCode, f eventProcessor) {
@@ -111,12 +91,3 @@ func (s SysEventSubscribeList) addEventSubscriber(f eventProcessor, codes ...int
 		}
 	}
 }
-
-// func (s SysEventSubscribeList) checkEventWithNoSubscriber() (l []int) {
-// 	for _, sub := range s {
-// 		if len(sub.eventSubscribers) <= 0 {
-// 			l = append(l, sub.code)
-// 		}
-// 	}
-// 	return
-// }

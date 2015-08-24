@@ -84,18 +84,7 @@ type WsRoom struct {
 	chanMessage              (chan *roomMessage) // new message comes in and need to do something
 	subscribers              SubscriberList      //配送人员列表，在线或者不在线
 	eventSubscribers         SysEventSubscribeList
-	// EventReceiver            func(string, interface{})
-	// chanMessage              (chan *MessageWithClient) // new message comes in and need to do something
-	// EventReceiver            func(code sysEventCode, para interface{})
-	// EventReceiver            func(eventName string, para interface{})
-	// chanMsgToSpecialSubscribers (chan *roomMessage)       // Send events here to send to special.
-	// chanPublishToViewers      (chan *MessageWithClient) // Send events here to publish them.
 }
-
-// type roomInternalMessage struct {
-// 	id      string
-// 	content []byte
-// }
 
 //******************************************************************
 //wsroom helper function
@@ -149,9 +138,6 @@ func (w *WsRoom) sendMsgToSpecialSubscriber(id string, protocal ClientMessageTyp
 //******************************************************************
 
 func NewRoom() *WsRoom {
-	// func NewRoom(eventReceiver func(string, interface{})) *WsRoom {
-	// func NewRoom(eventReceiver func(code sysEventCode, para interface{})) *WsRoom {
-	// func NewRoom(eventReceiver func(eventName string, para interface{})) *WsRoom {
 	return &WsRoom{
 		chanSubscribe:            make(chan Subscriber),   // Channel for new join users.
 		chanUnsubscribe:          make(chan string),       // Channel for exit users.
@@ -159,9 +145,6 @@ func NewRoom() *WsRoom {
 		chanMessage:              make(chan *roomMessage), // new message comes in and need to do something
 		subscribers:              SubscriberList{},        //配送人员列表，在线或者不在线
 		eventSubscribers:         SysEventSubscribeList{},
-		// EventReceiver:            eventReceiver,
-		// chanMsgToSpecialSubscribers: make(chan *roomMessage),       // Send events here to publish them.
-		// chanPublishToViewers:      make(chan *MessageWithClient), // Send events here to publish them.
 	}
 }
 func (w *WsRoom) init() {
@@ -231,12 +214,6 @@ func (w *WsRoom) removeEventSubscriber(code WsRoomEventCode, process eventProces
 	w.eventSubscribers.removeEventSubscriber(int(code), process)
 }
 
-// func (w *WsRoom) triggerSysEvent(code sysEventCode, para interface{}) {
-// 	// func (w *WsRoom) triggerSysEvent(eventName string, para interface{}) {
-// 	if w.EventReceiver != nil {
-// 		w.EventReceiver(code, para)
-// 	}
-// }
 func (w *WsRoom) setUserOffline(id string) {
 	sub := w.subscribers.findByID(id)
 	if sub != nil {
@@ -264,14 +241,3 @@ func (w *WsRoom) newUserOnline(sub Subscriber) {
 	}
 	DebugTraceF("上线后，最新用户人数：%d", len(w.subscribers))
 }
-
-// func isUserExist(name string) bool {
-// 	// for _, sub := range subscribers {
-// 	for ele := subscribers.Front(); ele != nil; ele = ele.Next() {
-// 		sub := ele.Value.(*Subscriber)
-// 		if sub.Name == name {
-// 			return true
-// 		}
-// 	}
-// 	return false
-// }

@@ -99,12 +99,14 @@ var (
 	pro_2c_sign_order                  ClientMessageTypeCode = 409 //
 	pro_2c_distributor_info            ClientMessageTypeCode = 410 //
 	pro_2c_order_full                  ClientMessageTypeCode = 411 //订单满载
-	pro_2c_max                                               = 412
-	// pro_max                               ClientMessageTypeCode = 23 //
+	pro_2c_all_prepared_4_select_order ClientMessageTypeCode = 412
+	pro_2c_max                         ClientMessageTypeCode = 413
 )
 
 func (c ClientMessageTypeCode) name() (s string) {
 	switch c {
+	case pro_2c_all_prepared_4_select_order:
+		s = "pro_2c_all_prepared_4_select_order"
 	case pro_2c_order_full:
 		s = "pro_2c_order_full"
 	case pro_2c_distributor_info:

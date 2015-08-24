@@ -81,7 +81,7 @@
                             <div class="col-10"></div>
                             <div class="col-80">
                                 <div class=" login-btn-content">
-                                      <a href="/index" class="button button-big button-fill external" id="btnLogin">登录</a>
+                                      <a href="/index?id=d01" class="button button-big button-fill external" id="btnLogin">登录</a>
                                 </div>
 
                             </div>

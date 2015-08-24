@@ -1,26 +1,35 @@
 package controllers
 
 import (
+	// "github.com/ssor/fauxgaux"
 	// "github.com/gorilla/websocket"
 	"encoding/json"
 	// "time"
 	// "strings"
 	// "fmt"
+	// "reflect"
 )
 
 var (
-	g_UnitCenter  *DistributorProcessUnitCenter
-	g_room_viewer *WsRoom //= NewRoom(eventReceiver)
-
+	g_UnitCenter     *DistributorProcessUnitCenter
+	g_room_viewer    *WsRoom            //= NewRoom(eventReceiver)
+	distributorStore = DistributorList{ //配送员列表
+		NewDistributor("d01", "张军", 2, color_orange),
+		NewDistributor("d02", "刘晓莉", 2, color_red),
+		// NewDistributor("d03", "桑鸿庆", 3, color_purple),
+	}
 )
 
+func withoutNil(list []interface{}) (l []interface{}) {
+	for _, item := range list {
+		if item != nil {
+			l = append(l, item)
+		}
+	}
+	return
+}
 func init() {
-	// sysEventCodeCheck()
 	clientMessageTypeCodeCheck()
-	// initEventSubscribe()
-	// initSysEventRoute() //系统事件的分发处理
-
-	// g_room_viewer.init()
 
 	distributors := DistributorList{ //配送员列表
 		NewDistributor("d01", "张军", 2, color_orange),
@@ -29,9 +38,16 @@ func init() {
 	}
 	mapData := loadMapData()
 	//加载地图数据
-	orders := mapData.Points.createSimulatedOrders(generateOrderID) //生成模拟订单
-	DebugPrintList_Info(orders)
+	f := func(o interface{}) interface{} {
+		pos := o.(*Position)
+		if pos.HasOrder {
+			return NewOrder(generateOrderID(), pos)
+		}
+		return nil
+	}
+	orders := mapData.Points.Map(f).transform(Sys_Type_Order).(OrderList)
 	// orders := OrderList{} //所有的订单
+	DebugPrintList_Info(orders)
 
 	room := NewRoom()
 	room.init()

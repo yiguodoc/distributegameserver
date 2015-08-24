@@ -11,14 +11,17 @@ import (
 type DistributorProcessUnitList map[string]*DistributorProcessUnit
 
 type DistributorProcessUnitCenter struct {
-	units        DistributorProcessUnitList
-	chanEvent    chan *MessageWithClient
-	processors   map[ClientMessageTypeCode]MessageWithClientHandler
-	supportPro   []ClientMessageTypeCode
-	distributors DistributorList
-	orders       OrderList
-	mapData      *MapData
-	wsRoom       *WsRoom
+	units             DistributorProcessUnitList
+	chanEvent         chan *MessageWithClient
+	processors        map[ClientMessageTypeCode]MessageWithClientHandler
+	supportPro        []ClientMessageTypeCode
+	distributors      DistributorList
+	distributorFilter func(*Distributor) bool
+	orders            OrderList
+	mapData           *MapData
+	mapDataLoader     func() *MapData
+	wsRoom            *WsRoom
+	// distributorFilter func(interface{}) DistributorList
 	// chanResult chan bool //返回执行的结果
 }
 
@@ -48,6 +51,9 @@ func NewDistributorProcessUnitCenter(wsRoom *WsRoom, distributors DistributorLis
 }
 
 func (dpc *DistributorProcessUnitCenter) start() *DistributorProcessUnitCenter {
+	if dpc.mapDataLoader != nil {
+		dpc.mapData = dpc.mapDataLoader()
+	}
 	go func() {
 		timer := time.Tick(1 * time.Second) //计时器功能
 		for {

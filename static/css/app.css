@@ -35,7 +35,7 @@ i.tabbar-demo-icon-4 {
 
 .swiper-custom {
   position:relative;
-  height:150px;
+  height:120px;
   margin-bottom: 35px;
 }
 .swiper-container {
@@ -47,7 +47,9 @@ i.tabbar-demo-icon-4 {
 .swiper-slide span {
   text-align:center;
   display:block;
-  margin: 20px;
+  /*margin: 20px;*/
+  margin-top: 15px;
+  /*margin-bottom: 10px;*/
   font-size:21px;
 }
 .swiper-pagination-bullet {

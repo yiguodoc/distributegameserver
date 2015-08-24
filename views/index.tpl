@@ -17,7 +17,7 @@
 
 
   </head>
-  <body>
+  <body class="theme-lightblue" distributorID = "{{.distributor.ID}}">
     <!-- Status bar overlay for full screen mode (PhoneGap) -->
     <div class="statusbar-overlay"></div>
     <!-- Panels overlay-->
@@ -29,8 +29,6 @@
     <!-- Views -->
     <!-- <div class="views"> -->
     <div class="views tabs toolbar-through">
-
-
 
 		<!-- Your main view, should have "view-main" class -->
 		<!-- 信息页面 -->
@@ -49,13 +47,13 @@
 		    <div class="pages navbar-through">
 		        <!-- Page, "data-page" contains page name -->
 		        
-		        <div data-page="process1" class="page" id="">
+		        <div data-page="process1" class="page" id="1">
 		              <!-- Scrollable page content -->
 		              <div class="page-content "> 
 				        <div class="content-block" style="margin-top: 20px;  margin-bottom: 15px;">
 			                <!-- <p style="text-align: center;">我是{{.distributor.Name}}</p> -->
 			                <div id="canvas-holder" style="text-align: center;">
-	                			<canvas id="chart-area" width="150" height="150"/>
+	                			<canvas id="chart-area" width="130" height="130"/>
 	                		</div>
 			                <p style="text-align: center;margin-top:0px;">订单区域分布比例</p>
 
@@ -88,7 +86,7 @@
 		                	<div class="row">
 		                		<div class="col-10"></div>
 		                		<div class="col-80">
-				                     <a href="#process1" class="button button-big button-fill" id="" onclick="selectOrder()">选择订单</a>
+				                     <a href="#" class="button button-big button-fill" id="" onclick="selectOrder()">选择订单</a>
 		                		</div>
 		                		<div class="col-10"></div>
 		                    </div>
@@ -96,15 +94,29 @@
 
 		              </div>
 		        </div>
+                <div data-page="waiting" class="page" id="2">
+                      <!-- Scrollable page content -->
+                      <div class="page-content "> 
+        		        <div class="content-block" style="margin-top: 100px;">
+        		                <!-- <p style="text-align: center;">我是{{.distributor.Name}}</p> -->
+        		                <p style="text-align: center;">等待中...</p>
+        		                <div class=" login-btn-content">
+        		                      <a href="#process1" class="button button-big button-fill" id="" onclick="viewRouteToPage(mainView, 'process1')">进入游戏</a>
+        		                </div>
 
-		        <div data-page="index" class="page" id="">
+        	            </div>
+
+                      </div>
+                 </div>
+
+		        <div data-page="index" class="page" id="3">
 		              <!-- Scrollable page content -->
 		              <div class="page-content "> 
 				        <div class="content-block" style="margin-top: 100px;">
 				                <!-- <p style="text-align: center;">我是{{.distributor.Name}}</p> -->
 				                <p style="text-align: center;">我准备好了</p>
 				                <div class=" login-btn-content">
-				                      <a href="#process1" class="button button-big button-fill" id="" onclick="viewRouteToPage(mainView, 'process1')">进入游戏</a>
+				                      <a href="#" class="button button-big button-fill" id="" onclick="onPreparedToStartGame()">进入游戏</a>
 				                </div>
 			            </div>
 
@@ -133,11 +145,36 @@
 		        <div data-page="map" class="page" id="pageMap">
 		              <!-- Scrollable page content -->
 		              <div class="page-content "> 
-				        <div id="allmap" style="height:200px;margin-top:10px;"></div>
 
+
+
+				        <div id="allmap" style="height:99%;margin-top:1px;">
+
+				        </div>
+			        	<div class="row" style="top: 55px; position: absolute; height: 35px;left:43px;right:45px; opacity: 0.8; background-color: white;  border-left: 1px solid gray; border-right: 1px solid gray;">
+								<div style="width:100%; text-align: center; color: gray; margin-top: 10px;">北京物资学院</div>
+			        		<div class="col-10"> </div>
+
+			        		<div class="col-80"> 
+			        		</div>
+			        		<div class="col-10"> </div>
+			        	</div>
+			        	<div class="row" style="margin-top:-80px;">
+			        		<div class="col-10"> </div>
+			        		<div class="col-20">
+								<a href="#" class="button button-big button-fill" id="" onclick="">&lt;</a>
+			        		</div>
+			        		<div class="col-40"> 
+								<a href="#" class="button button-big button-fill color-lightblue" id="" onclick="">去往该点</a>
+			        		</div>
+			        		<div class="col-20">
+								<a href="#" class="button button-big button-fill" id="" onclick="">&gt;</a>
+			        		 </div>
+			        		<div class="col-10"> </div>
+			        	</div>
+							
 		              </div>
-		         
-
+		        
 		          </div>
 		    </div>
 		</div>		
@@ -215,95 +252,110 @@
 		      </a>
 		      <a href="#view-cards" class="tab-link">
 		          <i class="icon tabbar-demo-icon-4"></i>
-		          <span class="tabbar-label">道具</span>
+		          <span class="tabbar-label">消息</span>
 		      </a>
 		  </div>
 		</div> 
 
 
     </div>
-	<script src="javascripts/jquery.js"></script>
-	<script type="text/javascript" src="http://api.map.baidu.com/api?type=quick&ak=kU4NWwyP5SwguC2W2WAfO1bO&v=1.0"></script>
-    <!-- Path to Framework7 Library JS-->
-    <script type="text/javascript" src="framework7/dist/js/framework7.min.js"></script>
-    <script type="text/javascript" src="javascripts/lodash.js"></script>
-    <script type="text/javascript" src="javascripts/Chart.min.js"></script>
-    <!-- Path to your app js-->
-    <script type="text/javascript" src="javascripts/app.js"></script>
+    <script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=kU4NWwyP5SwguC2W2WAfO1bO"></script>
+
     <script type="text/javascript">
-	    // Initialize your app
-	    var myApp = new Framework7();
-
-	    // Export selectors engine
-	    var $$ = Dom7;
-
 	    var marker = null
-	    var map = new BMap.Map("allmap");
 	    var conn;
 	    var distributorID = "{{.distributor.ID}}"
 	    var orders = []
+	    var mainView
+	    var map
+	    var $$
+	    var myApp
+	    var mySwiper 
+	    var wsUrl = "ws://{{.HOST}}/wsOrderDistribution?id={{.distributor.ID}}" 
+	    var MessageHandlers = [
+	    	{MessageType: {{.pro_2c_all_prepared_4_select_order}}, handler: function(msg){
+	    		console.log("route to %s", 'process1')
+	        	viewRouteToPage(mainView, 'process1')
+	    	}},
+	    	{MessageType: {{.pro_2c_order_distribution_proposal}}, handler: pro_2c_order_distribution_proposal_handler},
+	    	{MessageType: {{.pro_timer_count_down}}, handler: pro_timer_count_down_handler},
+	    	{MessageType: {{.pro_2c_message_broadcast}}, handler: pro_2c_message_broadcast_handler},
+	    	{MessageType: {{.pro_2c_order_select_result}}, handler: pro_2c_order_select_result_handler},
+	    	{MessageType: {{.pro_2c_order_full}}, handler: pro_2c_order_full_handler},
+	    	{MessageType: {{.pro_2c_distributor_info}}, handler: pro_2c_distributor_info_handler}
+	    ]
 
-	    // Add view
-	    var mainView = myApp.addView('.view-main', {
-	        // Because we use fixed-through navbar we can enable dynamic navbar
-	        // dynamicNavbar: true
-	    });
-        console.log("正在初始化基础数据")
-        $$.get("/distributors?id={{.distributor.ID}}",function(data){
-	        console.log(data)
-	        if(_.isArray(data) == false){
-	        	data = JSON.parse(data)
+
+	    function pro_2c_order_distribution_proposal_handler(msg){
+	    	mySwiper.removeAllSlides();
+	    	orders = msg.Data
+	    	_.each(orders, function(order){
+	    	    var orderTip = "编号："+order.ID
+	    	    if (order.GeoSrc != null){
+	    	        orderTip += "  位置:"+order.GeoSrc.Address
+	    	    } 
+	    	    mySwiper.appendSlide(String.format('<div class="swiper-slide"> <span class="slide-title">{0}</span> <span class="slide-content">{1}</span> </div>',order.ID, orderTip))
+	    	})
+	    }
+	    function pro_timer_count_down_handler(msg){
+            console.log("-> "+ msg.Data)
+            if(msg.Data <= 1){
+	        	viewRouteToPage(mainView, 'process1')
+	        	console.log("route to process1")
+            }	    	
+	    }
+	    function pro_2c_message_broadcast_handler(msg){
+            console.log(msg.Data)
+	    }
+	    function pro_2c_order_select_result_handler(msg){
+	    	if(msg.Data.DistributorID == distributorID){
+	    	    console.log("抢到了订单 "+msg.Data.OrderID)
+	    	}else{
+	    	    console.log("没有抢到订单 "+msg.Data.OrderID)
+	    	}
+	    	console.log(msg.Data)
+	    }
+	    function pro_2c_order_full_handler(msg){
+	    	if(msg.Data == distributorID){
+	    	    hideOrderSelectButton()
+	    	    $("#btnStartDistribute").show()
+	    	}
+	    }
+	    function pro_2c_distributor_info_handler(msg){
+	    	var data = msg.Data
+	    	console.log(data)
+	    	distributor = data
+	    	if(distributor.CheckPoint <= 0){//还在初始化阶段
+	    	    // $("#btnPrepared").show()
+	    	}else{//已经初始化过，中间可能掉线
+	    	    // showOrderSelectButton()
+	    	}
+	    }
+
+	    function onPreparedToStartGame(){
+        	viewRouteToPage(mainView, 'waiting')
+	        	// viewRouteToPage(mainView, 'process1')
+        	send({MessageType: {{.pro_prepared_for_select_order}}, Data:{DistributorID: distributorID}})
+	    }
+	    function send(msg){
+	        if (!conn) {
+	            return false;
 	        }
-	        if(_.size(data) > 0){
-	            var distributor = data[0]
-	            console.log(distributor)
-	            console.log("游戏状态：%d", distributor.CheckPoint)
-	            if(distributor.CheckPoint <= 0){//还在初始化阶段
-				    viewRouteToPage(mainView, "process0")
-	            }else{//已经初始化过，中间可能掉线
-				    viewRouteToPage(mainView, "process1")
-	            }
-	        }
-        })
-
-        var pieData = [
-        			{
-        				value: 1,
-        				color:"#F7464A",
-        				highlight: "#FF5A5E",
-        				label: "Red"
-        			}
-        			
-
-        		];
-
-			var ctx = document.getElementById("chart-area").getContext("2d");
-			var myPie = new Chart(ctx).Pie(pieData);
-
-		var mySwiper = myApp.swiper('.swiper-container', {
-		  pagination: '.swiper-pagination',
-		  paginationHide: false,
-		  paginationClickable: true,
-		  nextButton: '.swiper-button-next',
-		  prevButton: '.swiper-button-prev',
-		}); 
-
-		function selectOrder(){
-			var index = mySwiper.activeIndex
-			if(index >= 0){
-				var slide = mySwiper.slides[index]			
-		        console.log("选择了第 %d 个Slide", index)
-		        console.log(slide)
-		        var $slide = $(slide)
-		        var $title = $(".slide-title", $slide)
-		        console.log("获取的订单ID为：%s", $title.text())
-		        mySwiper.removeSlide(index)
-		        mySwiper.appendSlide('<div class="swiper-slide"> <span class="slide-title">订单编号04</span> <span class="slide-content">地址04</span> </div>')
-
-
-			}
-		}
-
+	        conn.send(JSON.stringify(msg))
+	    }
+	    String.format = function(){
+	        if( arguments.length == 0){
+	            return null; 
+	        } 
+	        var str = arguments[0]; 
+	        for(var i=1;i<arguments.length;i++){
+	            var re = new RegExp('\\{' + (i-1) + '\\}','gm'); 
+	            str = str.replace(re, arguments[i]); 
+	        } 
+	        return str; 
+	    } 
     </script>
+	<script src="javascripts/require.js" data-main="javascripts/app"></script>
+
   </body>
 </html>    

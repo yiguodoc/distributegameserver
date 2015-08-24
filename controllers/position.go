@@ -5,6 +5,7 @@ import (
 	// "errors"
 	"fmt"
 	// "time"
+	// "reflect"
 )
 
 // type objectOperate interface {
@@ -31,7 +32,8 @@ const (
 	POSITION_TYPE_ROUTE_TEMP  = 3  //计算得出的临时点
 )
 
-type positionTypeFilter func(*Position) bool
+// type positionTypeFilter func(*Position) bool
+type predictor func(interface{}) bool
 
 //位置，订单的产生地
 type Position struct {
@@ -91,7 +93,12 @@ func (p *Position) addLngLat(lng, lat float64) {
 func (p *Position) minus(pos *Position) (lng, lat float64) {
 	return p.Lng - pos.Lng, p.Lat - pos.Lat
 }
-func (pl PositionList) filter(f positionTypeFilter) (l PositionList) {
+
+func (pl PositionList) clone(f predictor) (l PositionList) {
+
+}
+
+func (pl PositionList) filter(f predictor) (l PositionList) {
 	for _, p := range pl {
 		if f(p) {
 			l = append(l, p)
@@ -99,35 +106,45 @@ func (pl PositionList) filter(f positionTypeFilter) (l PositionList) {
 	}
 	return
 }
+func (pl PositionList) Map(f func(interface{}) interface{}) AnyArray {
+	list := []interface{}{}
+	for _, p := range pl {
+		list = append(list, f(p))
+	}
+	return list
+}
+func (pl PositionList) findOne(f predictor) *Position {
+	for _, p := range pl {
+		if f(p) {
+			return p
+		}
+	}
+	return nil
+}
+func (pl PositionList) reduce(f func(interface{}) interface{}) interface{} {
+	return nil
+}
 
-// //从一系列的地点中产生一组订单
-func (pl PositionList) createSimulatedOrders(idGenerator func() string) (list OrderList) {
-	for _, p := range pl {
-		if p.HasOrder {
-			list = append(list, NewOrder(idGenerator(), p))
-		}
-	}
-	return
-}
-func (pl PositionList) findByID(id int) *Position {
-	for _, p := range pl {
-		if p.ID == id {
-			return p
-		}
-	}
-	return nil
-}
-func (this PositionList) findLngLat(lng, lat float64) *Position {
-	for _, p := range this {
-		if p.Lat == lat && p.Lng == lng {
-			return p
-		}
-	}
-	return nil
-}
-func (this PositionList) contains(pos *Position) bool {
-	return this.findLngLat(pos.Lng, pos.Lat) != nil
-}
+// func (pl PositionList) findByID1(id int) *Position {
+// 	for _, p := range pl {
+// 		if p.ID == id {
+// 			return p
+// 		}
+// 	}
+// 	return nil
+// }
+// func (this PositionList) findLngLat1(lng, lat float64) *Position {
+// 	for _, p := range this {
+// 		if p.Lat == lat && p.Lng == lng {
+// 			return p
+// 		}
+// 	}
+// 	return nil
+// }
+
+// func (this PositionList) contains(pos *Position) bool {
+// 	return this.findLngLat(pos.Lng, pos.Lat) != nil
+// }
 func (pl PositionList) ListName() string {
 	return "关键点"
 }
@@ -148,9 +165,10 @@ func NewPosition(id int, address string, lng, lat float64, ptype int, hasOrder b
 		HasOrder:  hasOrder,
 	}
 }
-func createPositionFilter(pointType int) positionTypeFilter {
-	f := func(p *Position) bool {
-		return p.PointType == pointType
-	}
-	return f
-}
+
+// func createPositionFilter(pointType int) positionTypeFilter {
+// 	f := func(p *Position) bool {
+// 		return p.PointType == pointType
+// 	}
+// 	return f
+// }

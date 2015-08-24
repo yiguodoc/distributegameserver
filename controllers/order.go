@@ -14,6 +14,78 @@ func generateOrderID() string {
 	return fmt.Sprintf("9001%05d", orderCount)
 }
 
+// type Any interface{}
+
+// func (a Any) convertToOrderList() (l OrderList) {
+// 	list := a.([]interface{})
+// 	for _, in := range list {
+// 		if in != nil {
+// 			l = append(l, in.(*Order))
+// 		}
+// 	}
+// 	return
+// }
+type Sys_Type string
+
+var (
+	Sys_Type_Order Sys_Type = "*Order"
+)
+
+type AnyArray []interface{}
+
+func (aa AnyArray) without(o interface{}) (l AnyArray) {
+	for _, a := range aa {
+		if a != o {
+			l = append(l, a)
+		}
+	}
+	return
+}
+func (aa AnyArray) transform(destType Sys_Type) interface{} {
+	aa = aa.without(nil)
+	switch destType {
+	case Sys_Type_Order:
+		f := func(source AnyArray) (l OrderList) {
+			for _, s := range source {
+				l = append(l, s.(*Order))
+			}
+			return
+		}
+		return f(aa)
+	default:
+		panic(fmt.Sprintf("类型 %s 没有定义，无法转换", destType))
+	}
+	// if len(aa) <= 0 {
+	// 	return nil
+	// }	// a0 := aa[0]
+	// switch a0.(type) {
+	// case *Order:
+	// 	f := func(source AnyArray) (l OrderList) {
+	// 		for _, s := range source {
+	// 			l = append(l, s.(*Order))
+	// 		}
+	// 		return
+	// 	}
+	// 	return f(aa)
+	// default:
+	// 	panic(fmt.Sprintf("类型 %T 没有定义，无法转换", a0))
+
+	// }
+	// return nil
+}
+
+func convertToOrderList(list AnyArray) (l OrderList) {
+	// func convertToOrderList(o interface{}) (l OrderList) {
+	// list := o.([]interface{})
+
+	for _, in := range list {
+		if in != nil {
+			l = append(l, in.(*Order))
+		}
+	}
+	return
+}
+
 // 订单
 type Order struct {
 	ID          string

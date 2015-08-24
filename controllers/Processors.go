@@ -180,7 +180,12 @@ func pro_on_line_handlerGenerator(o interface{}) MessageWithClientHandler {
 				}
 			case checkpoint_flag_order_distribute:
 				DebugTraceF("配送员上线，状态 %d 配送中", checkpoint_flag_order_distribute)
-				warehouses := center.mapData.Points.filter(createPositionFilter(POSITION_TYPE_WAREHOUSE))
+				filter := func(o interface{}) bool {
+					pos := o.(*Position)
+					return pos.PointType == POSITION_TYPE_WAREHOUSE
+				}
+				warehouses := center.mapData.Points.filter(filter)
+				// warehouses := center.mapData.Points.filter(createPositionFilter(POSITION_TYPE_WAREHOUSE))
 				if len(warehouses) > 0 {
 					if distributor.StartPos == nil {
 						distributor.StartPos = warehouses[0] //
@@ -231,7 +236,11 @@ func pro_game_time_tick_handlerGenerator(o interface{}) MessageWithClientHandler
 						distributor.CurrentPos.addLngLat(lng, lat)
 						//已经到达目标点，运动停止
 						// distributor.StartPos.setLngLat(distributor.DestPos.Lng, distributor.DestPos.Lat) //
-						distributor.StartPos = unit.center.mapData.Points.findLngLat(distributor.DestPos.Lng, distributor.DestPos.Lat)
+						distributor.StartPos = unit.center.mapData.Points.findOne(func(o interface{}) bool {
+							pos := o.(*Position)
+							return pos.Lng == distributor.DestPos.Lng && pos.Lat == distributor.DestPos.Lat
+						})
+						// distributor.StartPos = unit.center.mapData.Points.findLngLat(distributor.DestPos.Lng, distributor.DestPos.Lat)
 						distributor.DestPos = nil
 						line.removeDistributor(distributor.ID)
 						distributor.line = nil
@@ -261,7 +270,10 @@ func pro_reset_destination_request_handlerGenerator(o interface{}) MessageWithCl
 	f := func(msg *MessageWithClient) {
 		m := msg.Data.(map[string]interface{})
 		if list, err := mappedValue(m).Getter("PositionID", "DistributorID"); err == nil {
-			posWanted := unit.center.mapData.Points.findByID(int(list[0].(float64)))
+			posWanted := unit.center.mapData.Points.findOne(func(o interface{}) bool {
+				return o.(*Position).ID == int(list[0].(float64))
+			})
+			// posWanted := unit.center.mapData.Points.findByID(int(list[0].(float64)))
 			if posWanted == nil {
 				DebugMustF("重置目标点出错，不存在编号为 %d 的节点", int(list[0].(float64)))
 				return
@@ -293,7 +305,11 @@ func pro_reset_destination_request_handlerGenerator(o interface{}) MessageWithCl
 					DebugTraceF("%s => %s", distributor.PosString(), posWanted.String())
 					return
 				}
-				distributor.DestPos = unit.center.mapData.Points.findLngLat(posWanted.Lng, posWanted.Lat)
+				distributor.DestPos = unit.center.mapData.Points.findOne(func(o interface{}) bool {
+					pos := o.(*Position)
+					return pos.Lng == posWanted.Lng && pos.Lat == posWanted.Lat
+				})
+				// distributor.DestPos = unit.center.mapData.Points.findLngLat(posWanted.Lng, posWanted.Lat)
 				distributor.Distance = line.Distance
 				distributor.line = line
 				unit.center.wsRoom.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_reset_destination, distributor)
