@@ -93,6 +93,7 @@
         // }
         output.prepend(message+"</br>");
     }    
+    
     function prepareConn(){
         if (window["WebSocket"]) {
             conn = new WebSocket("ws://{{.HOST}}/wsOrderDistribution?id={{.distributor.ID}}");

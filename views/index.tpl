@@ -46,9 +46,8 @@
 		      <!-- Pages container, because we use fixed-through navbar and toolbar, it has additional appropriate classes-->
 		    <div class="pages navbar-through">
 		        <!-- Page, "data-page" contains page name -->
-		        
+		        <!-- 订单选择页面 -->
 		        <div data-page="processSelectOrder" class="page" id="1">
-		              <!-- Scrollable page content -->
 		              <div class="page-content "> 
 				        <div class="content-block" style="margin-top: 20px;  margin-bottom: 15px;">
 			                <!-- <p style="text-align: center;">我是{{.distributor.Name}}</p> -->
@@ -62,7 +61,7 @@
 			               <div class="swiper-container">
 			                 <div class="swiper-pagination"></div>
 			                 <div class="swiper-wrapper">
-<!-- 			                   <div class="swiper-slide">
+								<!--<div class="swiper-slide">
 				                   	<span class="slide-title">订单编号01</span>
 				                   	<span class="slide-content">地址01</span>
 			                   </div>
@@ -94,6 +93,7 @@
 
 		              </div>
 		        </div>
+		        <!-- 等待其他参与者进入的页面 -->
                 <div data-page="waiting" class="page" id="2">
                       <!-- Scrollable page content -->
                       <div class="page-content "> 
@@ -107,20 +107,41 @@
         	            </div>
 
                       </div>
-                 </div>
-                 <div data-page="processGo2Distribution" class="page" id="4">
-                       <!-- Scrollable page content -->
-                       <div class="page-content "> 
-         		        <div class="content-block" style="margin-top: 100px;">
-         		                <!-- <p style="text-align: center;">我是{{.distributor.Name}}</p> -->
-         		                <p style="text-align: center;">订单选择完成，可以配送了</p>
-         		                <div class=" login-btn-content">
-         		                      <a href="#" class="button button-big button-fill" id="" onclick="onPreparedToStartGame()">开始配送</a>
-         		                </div>
-         	            </div>
+                </div>
+                <!-- 订单选择完毕，转入配送状态页面之前的页面 -->
+                <div data-page="processGo2Distribution" class="page" id="4">
+					<div class="page-content "> 
+					    <div class="content-block" style="margin-top: 100px;">
+					            <!-- <p style="text-align: center;">我是{{.distributor.Name}}</p> -->
+					            <p style="text-align: center;">订单选择已经完成</p>
+					            <div class=" login-btn-content">
+					                  <a href="#" class="button button-big button-fill" id="" onclick="onPreparedToStartGame()">开始配送</a>
+					            </div>
+					    </div>
 
-                       </div>
-                  </div>
+					</div>
+                </div>
+                <!-- 配送状态页面 -->
+                <div data-page="processDistribution" class="page" id="5"><!-- Scrollable page content -->
+                       
+					<div class="page-content "> 
+					    <div class="content-block" style="margin-top: 0px;">
+					            <!-- <p style="text-align: center;">00:10</p> -->
+					            <div class="" style="text-align: center;margin-top:5px;  color: rgba(150,150,150,0.9);">00:10</div>
+					            <div class="content-block-inner" style="text-align: center;margin-top:20px;">
+					            	<div style="font-size: 14px; color: rgba(150,150,150,0.8);">订单签收进度</div>
+					            	<div style="font-size: 20px;">7/10</div>
+
+					            </div>
+
+					            <div class=" login-btn-content">
+					                  <a href="#" class="button button-big button-fill" id="" onclick="onPreparedToStartGame()">订单签收</a>
+					            </div>
+					    </div>
+
+					</div>
+                </div>
+                <!-- 登录进入游戏之后的页面 -->
 		        <div data-page="index" class="page" id="3">
 		              <!-- Scrollable page content -->
 		              <div class="page-content "> 
@@ -171,16 +192,16 @@
 			        		</div>
 			        		<div class="col-10"> </div>
 			        	</div>
-			        	<div class="row" style="margin-top:-80px;">
+			        	<div class="row" style="margin-top:-60px;">
 			        		<div class="col-10"> </div>
 			        		<div class="col-20">
-								<a href="#" class="button button-big button-fill" id="" onclick="">&lt;</a>
+								<a href="#" class="button button-fill" id="" onclick="">&lt;</a>
 			        		</div>
 			        		<div class="col-40"> 
-								<a href="#" class="button button-big button-fill color-lightblue" id="" onclick="">去往该点</a>
+								<a href="#" class="button  button-fill color-lightblue" id="" onclick="">去往该点</a>
 			        		</div>
 			        		<div class="col-20">
-								<a href="#" class="button button-big button-fill" id="" onclick="">&gt;</a>
+								<a href="#" class="button  button-fill" id="" onclick="">&gt;</a>
 			        		 </div>
 			        		<div class="col-10"> </div>
 			        	</div>
@@ -305,13 +326,8 @@
 	    	mySwiper.removeAllSlides();
 	    	orders = msg.Data
 	    	_.each(orders, function(order){
-	    	    // var orderTip = "编号："+order.ID
-	    	    // if (order.GeoSrc != null){
-	    	    //     orderTip += "  位置:"+order.GeoSrc.Address
-	    	    // } 
 	    	    mySwiper.appendSlide(String.format('<div class="swiper-slide"> <span class="slide-title" style="background-color: rgba({0}, 0.6);">{1}</span> <span class="slide-content">{2}北京市物资学院</span> </div>',order.Region.Color, order.ID, order.GeoSrc.Address))
 	    	})
-
 	    }
 
 	    function pro_timer_count_down_handler(msg){
@@ -321,18 +337,23 @@
             console.log(msg.Data)
 	    }
 	    function pro_2c_order_select_result_handler(msg){
-	    	if(msg.Data.DistributorID == distributorID){
-	    	    console.log("抢到了订单 "+msg.Data.OrderID)
-	    	}else{
-	    	    console.log("没有抢到订单 "+msg.Data.OrderID)
-	    	}
 	    	console.log(msg.Data)
+	    	if(msg.Data != null){
+	    	    console.log("抢到了订单 ", msg.Data.OrderID)
+	    		distributor = msg.Data
+	    		resetPie()
+	    	}else{
+	    	    console.log("没有抢到订单 ", msg.Data.OrderID)	    		
+	    	}
+	    	// if(msg.Data.DistributorID == distributorID){
+	    	//     console.log("抢到了订单 ", msg.Data.OrderID)
+	    	// }else{
+	    	//     console.log("没有抢到订单 ", msg.Data.OrderID)
+	    	// }
 	    }
 	    function pro_2c_order_full_handler(msg){
-	    	if(msg.Data == distributorID){
-	    	    hideOrderSelectButton()
-	    	    $("#btnStartDistribute").show()
-	    	}
+	    	distributor = msg.Data
+        	viewRouteToPage(mainView, 'processGo2Distribution')
 	    }
 	    function pro_2c_distributor_info_handler(msg){
 	    	var data = msg.Data
@@ -340,22 +361,26 @@
 	    	distributor = data
 	    	switch(distributor.CheckPoint){
 	    		case 0:
+		        	viewRouteToPage(mainView, 'processDistribution')
 	    		break
 	    		case 1:
 		        	viewRouteToPage(mainView, 'processSelectOrder')
-		        	if(_.size(distributor.AcceptedOrders) <= 0){
-		        		pie()
-		        	}else{
-		        		//对接收的订单按照区域进行分类
-		        		var groups = _.groupBy(distributor.AcceptedOrders,function(order){return order.Region.Color})
-		        		var values = _.map(groups,function(v,key){return {value: _.size(v), color: "rgb("+key+")"}})
-		        		pie(values)
-		        	}
+		        	resetPie()
 	    		break
 	    		case 2:
 		        	viewRouteToPage(mainView, 'processGo2Distribution')
 	    		break
 	    	}
+	    }
+	    function resetPie(){
+        	if(_.size(distributor.AcceptedOrders) <= 0){
+        		pie()
+        	}else{
+        		//对接收的订单按照区域进行分类
+        		var groups = _.groupBy(distributor.AcceptedOrders,function(order){return order.Region.Color})
+        		var values = _.map(groups,function(v,key){return {value: _.size(v), color: "rgb("+key+")"}})
+        		pie(values)
+        	}	    	
 	    }
 	    function selectOrder(){
 	        var index = mySwiper.activeIndex

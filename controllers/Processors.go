@@ -60,19 +60,27 @@ func pro_order_select_response_handlerGenerator(o interface{}) MessageWithClient
 				DebugInfoF("处理订单分配时的信息提示：%s", err)
 			} else {
 				//将分配结果通知到各方，包括获得订单的客户端、群通知，并引发分配结果事件，使得观察者也可以得到通知
-				distributionResult := NewOrderDistribution(orderID, distributorID)
+				// distributionResult := NewOrderDistribution(orderID, distributorID)
 				distributor := center.distributors.findOne(func(o interface{}) bool { return o.(DataWithID).GetID() == distributorID })
 				// distributor := center.distributors.find(distributorID)
-				center.wsRoom.sendMsgToSpecialSubscriber(distributorID, pro_2c_order_select_result, distributionResult)
+				center.wsRoom.sendMsgToSpecialSubscriber(distributorID, pro_2c_order_select_result, distributor)
 
-				msg := fmt.Sprintf("订单[%s]已经由配送员[%s]选定", distributionResult.OrderID, distributor.Name)
-				center.wsRoom.broadcastMsgToSubscribers(pro_2c_message_broadcast, msg)
+				msg := fmt.Sprintf("订单[%s]已经由配送员[%s]选定", orderID, distributor.Name)
+				// center.wsRoom.broadcastMsgToSubscribers(pro_2c_message_broadcast, msg)
 				DebugInfo(msg)
 
 				if distributor.full() == true { //配送员的订单满载了
-					center.wsRoom.broadcastMsgToSubscribers(pro_2c_message_broadcast, fmt.Sprintf("配送员 %s 订单满载", distributor.Name))
-					center.wsRoom.broadcastMsgToSubscribers(pro_2c_order_full, distributor.ID)
+					msg = fmt.Sprintf("配送员 %s 订单满载", distributor.Name)
+					center.wsRoom.broadcastMsgToSubscribers(pro_2c_message_broadcast, msg)
+					DebugInfoF(msg)
+					center.wsRoom.broadcastMsgToSubscribers(pro_2c_order_full, distributor)
 					distributor.setCheckPoint(checkpoint_flag_order_distribute)
+					center.distributors.forEach(func(d *Distributor) {
+						if d.ID == distributorID {
+							d.CheckPoint = checkpoint_flag_order_distribute
+							DebugInfoF("配送员 %s 状态变化 => 配送环节", d.Name)
+						}
+					})
 					// triggerSysEvent(NewSysEvent(sys_event_distribution_prepared, distributor))
 				}
 				sendOrderProposal(center)
