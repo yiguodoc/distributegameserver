@@ -438,7 +438,6 @@ func getOrderSelectProposal(distributors DistributorList, orders OrderList) (lis
 	return proposals, nil
 }
 func disposeOrderSelectResponse(orderID, distributorID string, distributors DistributorList, orders OrderList) error {
-	// order := orders.findByID(orderID)
 	order := orders.findOne(func(o interface{}) bool { return o.(*Order).ID == orderID })
 	if order == nil {
 		DebugMustF("系统异常，分配不存在的订单：%s", orderID)

@@ -37,6 +37,8 @@ i.tabbar-demo-icon-4 {
   position:relative;
   height:120px;
   margin-bottom: 35px;
+  margin-left: 8px;
+  margin-right: 8px;
 }
 .swiper-container {
   height:100%;
@@ -76,7 +78,7 @@ i.tabbar-demo-icon-4 {
 }
 
 .swiper-slide .slide-content{
-  font-size: 15px;
+  font-size: 12px;
 }
 
 

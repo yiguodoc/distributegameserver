@@ -105,21 +105,6 @@ require(['jquery', 'lodash', 'Framework7', 'Chart'], function ($, _, Framework7,
 
     prepareConn()
 
-    function pie(){
-        var pieData = [
-                    {
-                        value: 1,
-                        color:"#F7464A",
-                        highlight: "#FF5A5E",
-                        label: "Red"
-                    }
-                ];
-
-        var ctx = document.getElementById("chart-area").getContext("2d");
-        var myPie = new Chart(ctx).Pie(pieData);    
-    }
-
-
     function prepareConn(){
         if (window["WebSocket"]) {
             conn = new WebSocket(wsUrl);

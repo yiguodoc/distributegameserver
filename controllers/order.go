@@ -89,7 +89,7 @@ type OrderList []*Order
 
 func (l OrderList) findOne(f predictor) *Order {
 	for _, o := range l {
-		if f(0) {
+		if f(o) {
 			return o
 		}
 	}

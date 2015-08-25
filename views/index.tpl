@@ -55,7 +55,7 @@
 			                <div id="canvas-holder" style="text-align: center;">
 	                			<canvas id="chart-area" width="130" height="130"/>
 	                		</div>
-			                <p style="text-align: center;margin-top:0px;">订单区域分布比例</p>
+			                <p style="text-align: center;margin-top:0px;font-size: 12px;">订单区域分布比例</p>
 
 			            </div>
 			            <div class="swiper-custom">
@@ -108,7 +108,19 @@
 
                       </div>
                  </div>
+                 <div data-page="processGo2Distribution" class="page" id="4">
+                       <!-- Scrollable page content -->
+                       <div class="page-content "> 
+         		        <div class="content-block" style="margin-top: 100px;">
+         		                <!-- <p style="text-align: center;">我是{{.distributor.Name}}</p> -->
+         		                <p style="text-align: center;">订单选择完成，可以配送了</p>
+         		                <div class=" login-btn-content">
+         		                      <a href="#" class="button button-big button-fill" id="" onclick="onPreparedToStartGame()">开始配送</a>
+         		                </div>
+         	            </div>
 
+                       </div>
+                  </div>
 		        <div data-page="index" class="page" id="3">
 		              <!-- Scrollable page content -->
 		              <div class="page-content "> 
@@ -297,15 +309,13 @@
 	    	    // if (order.GeoSrc != null){
 	    	    //     orderTip += "  位置:"+order.GeoSrc.Address
 	    	    // } 
-	    	    mySwiper.appendSlide(String.format('<div class="swiper-slide"> <span class="slide-title">{0}</span> <span class="slide-content">{1}</span> </div>',order.ID, order.GeoSrc.Address))
+	    	    mySwiper.appendSlide(String.format('<div class="swiper-slide"> <span class="slide-title" style="background-color: rgba({0}, 0.6);">{1}</span> <span class="slide-content">{2}北京市物资学院</span> </div>',order.Region.Color, order.ID, order.GeoSrc.Address))
 	    	})
+
 	    }
+
 	    function pro_timer_count_down_handler(msg){
-            console.log("-> "+ msg.Data)
-            if(msg.Data <= 1){
-	        	viewRouteToPage(mainView, 'process1')
-	        	console.log("route to process1")
-            }	    	
+            console.log("-> "+ msg.Data)	    	
 	    }
 	    function pro_2c_message_broadcast_handler(msg){
             console.log(msg.Data)
@@ -328,19 +338,30 @@
 	    	var data = msg.Data
 	    	console.log(data)
 	    	distributor = data
-	    	if(distributor.CheckPoint <= 0){//还在初始化阶段
-	    	    // $("#btnPrepared").show()
-	    	}else{//已经初始化过，中间可能掉线
-	    	    // showOrderSelectButton()
+	    	switch(distributor.CheckPoint){
+	    		case 0:
+	    		break
+	    		case 1:
+		        	viewRouteToPage(mainView, 'processSelectOrder')
+		        	if(_.size(distributor.AcceptedOrders) <= 0){
+		        		pie()
+		        	}else{
+		        		//对接收的订单按照区域进行分类
+		        		var groups = _.groupBy(distributor.AcceptedOrders,function(order){return order.Region.Color})
+		        		var values = _.map(groups,function(v,key){return {value: _.size(v), color: "rgb("+key+")"}})
+		        		pie(values)
+		        	}
+	    		break
+	    		case 2:
+		        	viewRouteToPage(mainView, 'processGo2Distribution')
+	    		break
 	    	}
 	    }
 	    function selectOrder(){
 	        var index = mySwiper.activeIndex
 	        if(index >= 0){
-	            var slide = mySwiper.slides[index]          
 	            console.log("选择了第 %d 个Slide", index)
-	            // console.log(slide)
-	            var $slide = $(slide)
+	            var $slide = $(mySwiper.slides[index])
 	            var $title = $(".slide-title", $slide)
 	            var orderID = $title.text()
 	            console.log("获取的订单ID为：%s", orderID)
@@ -355,6 +376,20 @@
         	viewRouteToPage(mainView, 'waiting')
 	        	// viewRouteToPage(mainView, 'process1')
         	send({MessageType: {{.pro_prepared_for_select_order}}, Data:{DistributorID: distributorID}})
+	    }
+	    function pie(pieData){
+	        if(pieData == null){
+	            pieData = [
+	                        {
+	                            value: 1,
+	                            color:"#C8C8C8",
+	                            highlight: "#C8C8C8",
+	                            label: "无"
+	                        }
+	                    ];
+	        }
+	        var ctx = document.getElementById("chart-area").getContext("2d");
+	        var myPie = new Chart(ctx).Pie(pieData);    
 	    }
 	    function send(msg){
 	        if (!conn) {
