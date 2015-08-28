@@ -128,12 +128,14 @@
 					    <div class="content-block" style="margin-top: 0px;">
 					            <!-- <p style="text-align: center;">00:10</p> -->
 					            <div class="" style="text-align: center;margin-top:5px;  color: rgba(150,150,150,0.9);">00:10</div>
-					            <div class="content-block-inner" style="text-align: center;margin-top:20px;">
-					            	<div style="font-size: 14px; color: rgba(150,150,150,0.8);">订单签收进度</div>
-					            	<div style="font-size: 20px;">7/10</div>
+					            <div class="content-block-inner" style="text-align: center;margin-top:50px;">
+					            	<div style="font-size: 13px; color: rgba(150,150,150,0.8);">订单签收进度</div>
+					            	<div style="font-size: 19px;">7/10</div>
 
 					            </div>
-
+					            <div style = "  text-align: center; margin-bottom: 40px; font-size: 28px; border-bottom: 1px solid rgba(200,200,200,0.5); padding-bottom: 60px; padding-top: 60px;">
+					            	<span>配送中</span>
+					            </div>
 					            <div class=" login-btn-content">
 					                  <a href="#" class="button button-big button-fill" id="" onclick="onPreparedToStartGame()">订单签收</a>
 					            </div>
@@ -185,7 +187,7 @@
 
 				        </div>
 			        	<div class="row" style="top: 55px; position: absolute; height: 35px;left:43px;right:45px; opacity: 0.8; background-color: white;  border-left: 1px solid gray; border-right: 1px solid gray;">
-								<div style="width:100%; text-align: center; color: gray; margin-top: 10px;">北京物资学院</div>
+							<div style="width:100%; text-align: center; color: gray; margin-top: 10px;">北京物资学院</div>
 			        		<div class="col-10"> </div>
 
 			        		<div class="col-80"> 
@@ -195,13 +197,13 @@
 			        	<div class="row" style="margin-top:-60px;">
 			        		<div class="col-10"> </div>
 			        		<div class="col-20">
-								<a href="#" class="button button-fill" id="" onclick="">&lt;</a>
+								<a href="#" class="button button-fill" id="" onclick="onFocusOnPreNode()">&lt;</a>
 			        		</div>
 			        		<div class="col-40"> 
-								<a href="#" class="button  button-fill color-lightblue" id="" onclick="">去往该点</a>
+								<a href="#" class="button  button-fill color-lightblue" id="" onclick="onChooseDestNode()">去往该点</a>
 			        		</div>
 			        		<div class="col-20">
-								<a href="#" class="button  button-fill" id="" onclick="">&gt;</a>
+								<a href="#" class="button  button-fill" id="" onclick="onFocusOnNextNode()">&gt;</a>
 			        		 </div>
 			        		<div class="col-10"> </div>
 			        	</div>
@@ -295,16 +297,24 @@
     <script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=kU4NWwyP5SwguC2W2WAfO1bO"></script>
 
     <script type="text/javascript">
-	    var marker = null
-	    var conn;
+	    var mainView, map, mapData, $$, myApp, mySwiper, conn;
 	    var distributorID = "{{.distributor.ID}}"
-	    var orders = []
-	    var mainView
-	    var map
-	    var $$
-	    var myApp
-	    var mySwiper 
+	    // var orders = []
 	    var wsUrl = "ws://{{.HOST}}/wsOrderDistribution?id={{.distributor.ID}}" 
+	    var myLocationMarker = null
+	    var markerAim = null//准星环绕的marker
+	    var markerDest = null//目的地的准星
+	    var nextNodeSelector = null
+		var iconKinds = [
+    		{type:0, imageName: "warehouse.png", width: 64, height: 64, opt: {anchor: new BMap.Size(32, 48)}},
+    		{type:1, imageName: "nodeSmall.png", width: 12, height: 12, opt: {anchor: new BMap.Size(6, 6)}},
+    		{type:2, imageName: "nodeSmall.png", width: 12, height: 12, opt: {anchor: new BMap.Size(6, 6)}},
+    		{hasOrder: true, orderSigned: false, imageName: "bagageClosed.png", width: 29, height: 29, opt: {anchor: new BMap.Size(15, 15)}},
+    		{hasOrder: true, orderSigned: true, imageName: "bagageOpen.png", width: 29, height: 29, opt: {anchor: new BMap.Size(15, 15)}},
+    		{canBeSelected: true, imageName: "aimBlack.png", width: 100, height: 100, opt: {anchor: new BMap.Size(16, 16), imageSize: new BMap.Size(32,32)}},
+    		{selected: true, imageName: "aimRed.png", width: 100, height: 100, opt: {anchor: new BMap.Size(16, 16), imageSize: new BMap.Size(32,32)}},
+    		{}
+		]
 	    var MessageHandlers = [
 	    	{MessageType: {{.pro_2c_all_prepared_4_select_order}}, handler: function(msg){
 	    		console.log("route to %s", 'processSelectOrder')
@@ -316,15 +326,57 @@
 	    	{MessageType: {{.pro_2c_message_broadcast}}, handler: pro_2c_message_broadcast_handler},
 	    	{MessageType: {{.pro_2c_order_select_result}}, handler: pro_2c_order_select_result_handler},
 	    	{MessageType: {{.pro_2c_order_full}}, handler: pro_2c_order_full_handler},
-	    	{MessageType: {{.pro_2c_distributor_info}}, handler: pro_2c_distributor_info_handler}
+	    	{MessageType: {{.pro_2c_reach_route_node}}, handler: pro_2c_reach_route_node_handler},
+	    	{MessageType: {{.pro_2c_move_to_new_position}}, handler: pro_2c_move_to_new_position_handler},
+	    	{MessageType: {{.pro_2c_move_from_node}}, handler: pro_2c_move_from_node_handler},
+	    	{MessageType: {{.pro_2c_map_data}}, handler: pro_2c_map_data_handler},
+	    	{MessageType: {{.pro_2c_distributor_info}}, handler: pro_2c_distributor_info_handler},
+	    	{MessageType: {{.pro_2c_reset_destination}}, handler: pro_2c_reset_destination_handler},
+	    	{}
 	    ]
 
+	    function pro_2c_reset_destination_handler(msg){
+	    	console.info("重置目的地成功")
+    		distributor = msg.Data
+	    	setDestinationMarker()
+			refreshNodeToSelect()
+	    }
+	    function pro_2c_reach_route_node_handler(msg){
+    		distributor = msg.Data
+			refreshMyLocation()
+			console.info("配送员到达节点")
+			refreshNodeToSelect()
+	    	setDestinationMarker()
+	    	//如果有订单，提醒签收
+	    	var pos = distributor.CurrentPos
+	    	var orderTemp = _.find(distributor.AcceptedOrders, function(order){
+	    		return order.GeoSrc.Lat == pos.Lat && order.GeoSrc.Lng == pos.Lng && order.Signed == false
+	    	})
+	    	if(orderTemp != null){
+	    		myApp.alert('有订单，注意签收', '提醒');
+	    		setTimeout(function () {
+	    		    myApp.closeModal()
+	    		}, 2000);
+	    	}
+	    }
+	    function pro_2c_move_to_new_position_handler(msg){
+    		distributor = msg.Data
+			refreshMyLocation()
+			console.info("配送员位置发生变化")
+	    }
+	    function pro_2c_move_from_node_handler(msg){
+    		distributor = msg.Data
+			refreshMyLocation()
+			console.info("配送员离开节点")
+			refreshNodeToSelect()
+	    	// setDestinationMarker()
+	    }
 	    function pro_2c_message_broadcast_before_game_start_handler(msg){
 	    	$$("#waitingInfo").text(msg.Data)
 	    }
 	    function pro_2c_order_distribution_proposal_handler(msg){
 	    	mySwiper.removeAllSlides();
-	    	orders = msg.Data
+	    	var orders = msg.Data
 	    	_.each(orders, function(order){
 	    	    mySwiper.appendSlide(String.format('<div class="swiper-slide"> <span class="slide-title" style="background-color: rgba({0}, 0.6);">{1}</span> <span class="slide-content">{2}北京市物资学院</span> </div>',order.Region.Color, order.ID, order.GeoSrc.Address))
 	    	})
@@ -345,11 +397,6 @@
 	    	}else{
 	    	    console.log("没有抢到订单 ", msg.Data.OrderID)	    		
 	    	}
-	    	// if(msg.Data.DistributorID == distributorID){
-	    	//     console.log("抢到了订单 ", msg.Data.OrderID)
-	    	// }else{
-	    	//     console.log("没有抢到订单 ", msg.Data.OrderID)
-	    	// }
 	    }
 	    function pro_2c_order_full_handler(msg){
 	    	distributor = msg.Data
@@ -371,6 +418,94 @@
 		        	viewRouteToPage(mainView, 'processGo2Distribution')
 	    		break
 	    	}
+			refreshMyLocation()
+			flagOrderNodeMarker()
+			refreshNodeToSelect()
+	    }
+	    function pro_2c_map_data_handler(msg){
+	    	if(mapData != null){
+	    		_.each(mapData.Points, function(point){
+	    			map.removeOverlay(point.mark)
+	    		})
+	    		_.each(mapData.Lines, function(line){
+	    			map.removeOverlay(line.lineOverlay)
+	    		})
+	    	}else{
+		    	// map.clearOverlays()
+	    	}
+	    	mapData = msg.Data
+	    	drawRouteNodeOnMap(mapData)
+	    }
+	    function pointsAimAtLooper(points){
+	    	this.points= points
+	    	this.currentIndex = 0
+	    	this.removeLast = function(){
+		    	if(markerAim != null){
+		    		map.removeOverlay(markerAim)
+		    		markerAim = null
+		    	}
+		    	return this
+	    	}
+	    	this.removeLast()
+	    	this.setMarker = function(){
+	    		this.removeLast()
+	    		if(this.currentIndex >= 0 && (_.size(this.points) > this.currentIndex)){
+		    		markerAim = addPointMarkerToMap(this.points[this.currentIndex], {canBeSelected: true}, false)
+	    		}	    		
+	    	}
+	    	this.next = function(){
+	    		this.currentIndex ++
+	    		if(this.currentIndex >= _.size(this.points)){
+	    			this.currentIndex = 0
+	    		}
+		    	this.setMarker()
+	    	}
+	    	this.pre = function(){
+	    		this.currentIndex --
+	    		if(this.currentIndex < 0){
+	    			this.currentIndex = _.size(this.points) - 1
+	    		}
+	    		this.setMarker()
+	    	}
+	    	this.currentPostion = function(){
+	    		if(_.size(this.points) > 0){
+		    		return this.points[this.currentIndex]
+	    		}else{
+	    			return null
+	    		}
+	    	}
+	    }
+	    function setDestinationMarker(){
+	    	if(markerDest != null){
+	    		map.removeOverlay(markerDest)
+	    		markerDest = null
+	    	}
+	    	if(distributor.DestPos != null){
+	    		markerDest = addPointMarkerToMap(distributor.DestPos, {selected: true}, false)
+	    	}
+	    }
+        function refreshMyLocation(){
+        	if(distributor.CurrentPos != null){
+        		var pos = distributor.CurrentPos
+    	    	setMyLocationMark(pos.Lng, pos.Lat)
+        	}	    	
+        }
+        function flagOrderNodeMarker(){
+        	_.each(distributor.AcceptedOrders, function(order){
+        		var pos = order.GeoSrc
+        		var point = _.findWhere(mapData.Points, {Lng: pos.Lng, Lat:pos.Lat})
+        		if(null != point){
+        			addPointMarkerToMap(point, {hasOrder: true, orderSigned: order.Signed}, true)
+        		}else{
+        			console.warn("没有找到订单所在的点，系统异常")
+        		}
+        	})
+        }
+	    function drawRouteNodeOnMap(data){
+	    	if(data != null){
+	    		_.each(data.Points, function(point){ addPointMarkerToMap(point, {type: point.PointType}, true) })
+	    		_.each(data.Lines, addLineOverlayToMap)
+	    	}
 	    }
 	    function resetPie(){
         	if(_.size(distributor.AcceptedOrders) <= 0){
@@ -381,6 +516,102 @@
         		var values = _.map(groups,function(v,key){return {value: _.size(v), color: "rgb("+key+")"}})
         		pie(values)
         	}	    	
+	    }
+	    function addLineOverlayToMap(line){
+			var start = line.Start
+			var end = line.End
+			var points = [new BMap.Point(start.Lng, start.Lat), new BMap.Point(end.Lng, end.Lat)];
+			var lineOverlay = new BMap.Polyline(points, {strokeColor:"#50E3C2", strokeWeight:1, strokeOpacity:0.5}); //创建弧线对象
+			map.addOverlay(lineOverlay); //添加到地图中
+			line.lineOverlay = lineOverlay	    	
+	    }
+	    function addPointMarkerToMap(point, opt, bBindToPoint){
+			var kind = _.findWhere(iconKinds, opt)
+			// var kind = _.findWhere(iconKinds, {type: point.PointType})
+			if(kind == null){
+				console.warn("没找到合适的初始化marker的信息")
+				return
+			}
+			var imageUrl = "/images/marker/"+ kind.imageName
+			var myIcon = new BMap.Icon(imageUrl, new BMap.Size(kind.width, kind.height), kind.opt);
+			var bmapPoint = new BMap.Point(point.Lng, point.Lat);
+		    var marker = new BMap.Marker(bmapPoint, {icon: myIcon});  //创建标注
+		    if(null != point.marker){
+		    	map.removeOverlay(point.marker)
+		    }
+		    if(bBindToPoint == true){
+			    point.marker = marker
+		    }
+		    map.addOverlay(marker);                 // 将标注添加到地图中	    
+		    return marker	
+	    }
+	    function setMyLocationMark(lng, lat){
+	    	if(myLocationMarker == null){    		
+		        var imageUrl = "/images/marker/mylocation.gif"
+		        // var myIcon = new BMap.Icon(imageUrl, new BMap.Size(52, 52), {anchor: new BMap.Size(12, 12)});
+		        var myIcon = new BMap.Icon(imageUrl, new BMap.Size(64, 64), {anchor: new BMap.Size(16, 16), imageSize: new BMap.Size(32,32)});
+		        // var bmapPoint = new BMap.Point(116.644691, 39.934758);//北京物资学院
+		        var bmapPoint = new BMap.Point(lng, lat);
+		        myLocationMarker = new BMap.Marker(bmapPoint, {icon: myIcon});  //创建标注
+		        map.addOverlay(myLocationMarker);                 // 将标注添加到地图中
+		        myLocationMarker.setTop(true)
+	    	}else{
+	    		myLocationMarker.setPosition(new BMap.Point(lng, lat))
+	    	}
+	    }
+
+	    function refreshNodeToSelect(){
+	        //查找可以走向的路径节点，目标点不计算在内
+	        //这里有两种情况，正处于路径节点上和在两个节点之间
+	        //对于第一种情况，应该查找所有与该点相关的路径
+	        //对于第二种情况，显示所在路径的起点与终点
+	        if(isDistributorOnNode(distributor) == true){
+	        	console.info("配送员在节点上")
+	            var pos = distributor.CurrentPos
+	            //查找与当前点相关的路线
+	            var lines = _.filter(mapData.Lines, function(l){
+	                return  _.some([l.Start, l.End], function(p){
+	                    return p.Lat == pos.Lat && p.Lng == pos.Lng
+	                })
+	            })
+	            console.log("filter lines :", lines)
+
+	            var points = _.map(lines, function(l){
+	                return [l.Start, l.End]
+	            })
+	            points = _.chain(points).flatten().filter(function(p){
+	                return p.Lat != pos.Lat || p.Lng != pos.Lng//去除当前节点
+	            }).value()
+	            if(distributor.DestPos != null){//去除目标点
+	            	var dest = distributor.DestPos
+	            	points = _.filter(points, function(p){
+	            		return p.Lat != dest.Lat || p.Lng != dest.Lng
+	            	})
+	            }
+	            console.log("points selection: ", points)
+	            // addAimMarkers(points)
+	            nextNodeSelector = new pointsAimAtLooper(points)
+	            nextNodeSelector.next()
+	        }else{
+	        	console.info("配送员在路上")
+	            console.log("起点：",distributor.StartPos)
+	            console.log("终点：",distributor.DestPos)
+	            nextNodeSelector = new pointsAimAtLooper([distributor.StartPos])
+	            nextNodeSelector.next()
+	            // addAimMarkers([distributor.StartPos, distributor.DestPos])
+	        }          
+	    }
+        function onFocusOnNextNode(){
+    		nextNodeSelector.next()
+        }
+        function onFocusOnPreNode(){
+        	nextNodeSelector.pre()
+        }
+	    function isDistributorOnNode(){
+	        var crt = distributor.CurrentPos
+    		return _.some([distributor.DestPos, distributor.StartPos], function(point){
+    			return point != null && crt.Lat == point.Lat && crt.Lng == point.Lng
+    		})
 	    }
 	    function selectOrder(){
 	        var index = mySwiper.activeIndex
@@ -397,6 +628,32 @@
 	            // mySwiper.appendSlide('<div class="swiper-slide"> <span class="slide-title">订单编号04</span> <span class="slide-content">地址04</span> </div>')
 	        }
 	    }
+	    function onChooseDestNode(){
+	    	var selectedPos = nextNodeSelector.currentPostion()
+	    	if(selectedPos == null){
+	    		console.info("没有选择到点")
+	    	}else{
+	    		console.info("选择了一个点作为目标点 ", selectedPos)
+	    		var p = _.findWhere(mapData.Points, {Lat: selectedPos.Lat, Lng: selectedPos.Lng})
+	    		if(p == null){
+	    		    console.warn("没有查找到选中的点")
+	    		    return
+	    		}else{
+	    		    send({MessageType: {{.pro_reset_destination_request}}, Data: {PositionID: p.ID, DistributorID: distributor.ID}})//请求重置目标点
+	    		}
+	    		// myApp.alert('操作完成', '');
+	    		// setTimeout(function () {
+	    		//     myApp.closeModal()
+	    		// }, 800);
+
+	    		// myApp.showPreloader('已选择')
+    		 //    setTimeout(function () {
+    		 //        myApp.hidePreloader();
+    		 //        myApp.closeModal()
+    		 //    }, 800);
+	    	}
+	    }
+
 	    function onPreparedToStartGame(){
         	viewRouteToPage(mainView, 'waiting')
 	        	// viewRouteToPage(mainView, 'process1')

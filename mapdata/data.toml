@@ -1,0 +1,157 @@
+[[Points]]
+  ID = 1
+  Lng = 116.639373
+  Lat = 39.93314
+  Address = ""
+  PointType = 0
+  HasOrder = false
+
+[[Points]]
+  ID = 2
+  Lng = 116.632977
+  Lat = 39.932725
+  Address = ""
+  PointType = 2
+  HasOrder = false
+
+[[Points]]
+  ID = 3
+  Lng = 116.629204
+  Lat = 39.931923
+  Address = ""
+  PointType = 2
+  HasOrder = false
+
+[[Points]]
+  ID = 4
+  Lng = 116.628198
+  Lat = 39.933721
+  Address = ""
+  PointType = 1
+  HasOrder = true
+
+[[Points]]
+  ID = 5
+  Lng = 116.632007
+  Lat = 39.934689
+  Address = ""
+  PointType = 1
+  HasOrder = true
+
+[[Points]]
+  ID = 6
+  Lng = 116.624892
+  Lat = 39.933444
+  Address = ""
+  PointType = 1
+  HasOrder = true
+
+[[Points]]
+  ID = 7
+  Lng = 116.622593
+  Lat = 39.933112
+  Address = ""
+  PointType = 1
+  HasOrder = true
+
+[[Lines]]
+  Distance = 547.296276362438
+  [Lines.Start]
+    ID = 1
+    Lng = 116.639373
+    Lat = 39.93314
+    Address = ""
+    PointType = 0
+    HasOrder = false
+  [Lines.End]
+    ID = 2
+    Lng = 116.632977
+    Lat = 39.932725
+    Address = ""
+    PointType = 2
+    HasOrder = false
+
+[[Lines]]
+  Distance = 333.8349182969697
+  [Lines.Start]
+    ID = 2
+    Lng = 116.632977
+    Lat = 39.932725
+    Address = ""
+    PointType = 2
+    HasOrder = false
+  [Lines.End]
+    ID = 3
+    Lng = 116.629204
+    Lat = 39.931923
+    Address = ""
+    PointType = 2
+    HasOrder = false
+
+[[Lines]]
+  Distance = 233.52273171221356
+  [Lines.Start]
+    ID = 2
+    Lng = 116.632977
+    Lat = 39.932725
+    Address = ""
+    PointType = 2
+    HasOrder = false
+  [Lines.End]
+    ID = 5
+    Lng = 116.632007
+    Lat = 39.934689
+    Address = ""
+    PointType = 1
+    HasOrder = true
+
+[[Lines]]
+  Distance = 217.5518269095082
+  [Lines.Start]
+    ID = 3
+    Lng = 116.629204
+    Lat = 39.931923
+    Address = ""
+    PointType = 2
+    HasOrder = false
+  [Lines.End]
+    ID = 4
+    Lng = 116.628198
+    Lat = 39.933721
+    Address = ""
+    PointType = 1
+    HasOrder = true
+
+[[Lines]]
+  Distance = 404.6939181356864
+  [Lines.Start]
+    ID = 3
+    Lng = 116.629204
+    Lat = 39.931923
+    Address = ""
+    PointType = 2
+    HasOrder = false
+  [Lines.End]
+    ID = 6
+    Lng = 116.624892
+    Lat = 39.933444
+    Address = ""
+    PointType = 1
+    HasOrder = true
+
+[[Lines]]
+  Distance = 578.9798476199995
+  [Lines.Start]
+    ID = 3
+    Lng = 116.629204
+    Lat = 39.931923
+    Address = ""
+    PointType = 2
+    HasOrder = false
+  [Lines.End]
+    ID = 7
+    Lng = 116.622593
+    Lat = 39.933112
+    Address = ""
+    PointType = 1
+    HasOrder = true

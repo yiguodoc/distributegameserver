@@ -105,7 +105,7 @@ func (w *WsRoom) leave(id string) {
 
 //新消息处理
 func (w *WsRoom) newMessage(id string, content []byte) {
-	DebugTraceF("newMessage: %s", string(content))
+	DebugTraceF("<= : %s", string(content))
 	w.chanMessage <- &roomMessage{
 		targetID: id,
 		content:  content,
@@ -132,7 +132,7 @@ func (w *WsRoom) sendMsgToSpecialSubscriber(id string, protocal ClientMessageTyp
 	// DebugTraceF("broadcastWebSocket => %s", event)
 	msg := &MessageWithClient{protocal, id, obj}
 	w.chanPublishToSubscribers <- &roomMessage{targetID: id, content: msg}
-	DebugTraceF("send msg to %s : %s", id, msg)
+	DebugTraceF("=>  %s : %s", id, msg)
 }
 
 //******************************************************************

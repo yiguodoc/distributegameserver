@@ -40,7 +40,7 @@ require(['jquery', 'lodash', 'Framework7', 'Chart'], function ($, _, Framework7,
         domCache: true //enable inline pages
     });
 
-    map = new BMap.Map("allmap");
+    
     initMap()
     resetMap2Initial()
 
@@ -91,6 +91,10 @@ require(['jquery', 'lodash', 'Framework7', 'Chart'], function ($, _, Framework7,
       // 绑定事件,点击一次放大两级
       div.onclick = function(e){
         console.log("resetLocationButton clicked")
+        if(myLocationMarker != null){
+            var pos = myLocationMarker.getPosition()
+            map.setCenter(pos)
+        }
       }
       // 添加DOM元素到地图中
       map.getContainer().appendChild(div);
@@ -116,7 +120,7 @@ require(['jquery', 'lodash', 'Framework7', 'Chart'], function ($, _, Framework7,
             }
             conn.onmessage = function(evt) {
                 var msg = evt.data
-                console.log(msg)
+                // console.log(msg)
                 msg = JSON.parse(msg)
                 var handler = _.find(MessageHandlers, {MessageType: msg.MessageType})
                 if(handler == null){
@@ -156,13 +160,16 @@ function t(){
 }
 
 
-
-
 //将地图设置为初始状态，目的是不突出任何信息
 function resetMap2Initial(){
-    setMapMarker(116.404, 39.915, false)
+
+    // var point = new BMap.Point(116.644691, 39.934758);//北京物资学院
+    // var point = new BMap.Point(116.331398,39.897445);//天安门
+    setMapMarker(116.644691, 39.934758, false)
+
 }
 function initMap(){
+    map = new BMap.Map("allmap");
     // map.centerAndZoom(new BMap.Point(116.404, 39.915), 16);
     map.enableScrollWheelZoom(true);
     var top_right_navigation = new BMap.NavigationControl({anchor: BMAP_ANCHOR_TOP_RIGHT, type: BMAP_NAVIGATION_CONTROL_ZOOM});//, offset: new BMap.Size(0, 40)
@@ -173,12 +180,12 @@ function initMap(){
 
 }
 function setMapMarker(lng,lat, bAddMarker){
-    map.removeOverlay(marker)
+    // map.removeOverlay(marker)
     if(lng > 0 || lat > 0){
         map.centerAndZoom(new BMap.Point(lng, lat), 16);
         // map.addControl(new BMap.ZoomControl());  //添加地图缩放控件
         if(bAddMarker == true){
-            marker = new BMap.Marker(new BMap.Point(lng, lat));  //创建标注
+            var marker = new BMap.Marker(new BMap.Point(lng, lat));  //创建标注
             map.addOverlay(marker);                 // 将标注添加到地图中            
         }
     }

@@ -14,7 +14,7 @@ var (
 	g_UnitCenter       *DistributorProcessUnitCenter
 	g_room_viewer      *WsRoom            //= NewRoom(eventReceiver)
 	g_distributorStore = DistributorList{ //配送员列表
-		NewDistributor("d01", "张军", 2, color_orange),
+		NewDistributor("d01", "张军", 3, color_orange),
 		NewDistributor("d02", "刘晓莉", 2, color_red),
 		// NewDistributor("d03", "桑鸿庆", 3, color_purple),
 	}
@@ -28,11 +28,6 @@ var (
 func init() {
 	clientMessageTypeCodeCheck()
 
-	// distributors := DistributorList{ //配送员列表
-	// 	NewDistributor("d01", "张军", 2, color_orange),
-	// 	NewDistributor("d02", "刘晓莉", 2, color_red),
-	// 	// NewDistributor("d03", "桑鸿庆", 3, color_purple),
-	// }
 	mapData := loadMapData()
 	//加载地图数据
 	f := func(o interface{}) interface{} {
@@ -51,11 +46,21 @@ func init() {
 	room.addEventSubscriber(distributorRoomEventHandler,
 		WsRoomEventCode_Online, WsRoomEventCode_Offline, WsRoomEventCode_Other)
 
-	g_UnitCenter = NewDistributorProcessUnitCenter(room, []string{"d01", "d02"}, orders, mapData)
-	g_UnitCenter.start()
+	filter := func(o interface{}) bool {
+		l := []string{"d01", "d02"}
+		for _, s := range l {
+			if s == o.(DataWithID).GetID() {
+				return true
+			}
+		}
+		return false
+	}
+	g_UnitCenter = NewDistributorProcessUnitCenter(room, g_distributorStore.clone(filter), orders, mapData)
+	// g_UnitCenter.start()
+	startCenterRunning(g_UnitCenter)
 
-	// g_UnitCenter.Process(NewMessageWithClient(pro_order_select_response, "", map[string]interface{}{"OrderID": "900100001", "DistributorID": "d01"}))
-	// g_UnitCenter.Process(NewMessageWithClient(pro_order_select_response, "", map[string]interface{}{"OrderID": "900100002", "DistributorID": "d01"}))
+	g_UnitCenter.Process(NewMessageWithClient(pro_order_select_response, "", map[string]interface{}{"OrderID": "900100001", "DistributorID": "d01"}))
+	g_UnitCenter.Process(NewMessageWithClient(pro_order_select_response, "", map[string]interface{}{"OrderID": "900100002", "DistributorID": "d01"}))
 	//测试用
 	//将订单分配给配送员
 	// g_distributors[0].AcceptedOrders = g_orders[0:]

@@ -204,6 +204,28 @@ func pro_on_line_handlerGenerator(o interface{}) MessageWithClientHandler {
 		distributor := center.distributors.findOne(func(o interface{}) bool { return o.(DataWithID).GetID() == msg.TargetID })
 		// distributor := center.distributors.find(msg.TargetID)
 		if distributor != nil {
+			//设置默认起始点
+			if distributor.StartPos == nil {
+				filter := func(o interface{}) bool {
+					pos := o.(*Position)
+					return pos.PointType == POSITION_TYPE_WAREHOUSE
+				}
+				warehouses := center.mapData.Points.filter(filter)
+				// warehouses := center.mapData.Points.filter(createPositionFilter(POSITION_TYPE_WAREHOUSE))
+				if len(warehouses) > 0 {
+					distributor.StartPos = warehouses[0] //
+					distributor.CurrentPos = distributor.StartPos.copyTemp(true)
+					// if distributor.StartPos == nil {
+					// }
+					// if distributor.CurrentPos == nil { //没有保存的位置信息，设置仓库为默认的出发点
+					// }
+				} else {
+					DebugSysF("无法设置出发点")
+				}
+			}
+			distributor.NormalSpeed = defaultSpeed
+			distributor.CurrentSpeed = defaultSpeed
+			center.wsRoom.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_map_data, center.mapData)
 			center.wsRoom.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_distributor_info, distributor)
 			//如果在分配订单中，应该推送给其正在选择的订单
 			switch distributor.CheckPoint {
@@ -219,27 +241,8 @@ func pro_on_line_handlerGenerator(o interface{}) MessageWithClientHandler {
 				}
 			case checkpoint_flag_order_distribute:
 				DebugTraceF("配送员上线，状态 %d 配送中", checkpoint_flag_order_distribute)
-				filter := func(o interface{}) bool {
-					pos := o.(*Position)
-					return pos.PointType == POSITION_TYPE_WAREHOUSE
-				}
-				warehouses := center.mapData.Points.filter(filter)
-				// warehouses := center.mapData.Points.filter(createPositionFilter(POSITION_TYPE_WAREHOUSE))
-				if len(warehouses) > 0 {
-					if distributor.StartPos == nil {
-						distributor.StartPos = warehouses[0] //
-					}
-					if distributor.CurrentPos == nil { //没有保存的位置信息，设置仓库为默认的出发点
-						distributor.CurrentPos = distributor.StartPos.copyTemp(true)
-					}
-				} else {
-					DebugSysF("无法设置出发点")
-				}
-				type d struct {
-					Distributor *Distributor
-					MapData     *MapData
-				}
-				center.wsRoom.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_map_data, center.mapData)
+
+				// center.wsRoom.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_map_data, center.mapData)
 			}
 		}
 	}
@@ -271,7 +274,7 @@ func pro_game_time_tick_handlerGenerator(o interface{}) MessageWithClientHandler
 					// DebugTraceF("pos change per frame lng %f  lat %f", lngPerFrame, latPerFrame)
 					lng, lat := distributor.DestPos.minus(distributor.CurrentPos) //是否已经足够接近目标点
 					// DebugTraceF("pos gap lng %f  lat %f", lng, lat)
-					if math.Abs(lng) < math.Abs(lngPerFrame) || math.Abs(lat) < math.Abs(latPerFrame) {
+					if math.Abs(lng) <= math.Abs(lngPerFrame) && math.Abs(lat) <= math.Abs(latPerFrame) {
 						distributor.CurrentPos.addLngLat(lng, lat)
 						//已经到达目标点，运动停止
 						// distributor.StartPos.setLngLat(distributor.DestPos.Lng, distributor.DestPos.Lat) //
@@ -283,19 +286,28 @@ func pro_game_time_tick_handlerGenerator(o interface{}) MessageWithClientHandler
 						distributor.DestPos = nil
 						line.removeDistributor(distributor.ID)
 						distributor.line = nil
-						unit.center.wsRoom.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_move_to_new_position, distributor) //通知客户端移动到新坐标
-						unit.center.wsRoom.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_reach_route_node, distributor)     //通知客户端移动到新坐标
+						// unit.center.wsRoom.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_move_to_new_position, distributor) //通知客户端移动到新坐标
+						unit.center.wsRoom.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_reach_route_node, distributor) //通知客户端移动到新坐标
 						DebugInfoF("配送员已经行驶到目标点 %s", distributor)
 						DebugTraceF("配送员实时位置：%s", distributor.PosString())
 						//配送员从路上转移到节点
 						unit.center.Process(NewMessageWithClient(pro_move_from_route_to_node, distributor.ID, line))
 					} else {
+						just_move_to_route := false //测算一下是否是从节点上路的第一步
+						if distributor.CurrentPos.equals(distributor.StartPos) {
+							just_move_to_route = true
+							DebugInfoF("配送员 %s 上路了", distributor.Name)
+						}
 						distributor.CurrentPos.addLngLat(lngPerFrame, latPerFrame)
-						unit.center.wsRoom.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_move_to_new_position, distributor) //通知客户端移动到新坐标
 						DebugTraceF("配送员实时位置：%s", distributor.PosString())
-						//配送员从节点到路上
-						line.addDistributor(distributor)
-						unit.center.Process(NewMessageWithClient(pro_move_from_node_to_route, distributor.ID, line))
+						if just_move_to_route {
+							//配送员从节点到路上
+							line.addDistributor(distributor)
+							unit.center.Process(NewMessageWithClient(pro_move_from_node_to_route, distributor.ID, line))
+							unit.center.wsRoom.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_move_from_node, distributor) //通知客户端移动到新坐标
+						} else {
+							unit.center.wsRoom.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_move_to_new_position, distributor) //通知客户端移动到新坐标
+						}
 					}
 
 				}
@@ -364,6 +376,7 @@ func pro_reset_destination_request_handlerGenerator(o interface{}) MessageWithCl
 					p := distributor.StartPos
 					distributor.StartPos = distributor.DestPos
 					distributor.DestPos = p
+					unit.center.wsRoom.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_reset_destination, distributor)
 					return
 				}
 				DebugInfoF("没有操作的飞过")
