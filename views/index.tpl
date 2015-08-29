@@ -137,7 +137,7 @@
 					            	<span>配送中</span>
 					            </div>
 					            <div class=" login-btn-content">
-					                  <a href="#" class="button button-big button-fill" id="" onclick="onPreparedToStartGame()">订单签收</a>
+					                  <a href="#" class="button button-big button-fill disabled" id="btnSignOrder" onclick="onSignOrder()">订单签收</a>
 					            </div>
 					    </div>
 
@@ -332,9 +332,31 @@
 	    	{MessageType: {{.pro_2c_map_data}}, handler: pro_2c_map_data_handler},
 	    	{MessageType: {{.pro_2c_distributor_info}}, handler: pro_2c_distributor_info_handler},
 	    	{MessageType: {{.pro_2c_reset_destination}}, handler: pro_2c_reset_destination_handler},
+	    	{MessageType: {{.pro_2c_sign_order}}, handler: pro_2c_sign_order_handler},
 	    	{}
 	    ]
-
+	    function pro_2c_sign_order_handler(msg){
+	    	if(msg.Data == null){
+		    	console.info("订单签收失败")
+	    		return
+	    	}else{
+	    		distributor = msg.Data
+		    	console.info("订单签收成功")
+		    	//按照已经签收的订单的位置将图标重置为订单接收后的状态图标
+		    	_.each(distributor.AcceptedOrders, function(order){
+		    		if(order.Signed == true){
+			    		var pos = order.GeoSrc
+			    		var pos = _.findWhere(mapData.Points, {Lat: pos.Lat, Lng: pos.Lng})
+			    		if(pos != null){
+				    		addPointMarkerToMap(pos, {hasOrder: true, orderSigned: true}, true)
+			    		}else{
+			    			console.warn("订单位置未找到")
+			    		}
+		    		}
+		    	})
+		    	remindOrderSigning()
+	    	}
+	    }
 	    function pro_2c_reset_destination_handler(msg){
 	    	console.info("重置目的地成功")
     		distributor = msg.Data
@@ -347,18 +369,9 @@
 			console.info("配送员到达节点")
 			refreshNodeToSelect()
 	    	setDestinationMarker()
-	    	//如果有订单，提醒签收
-	    	var pos = distributor.CurrentPos
-	    	var orderTemp = _.find(distributor.AcceptedOrders, function(order){
-	    		return order.GeoSrc.Lat == pos.Lat && order.GeoSrc.Lng == pos.Lng && order.Signed == false
-	    	})
-	    	if(orderTemp != null){
-	    		myApp.alert('有订单，注意签收', '提醒');
-	    		setTimeout(function () {
-	    		    myApp.closeModal()
-	    		}, 2000);
-	    	}
+	    	remindOrderSigning()
 	    }
+
 	    function pro_2c_move_to_new_position_handler(msg){
     		distributor = msg.Data
 			refreshMyLocation()
@@ -369,6 +382,7 @@
 			refreshMyLocation()
 			console.info("配送员离开节点")
 			refreshNodeToSelect()
+	    	resetOrderSignButtonState(false)	    	
 	    	// setDestinationMarker()
 	    }
 	    function pro_2c_message_broadcast_before_game_start_handler(msg){
@@ -421,6 +435,7 @@
 			refreshMyLocation()
 			flagOrderNodeMarker()
 			refreshNodeToSelect()
+			remindOrderSigning()
 	    }
 	    function pro_2c_map_data_handler(msg){
 	    	if(mapData != null){
@@ -435,6 +450,23 @@
 	    	}
 	    	mapData = msg.Data
 	    	drawRouteNodeOnMap(mapData)
+	    }
+	    function remindOrderSigning(){
+	    	//如果有订单，提醒签收
+	    	var pos = distributor.CurrentPos
+	    	var orderTemp = _.find(distributor.AcceptedOrders, function(order){
+	    		return order.GeoSrc.Lat == pos.Lat && order.GeoSrc.Lng == pos.Lng && order.Signed == false
+	    	})
+	    	if(orderTemp != null){
+	    		myApp.alert('有订单，注意签收', '提醒');
+	    		setTimeout(function () {
+	    		    myApp.closeModal()
+	    		}, 2000);
+		    	resetOrderSignButtonState(true)	    	
+	    	}else{
+		    	resetOrderSignButtonState(false)	    	
+
+	    	}
 	    }
 	    function pointsAimAtLooper(points){
 	    	this.points= points
@@ -601,6 +633,17 @@
 	            // addAimMarkers([distributor.StartPos, distributor.DestPos])
 	        }          
 	    }
+	    function onSignOrder(){
+	    	//如果有订单，提醒签收
+	    	var pos = distributor.CurrentPos
+	    	var orderTemp = _.find(distributor.AcceptedOrders, function(order){
+	    		return order.GeoSrc.Lat == pos.Lat && order.GeoSrc.Lng == pos.Lng && order.Signed == false
+	    	})
+	    	if(orderTemp != null){
+	    		console.log("签收订单 %s", orderTemp.ID)
+		        send({MessageType: {{.pro_sign_order_request}}, Data: {OrderID: orderTemp.ID, DistributorID: distributor.ID}})//请求重置目标点
+	    	}
+	    }
         function onFocusOnNextNode(){
     		nextNodeSelector.next()
         }
@@ -658,6 +701,13 @@
         	viewRouteToPage(mainView, 'waiting')
 	        	// viewRouteToPage(mainView, 'process1')
         	send({MessageType: {{.pro_prepared_for_select_order}}, Data:{DistributorID: distributorID}})
+	    }
+	    function resetOrderSignButtonState(state){
+	    	if(state){
+	    		$$("#btnSignOrder").removeClass("disabled")
+	    	}else{
+	    		$$("#btnSignOrder").addClass("disabled")
+	    	}
 	    }
 	    function pie(pieData){
 	        if(pieData == null){

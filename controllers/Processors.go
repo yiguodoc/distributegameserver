@@ -147,12 +147,6 @@ func sendOrderProposal(center *DistributorProcessUnitCenter) {
 	}
 }
 
-// func pro_order_select_response_handlerGenerator(unit *DistributorProcessUnit) MessageWithClientHandler {
-// 	f := func(msg *MessageWithClient) {
-// 		unit.center.Process(msg)
-// 	}
-// 	return f
-// }
 func pro_prepared_for_select_order_handlerGenerator(o interface{}) MessageWithClientHandler {
 	center := o.(*DistributorProcessUnitCenter)
 	// unit := o.(*DistributorProcessUnit)
@@ -425,6 +419,7 @@ func pro_sign_order_request_handlerGenerator(o interface{}) MessageWithClientHan
 			distributor := unit.distributor
 			if distributor.ID != list[0].(string) {
 				DebugMustF("订单签收出错，不存在配送员[%s]", list[0].(string))
+				unit.center.wsRoom.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_sign_order, nil)
 				return
 			}
 			orderID := list[1].(string)
@@ -432,10 +427,12 @@ func pro_sign_order_request_handlerGenerator(o interface{}) MessageWithClientHan
 			// order := unit.center.orders.findByID(orderID)
 			if order == nil {
 				DebugSysF("不存在订单 %s", orderID)
+				unit.center.wsRoom.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_sign_order, nil)
 				return
 			}
 			if distributor.AcceptedOrders.contains(func(o interface{}) bool { return o.(*Order).ID == orderID }) == false {
 				DebugSysF("订单 %s 必须由本人签收", orderID)
+				unit.center.wsRoom.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_sign_order, nil)
 				return
 			}
 			order.sign()
