@@ -96,17 +96,20 @@ var (
 	pro_2c_change_state                        ClientMessageTypeCode = 406 //服务端通知配送员改变运行状态，0 停止  1 运行
 	pro_2c_move_to_new_position                ClientMessageTypeCode = 407 //通知客户端新位置
 	pro_2c_reach_route_node                    ClientMessageTypeCode = 408 //到达一个路径节点
-	pro_2c_sign_order                          ClientMessageTypeCode = 409 //
+	pro_2c_sign_order                          ClientMessageTypeCode = 409 //订单签收完成
 	pro_2c_distributor_info                    ClientMessageTypeCode = 410 //
 	pro_2c_order_full                          ClientMessageTypeCode = 411 //订单满载
 	pro_2c_all_prepared_4_select_order         ClientMessageTypeCode = 412
 	pro_2c_message_broadcast_before_game_start ClientMessageTypeCode = 413
 	pro_2c_move_from_node                      ClientMessageTypeCode = 414
-	pro_2c_max                                 ClientMessageTypeCode = 415
+	pro_2c_all_order_signed                    ClientMessageTypeCode = 415
+	pro_2c_max                                 ClientMessageTypeCode = 416
 )
 
 func (c ClientMessageTypeCode) name() (s string) {
 	switch c {
+	case pro_2c_all_order_signed:
+		s = "pro_2c_all_order_signed"
 	case pro_2c_move_from_node:
 		s = "pro_2c_move_from_node"
 	case pro_2c_message_broadcast_before_game_start:

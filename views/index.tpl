@@ -368,8 +368,14 @@
 	    	{MessageType: {{.pro_2c_distributor_info}}, handler: pro_2c_distributor_info_handler},
 	    	{MessageType: {{.pro_2c_reset_destination}}, handler: pro_2c_reset_destination_handler},
 	    	{MessageType: {{.pro_2c_sign_order}}, handler: pro_2c_sign_order_handler},
+	    	{MessageType: {{.pro_2c_all_order_signed}}, handler: pro_2c_all_order_signed_handler},
 	    	{}
 	    ]
+	    function pro_2c_all_order_signed_handler(msg){
+			distributor = msg.Data
+        	viewRouteToPage(mainView, 'processStatistic')
+	    	
+	    }
 	    function pro_2c_sign_order_handler(msg){
 	    	if(msg.Data == null){
 		    	console.info("订单签收失败")
@@ -458,7 +464,7 @@
 	    	distributor = data
 	    	switch(distributor.CheckPoint){
 	    		case {{.checkpoint_flag_origin}}:
-		        	// viewRouteToPage(mainView, 'processDistribution')
+		        	viewRouteToPage(mainView, 'index')
 	    		break
 	    		case {{.checkpoint_flag_order_select}} :
 		        	viewRouteToPage(mainView, 'processSelectOrder')
@@ -491,6 +497,7 @@
 	    	mapData = msg.Data
 	    	drawRouteNodeOnMap(mapData)
 	    }
+	    //---------------------------------------------------------
 	    function remindOrderSigning(){
 	    	//如果有订单，提醒签收
 	    	var pos = distributor.CurrentPos

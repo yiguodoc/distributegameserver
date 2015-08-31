@@ -440,6 +440,10 @@ func pro_sign_order_request_handlerGenerator(o interface{}) MessageWithClientHan
 			unit.center.wsRoom.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_sign_order, distributor)
 			DebugInfoF("配送员 %s 签收了订单 %s", unit.distributor.Name, orderID)
 			// DebugPrintList_Info(g_orders)
+			if unit.distributor.AcceptedOrders.all(func(o interface{}) bool { return o.(*Order).Signed == true }) {
+				unit.distributor.setCheckPoint(checkpoint_flag_order_distribute_over)
+				unit.center.wsRoom.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_all_order_signed, distributor)
+			}
 
 		} else {
 			DebugMustF("签收订单时，客户端数据格式错误: %s", err)

@@ -104,6 +104,14 @@ func (l OrderList) findOne(f predictor) *Order {
 // 	}
 // 	return nil
 // }
+func (l OrderList) all(f predictor) bool {
+	for _, o := range l {
+		if f(o) == false {
+			return false
+		}
+	}
+	return true
+}
 func (l OrderList) contains(f predictor) bool {
 	return l.findOne(f) != nil
 }

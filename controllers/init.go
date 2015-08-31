@@ -14,7 +14,7 @@ var (
 	g_UnitCenter       *DistributorProcessUnitCenter
 	g_room_viewer      *WsRoom            //= NewRoom(eventReceiver)
 	g_distributorStore = DistributorList{ //配送员列表
-		NewDistributor("d01", "张军", 3, color_orange),
+		NewDistributor("d01", "张军", 2, color_orange),
 		NewDistributor("d02", "刘晓莉", 2, color_red),
 		// NewDistributor("d03", "桑鸿庆", 3, color_purple),
 	}
