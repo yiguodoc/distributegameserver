@@ -20,10 +20,21 @@ var error_no_websocket_connection = errors.New("error_no_websocket_connection")
 
 type CheckPoint int
 
+func getCheckPointMap() map[string]CheckPoint {
+	m := make(map[string]CheckPoint)
+	m["checkpoint_flag_origin"] = checkpoint_flag_origin
+	m["checkpoint_flag_order_select"] = checkpoint_flag_order_select
+	m["checkpoint_flag_order_distribute"] = checkpoint_flag_order_distribute
+	m["checkpoint_flag_order_distribute_over"] = checkpoint_flag_order_distribute_over
+	return m
+}
+
 var (
-	checkpoint_flag_origin           CheckPoint = 0
-	checkpoint_flag_order_select     CheckPoint = 1
-	checkpoint_flag_order_distribute CheckPoint = 2
+	checkpoint_flag_origin                CheckPoint = 0
+	checkpoint_flag_order_select          CheckPoint = 1
+	checkpoint_flag_order_distribute      CheckPoint = 2
+	checkpoint_flag_order_distribute_over CheckPoint = 3
+	checkpoint_max                        CheckPoint = 4
 )
 
 // 配送员

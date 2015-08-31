@@ -59,8 +59,8 @@ func init() {
 	// g_UnitCenter.start()
 	startCenterRunning(g_UnitCenter)
 
-	g_UnitCenter.Process(NewMessageWithClient(pro_order_select_response, "", map[string]interface{}{"OrderID": "900100001", "DistributorID": "d01"}))
-	g_UnitCenter.Process(NewMessageWithClient(pro_order_select_response, "", map[string]interface{}{"OrderID": "900100002", "DistributorID": "d01"}))
+	// g_UnitCenter.Process(NewMessageWithClient(pro_order_select_response, "", map[string]interface{}{"OrderID": "900100001", "DistributorID": "d01"}))
+	// g_UnitCenter.Process(NewMessageWithClient(pro_order_select_response, "", map[string]interface{}{"OrderID": "900100002", "DistributorID": "d01"}))
 	//测试用
 	//将订单分配给配送员
 	// g_distributors[0].AcceptedOrders = g_orders[0:]

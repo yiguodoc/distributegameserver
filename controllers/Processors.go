@@ -74,7 +74,7 @@ func pro_order_select_response_handlerGenerator(o interface{}) MessageWithClient
 					center.wsRoom.broadcastMsgToSubscribers(pro_2c_message_broadcast, msg)
 					DebugInfoF(msg)
 					center.wsRoom.broadcastMsgToSubscribers(pro_2c_order_full, distributor)
-					distributor.setCheckPoint(checkpoint_flag_order_distribute)
+					// distributor.setCheckPoint(checkpoint_flag_order_distribute)
 					center.distributors.forEach(func(d *Distributor) {
 						if d.ID == distributorID {
 							d.CheckPoint = checkpoint_flag_order_distribute
@@ -235,7 +235,8 @@ func pro_on_line_handlerGenerator(o interface{}) MessageWithClientHandler {
 				}
 			case checkpoint_flag_order_distribute:
 				DebugTraceF("配送员上线，状态 %d 配送中", checkpoint_flag_order_distribute)
-
+			case checkpoint_flag_order_distribute_over:
+				DebugTraceF("配送员上线，状态 %d 配送完成", checkpoint_flag_order_distribute)
 				// center.wsRoom.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_map_data, center.mapData)
 			}
 		}

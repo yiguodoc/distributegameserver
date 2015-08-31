@@ -143,6 +143,41 @@
 
 					</div>
                 </div>
+                <!-- 配送完成统计页面 -->
+                <div data-page="processStatistic" class="page" id="6"><!-- Scrollable page content -->
+                       
+					<div class="page-content "> 
+					    <div class="content-block" style="margin-top: 0px;">
+					            <!-- <p style="text-align: center;">00:10</p> -->
+					            <div class="" style="text-align: center; margin-top: 55px; color: rgba(100,100,100,1.9); font-size: 20px;">订单配送已完成</div>
+					            <div style = "text-align: center; font-size: 15px; border-bottom: 1px solid rgba(200,200,200,0.4); padding-top: 40px; color: rgba(100,100,100,0.5);">
+					            	<span>成绩统计</span>
+					            </div>
+					            <div class="content-block-inner" style="margin-top:0px;">
+					            	<div class="row no-gutter" style="margin-top:5px;">
+					            		<div class="col-50" style="text-align: right;padding-right: 3px;"> 排名 </div>
+					            		<div class="col-50" style="text-align: left;padding-left: 3px;"> 2</div>
+					            	</div>
+					            	<div class="row no-gutter" style="margin-top:5px;">
+					            		<div class="col-50" style="text-align: right;padding-right: 3px;"> 总耗时 </div>
+					            		<div class="col-50" style="text-align: left;padding-left: 3px;"> 17分20秒</div>
+					            	</div>
+
+
+<!-- 					            	<div style="font-size: 13px; color: rgba(150,150,150,0.8);">
+					            		<span>总耗时：</span> <span>17分20秒</span>
+					            	</div>
+					            	<div style="font-size: 19px;">
+					            		<span>排名：</span> <span>2</span>
+					            	</div> -->
+
+					            </div>
+					            
+					    </div>
+
+					</div>
+                </div>
+
                 <!-- 登录进入游戏之后的页面 -->
 		        <div data-page="index" class="page" id="3">
 		              <!-- Scrollable page content -->
@@ -405,31 +440,36 @@
 	    function pro_2c_order_select_result_handler(msg){
 	    	console.log(msg.Data)
 	    	if(msg.Data != null){
-	    	    console.log("抢到了订单 ", msg.Data.OrderID)
+	    	    console.log("抢到了订单 ")
 	    		distributor = msg.Data
 	    		resetPie()
+				flagOrderNodeMarker()
 	    	}else{
-	    	    console.log("没有抢到订单 ", msg.Data.OrderID)	    		
+	    	    console.log("没有抢到订单 ")	    		
 	    	}
 	    }
 	    function pro_2c_order_full_handler(msg){
 	    	distributor = msg.Data
-        	viewRouteToPage(mainView, 'processGo2Distribution')
+        	viewRouteToPage(mainView, 'processDistribution')
 	    }
 	    function pro_2c_distributor_info_handler(msg){
 	    	var data = msg.Data
 	    	console.log(data)
 	    	distributor = data
 	    	switch(distributor.CheckPoint){
-	    		case 0:
-		        	viewRouteToPage(mainView, 'processDistribution')
+	    		case {{.checkpoint_flag_origin}}:
+		        	// viewRouteToPage(mainView, 'processDistribution')
 	    		break
-	    		case 1:
+	    		case {{.checkpoint_flag_order_select}} :
 		        	viewRouteToPage(mainView, 'processSelectOrder')
 		        	resetPie()
 	    		break
-	    		case 2:
-		        	viewRouteToPage(mainView, 'processGo2Distribution')
+	    		case {{.checkpoint_flag_order_distribute}} :
+		        	viewRouteToPage(mainView, 'processDistribution')
+		        	// viewRouteToPage(mainView, 'processGo2Distribution')
+	    		break
+	    		case {{.checkpoint_flag_order_distribute_over}}:
+		        	viewRouteToPage(mainView, 'processStatistic')
 	    		break
 	    	}
 			refreshMyLocation()

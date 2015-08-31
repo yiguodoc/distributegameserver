@@ -163,6 +163,11 @@ func setProData(m *MainController) {
 	for _, code := range codes {
 		m.Data[code.name()] = code
 	}
+
+	checkPointMap := getCheckPointMap()
+	for key, value := range checkPointMap {
+		m.Data[key] = value
+	}
 }
 func (m *MainController) Orders() {
 	id := m.GetString("id")

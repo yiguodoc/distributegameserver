@@ -120,8 +120,8 @@ require(['jquery', 'lodash', 'Framework7', 'Chart'], function ($, _, Framework7,
             }
             conn.onmessage = function(evt) {
                 var msg = evt.data
-                // console.log(msg)
                 msg = JSON.parse(msg)
+                console.dir(msg)
                 var handler = _.find(MessageHandlers, {MessageType: msg.MessageType})
                 if(handler == null){
                     console.warn("消息处理函数未定义")
