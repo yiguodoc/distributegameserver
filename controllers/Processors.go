@@ -247,6 +247,9 @@ func pro_game_time_tick_handlerGenerator(o interface{}) MessageWithClientHandler
 	unit := o.(*DistributorProcessUnit)
 	f := func(msg *MessageWithClient) {
 		distributor := unit.distributor
+		//运行时间增加
+		distributor.TimeElapse++
+		// DebugInfoF("运行时间+1 => %d", distributor.TimeElapse)
 		//----------------------------------------------------------------------------
 		//计算行走的坐标位置
 		if distributor.NormalSpeed > 0 {
@@ -436,7 +439,8 @@ func pro_sign_order_request_handlerGenerator(o interface{}) MessageWithClientHan
 				unit.center.wsRoom.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_sign_order, nil)
 				return
 			}
-			order.sign()
+			order.sign(distributor.TimeElapse)
+			DebugInfoF("签收订单 %s , 时间 %d", order.ID, order.SignTime)
 			unit.center.wsRoom.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_sign_order, distributor)
 			DebugInfoF("配送员 %s 签收了订单 %s", unit.distributor.Name, orderID)
 			// DebugPrintList_Info(g_orders)
@@ -483,7 +487,7 @@ func disposeOrderSelectResponse(orderID, distributorID string, distributors Dist
 	}
 
 	//确定结果
-	order.distribute()
+	order.distribute(distributor.TimeElapse)
 	distributor.acceptOrder(order)
 	DebugTraceF("未分配订单减少到 %d 个", len(orders.Filter(func(o interface{}) bool { return o.(*Order).Distributed == false })))
 	return nil

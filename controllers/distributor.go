@@ -53,6 +53,7 @@ type Distributor struct {
 	CurrentSpeed           float64         //当前运行速度，0表示停止
 	Distance               float64         //所在或者将要行驶的路径长度
 	line                   *Line
+	TimeElapse             int64 //运行时间
 	// RejectedOrders         OrderList
 }
 

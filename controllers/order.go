@@ -50,11 +50,13 @@ func generateOrderID() string {
 
 // 订单
 type Order struct {
-	ID          string
-	GeoSrc      *Position
-	Distributed bool //分配状态
-	Signed      bool //签收状态
-	Region      *Region
+	ID           string
+	GeoSrc       *Position
+	Distributed  bool //分配状态
+	Signed       bool //签收状态
+	Region       *Region
+	SignTime     int64 //签收时间
+	SelectedTime int64 //被选择的时间
 }
 
 func NewOrder(id string, pos *Position) *Order {
@@ -78,11 +80,13 @@ func (o *Order) isDistributed() bool {
 func (o *Order) isSigned() bool {
 	return o.Signed
 }
-func (o *Order) sign() {
+func (o *Order) sign(time int64) {
 	o.Signed = true
+	o.SignTime = time
 }
-func (o *Order) distribute() {
+func (o *Order) distribute(time int64) {
 	o.Distributed = true
+	o.SelectedTime = time
 }
 
 type OrderList []*Order

@@ -275,7 +275,7 @@
 				                <div class="item-inner">
 				                  <div class="item-title-row">
 				                    <div class="item-title">Facebook</div>
-				                    <div class="item-after">17:14</div>
+				                    <div class="item-after"><span class="badge">+1</span></div>
 				                  </div>
 				                  <!-- <div class="item-subtitle">New messages from John Doe</div> -->
 				                  <div class="item-text">Lorem ipsum dolor sit amet...</div>
@@ -325,7 +325,7 @@
 		    </div>
 		</div>
 
-		<!-- 道具页面 -->
+		<!-- 消息页面 -->
 		<div class="view tab" id="view-cards">
 			<div class="navbar">
 			    <div class="navbar-inner">
@@ -342,10 +342,33 @@
 		        <!-- Page, "data-page" contains page name -->
 		        <div data-page="map" class="page" id="pageMap">
 		              <!-- Scrollable page content -->
-		              <div class="page-content "> 
-				        道具页面
+		            <div class="page-content "> 
+				         <div class="list-block media-list" style="margin-top: 0px; padding-left: 5px;">
+				           <ul id="msgList">
+				           <!--   <li>
+				                 <div class="item-inner">
+				                   <div class="item-title-row">
+				                     <div class="item-title">12:34</div>
+				                     <div class="item-after"></div>
+				                   </div>
+				                   <div class="item-text">New messages from John DoeNew messages from John DoeNew messages from John Doe</div>
+				                 </div>
+				             </li>
+				             
+				             <li>
+				                 <div class="item-inner">
+				                   <div class="item-title-row">
+				                     <div class="item-title">12:34</div>
+				                     <div class="item-after"></div>
+				                   </div>
+				                   <div class="item-text">Lorem ipsum dolor sit amet...</div>
+				                 </div>
+				             </li> -->
+				             
+				           </ul>
+				         </div>
 
-		              </div>
+		            </div>
 		         
 
 		          </div>
@@ -501,6 +524,8 @@
 	    		resetPie()
 				flagOrderNodeMarker()
 				refreshOderView()
+				var lastOrder = distributor.AcceptedOrders[_.size(distributor.AcceptedOrders)-1]
+				addMsgToView({timeStamp: transformTimeElapseToStandardFormat(lastOrder.SelectedTime), content: "选择配送订单 "+ lastOrder.ID})
 	    	}else{
 	    	    console.log("没有抢到订单 ")	    		
 	    	}
@@ -534,6 +559,7 @@
 			refreshNodeToSelect()
 			remindOrderSigning()
 			refreshOderView()
+			addMsgToView({timeStamp: transformTimeElapseToStandardFormat(distributor.TimeElapse), content: "上线"})
 	    }
 	    function pro_2c_map_data_handler(msg){
 	    	if(mapData != null){
@@ -550,6 +576,12 @@
 	    	drawRouteNodeOnMap(mapData)
 	    }
 	    //---------------------------------------------------------
+	    //添加消息到消息页面
+	    function addMsgToView(msg){
+	    	var dom = $$("#msgList")
+	    	dom.prepend(String.format('<li> <div class="item-inner"> <div class="item-title-row"> <div class="item-title">{0}</div> <div class="item-after"></div> </div>  <div class="item-text">{1}</div> </div> </li>', msg.timeStamp, msg.content))
+	    }
+
 	    //重置订单页面的订单列表，当订单数量或者状态发生变化时调用
 	    function refreshOderView(){
 	    	var refresher = function(domID, orders){
@@ -558,7 +590,7 @@
 
 		    	$$("#"+domID+"Label").text(String.format("（{0}）", _.size(orders)))
 	    		_.each(orders, function(order){
-	    			dom.append(String.format('<li> <a href="#" class="item-link item-content"> <div class="item-inner"> <div class="item-title-row"> <div class="item-title">{0}</div> <div class="item-after">17:14</div> </div> <div class="item-text">{1}</div> </div> </a> </li>', order.ID, order.Address || ""))
+	    			dom.append(String.format('<li> <a href="#" class="item-link item-content"> <div class="item-inner"> <div class="item-title-row"> <div class="item-title">{0}</div> <div class="item-after"><span class="badge  bg-lightblue">+1</span></div> </div> <div class="item-text">{1}</div> </div> </a> </li>', order.ID, order.Address || ""))
 	    		})
 	    	}
 	    	refresher("orderListUnsigned", _.filter(distributor.AcceptedOrders, function(order){return order.Signed == false}))
@@ -856,6 +888,16 @@
 	        }
 	        conn.send(JSON.stringify(msg))
 	    }
+	    function transformTimeElapseToStandardFormat(i){
+	    	return String.format("{0}:{1}",padLeft(Math.floor(i/60).toFixed(0), 2), padLeft((i%60).toFixed(0), 2))
+	    }
+	    function padLeft(str, lenght) {
+            if (str.length >= lenght)
+                return str;
+            else
+                return padLeft("0" + str, lenght);
+        }
+
 	    String.format = function(){
 	        if( arguments.length == 0){
 	            return null; 
