@@ -267,7 +267,56 @@
 		        <div data-page="map" class="page" id="pageMap">
 		              <!-- Scrollable page content -->
 		              <div class="page-content "> 
-				        订单页面
+				        <div  class="content-block-title" style="margin-top: 10px;">未签收<span id="orderListUnsignedLabel">（0）</span></div>
+				        <div class="list-block media-list">
+				          <ul id="orderListUnsigned">
+				            <li>
+				              <a href="#" class="item-link item-content">
+				                <div class="item-inner">
+				                  <div class="item-title-row">
+				                    <div class="item-title">Facebook</div>
+				                    <div class="item-after">17:14</div>
+				                  </div>
+				                  <!-- <div class="item-subtitle">New messages from John Doe</div> -->
+				                  <div class="item-text">Lorem ipsum dolor sit amet...</div>
+				                </div>
+				              </a>
+				            </li>
+				            
+				          </ul>
+				        </div>
+
+				        <div class="content-block-title" style="margin-top: 10px;">已签收<span  id="orderListSignedLabel">（0）</span></div>
+				        <div   class="list-block media-list">
+				          <ul id="orderListSigned">
+				            <li>
+				              <a href="#" class="item-link item-content">
+				                <div class="item-inner">
+				                  <div class="item-title-row">
+				                    <div class="item-title">Facebook</div>
+				                    <div class="item-after">17:14</div>
+				                  </div>
+				                  <!-- <div class="item-subtitle">New messages from John Doe</div> -->
+				                  <div class="item-text">Lorem ipsum dolor sit amet...</div>
+				                </div>
+				              </a>
+				            </li>
+				            
+				            <li>
+				              <a href="#" class="item-link item-content">
+				                <div class="item-inner">
+				                  <div class="item-title-row">
+				                    <div class="item-title">Facebook</div>
+				                    <div class="item-after">17:14</div>
+				                  </div>
+				                  <!-- <div class="item-subtitle">New messages from John Doe</div> -->
+				                  <div class="item-text">Lorem ipsum dolor sit amet...</div>
+				                </div>
+				              </a>
+				            </li>
+				            
+				          </ul>
+				        </div>
 
 		              </div>
 		         
@@ -374,7 +423,7 @@
 	    function pro_2c_all_order_signed_handler(msg){
 			distributor = msg.Data
         	viewRouteToPage(mainView, 'processStatistic')
-	    	
+
 	    }
 	    function pro_2c_sign_order_handler(msg){
 	    	if(msg.Data == null){
@@ -396,6 +445,7 @@
 		    		}
 		    	})
 		    	remindOrderSigning()
+				refreshOderView()
 	    	}
 	    }
 	    function pro_2c_reset_destination_handler(msg){
@@ -450,6 +500,7 @@
 	    		distributor = msg.Data
 	    		resetPie()
 				flagOrderNodeMarker()
+				refreshOderView()
 	    	}else{
 	    	    console.log("没有抢到订单 ")	    		
 	    	}
@@ -482,6 +533,7 @@
 			flagOrderNodeMarker()
 			refreshNodeToSelect()
 			remindOrderSigning()
+			refreshOderView()
 	    }
 	    function pro_2c_map_data_handler(msg){
 	    	if(mapData != null){
@@ -498,6 +550,34 @@
 	    	drawRouteNodeOnMap(mapData)
 	    }
 	    //---------------------------------------------------------
+	    //重置订单页面的订单列表，当订单数量或者状态发生变化时调用
+	    function refreshOderView(){
+	    	var refresher = function(domID, orders){
+	    		var dom = $$("#"+domID)
+		    	dom.children().remove()
+
+		    	$$("#"+domID+"Label").text(String.format("（{0}）", _.size(orders)))
+	    		_.each(orders, function(order){
+	    			dom.append(String.format('<li> <a href="#" class="item-link item-content"> <div class="item-inner"> <div class="item-title-row"> <div class="item-title">{0}</div> <div class="item-after">17:14</div> </div> <div class="item-text">{1}</div> </div> </a> </li>', order.ID, order.Address || ""))
+	    		})
+	    	}
+	    	refresher("orderListUnsigned", _.filter(distributor.AcceptedOrders, function(order){return order.Signed == false}))
+	    	refresher("orderListSigned", _.filter(distributor.AcceptedOrders, function(order){return order.Signed == true}))
+
+	    	// var orderListUnsigned = $$("#orderListUnsigned")
+	    	// orderListUnsigned.children().remove()
+	    	// var ordersUnsigned = _.filter(distributor.AcceptedOrders, function(order){return order.Signed == false})
+	    	// _.each(ordersUnsigned, function(order){
+	    	// 	orderListUnsigned.append(String.format('<li> <a href="#" class="item-link item-content"> <div class="item-inner"> <div class="item-title-row"> <div class="item-title">{0}</div> <div class="item-after">17:14</div> </div> <div class="item-text">{1}</div> </div> </a> </li>', order.ID, order.Address))
+	    	// })
+
+	    	// var orderListSigned = $$("orderListSigned")
+	    	// orderListSigned.children().remove()
+	    	// var ordersSigned = _.filter(distributor.AcceptedOrders, function(order){return order.Signed == true})
+	    	// _.each(ordersSigned, function(order){
+	    	// 	orderListSigned.append(String.format('<li> <a href="#" class="item-link item-content"> <div class="item-inner"> <div class="item-title-row"> <div class="item-title">{0}</div> <div class="item-after">17:14</div> </div> <div class="item-text">{1}</div> </div> </a> </li>', order.ID, order.Address))
+	    	// })
+	    }
 	    function remindOrderSigning(){
 	    	//如果有订单，提醒签收
 	    	var pos = distributor.CurrentPos

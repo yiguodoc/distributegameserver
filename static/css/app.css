@@ -80,5 +80,7 @@ i.tabbar-demo-icon-4 {
 .swiper-slide .slide-content{
   font-size: 12px;
 }
-
+.list-block .item-text {
+  height: 21px;
+}
 
