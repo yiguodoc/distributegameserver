@@ -48,6 +48,8 @@ func pro_move_from_route_to_node_handlerGenerator(o interface{}) MessageWithClie
 	}
 	return f
 }
+
+//订单选择的请求，可以对请求作出一些限制，例如当前的位置必须处于仓库等等
 func pro_order_select_response_handlerGenerator(o interface{}) MessageWithClientHandler {
 	// unit := o.(*DistributorProcessUnit)
 	center := o.(*DistributorProcessUnitCenter)
@@ -56,12 +58,26 @@ func pro_order_select_response_handlerGenerator(o interface{}) MessageWithClient
 		if list, err := mappedValue(m).Getter("OrderID", "DistributorID"); err == nil {
 			orderID := list[0].(string)
 			distributorID := list[1].(string)
-			if err := disposeOrderSelectResponse(orderID, distributorID, center.distributors, center.orders); err != nil {
+			distributor := center.distributors.findOne(func(d *Distributor) bool { return d.ID == distributorID })
+			if distributor == nil {
+				return
+			}
+			//系统设定，配送员需要在仓库位置才能选择订单
+			qualifier := func(d *Distributor) bool {
+				list := center.mapData.Points.filter(func(pos *Position) bool { return pos.PointType == POSITION_TYPE_WAREHOUSE })
+				curPos := d.CurrentPos
+				return list.contains(func(pos *Position) bool { return curPos.equals(pos) })
+			}
+			if distributor.Is(qualifier) == false {
+				DebugInfoF("配送员 %s 所处位置无法选择订单", distributor.Name)
+				return
+			}
+
+			if err := disposeOrderSelectResponse(orderID, distributor, center.distributors, center.orders); err != nil {
 				DebugInfoF("处理订单分配时的信息提示：%s", err)
 			} else {
 				//将分配结果通知到各方，包括获得订单的客户端、群通知，并引发分配结果事件，使得观察者也可以得到通知
 				// distributionResult := NewOrderDistribution(orderID, distributorID)
-				distributor := center.distributors.findOne(func(o interface{}) bool { return o.(DataWithID).GetID() == distributorID })
 				// distributor := center.distributors.find(distributorID)
 				center.wsRoom.sendMsgToSpecialSubscriber(distributorID, pro_2c_order_select_result, distributor)
 
@@ -81,7 +97,6 @@ func pro_order_select_response_handlerGenerator(o interface{}) MessageWithClient
 							DebugInfoF("配送员 %s 状态变化 => 配送环节", d.Name)
 						}
 					})
-					// triggerSysEvent(NewSysEvent(sys_event_distribution_prepared, distributor))
 				}
 				sendOrderProposal(center)
 
@@ -136,7 +151,7 @@ func pro_game_start_handlerGenerator(o interface{}) MessageWithClientHandler {
 	return f
 }
 func sendOrderProposal(center *DistributorProcessUnitCenter) {
-	if len(center.distributors.filter(func(o interface{}) bool { return o.(*Distributor).full() == false })) > 0 {
+	if len(center.distributors.filter(func(d *Distributor) bool { return d.full() == false })) > 0 {
 		// if len(center.distributors.notFull()) > 0 {
 		// broadOrderSelectProposal(center.distributors, center.orders)
 		if proposals, err := getOrderSelectProposal(center.distributors, center.orders); err == nil {
@@ -158,7 +173,7 @@ func pro_prepared_for_select_order_handlerGenerator(o interface{}) MessageWithCl
 			DebugMustF("客户端数据格式错误，无法获取配送员编号")
 			return
 		}
-		distributor := center.distributors.findOne(func(o interface{}) bool { return o.(DataWithID).GetID() == distributorID.(string) })
+		distributor := center.distributors.findOne(func(d *Distributor) bool { return d.ID == distributorID.(string) })
 		if distributor == nil {
 			DebugSysF("配送员 %s 不应该出现在该中心内", distributorID.(string))
 		}
@@ -169,8 +184,8 @@ func pro_prepared_for_select_order_handlerGenerator(o interface{}) MessageWithCl
 				d.CheckPoint = checkpoint_flag_order_select
 			}
 		})
-		distributorsPrepared := center.distributors.filter(func(o interface{}) bool {
-			return o.(*Distributor).CheckPoint >= checkpoint_flag_order_select
+		distributorsPrepared := center.distributors.filter(func(d *Distributor) bool {
+			return d.CheckPoint >= checkpoint_flag_order_select
 		})
 		if len(distributorsPrepared) >= len(center.distributors) {
 			// if center.distributors.allPreparedForOrderSelect() == true {
@@ -195,13 +210,12 @@ func pro_on_line_handlerGenerator(o interface{}) MessageWithClientHandler {
 	f := func(msg *MessageWithClient) {
 		DebugInfoF("处理消息 %s", msg)
 		center.startUnit(msg.TargetID)
-		distributor := center.distributors.findOne(func(o interface{}) bool { return o.(DataWithID).GetID() == msg.TargetID })
+		distributor := center.distributors.findOne(func(d *Distributor) bool { return d.ID == msg.TargetID })
 		// distributor := center.distributors.find(msg.TargetID)
 		if distributor != nil {
 			//设置默认起始点
 			if distributor.StartPos == nil {
-				filter := func(o interface{}) bool {
-					pos := o.(*Position)
+				filter := func(pos *Position) bool {
 					return pos.PointType == POSITION_TYPE_WAREHOUSE
 				}
 				warehouses := center.mapData.Points.filter(filter)
@@ -276,8 +290,7 @@ func pro_game_time_tick_handlerGenerator(o interface{}) MessageWithClientHandler
 						distributor.CurrentPos.addLngLat(lng, lat)
 						//已经到达目标点，运动停止
 						// distributor.StartPos.setLngLat(distributor.DestPos.Lng, distributor.DestPos.Lat) //
-						distributor.StartPos = unit.center.mapData.Points.findOne(func(o interface{}) bool {
-							pos := o.(*Position)
+						distributor.StartPos = unit.center.mapData.Points.findOne(func(pos *Position) bool {
 							return pos.Lng == distributor.DestPos.Lng && pos.Lat == distributor.DestPos.Lat
 						})
 						// distributor.StartPos = unit.center.mapData.Points.findLngLat(distributor.DestPos.Lng, distributor.DestPos.Lat)
@@ -319,15 +332,15 @@ func pro_reset_destination_request_handlerGenerator(o interface{}) MessageWithCl
 	f := func(msg *MessageWithClient) {
 		m := msg.Data.(map[string]interface{})
 		if list, err := mappedValue(m).Getter("PositionID", "DistributorID"); err == nil {
-			posWanted := unit.center.mapData.Points.findOne(func(o interface{}) bool {
-				return o.(*Position).ID == int(list[0].(float64))
+			posWanted := unit.center.mapData.Points.findOne(func(pos *Position) bool {
+				return pos.ID == int(list[0].(float64))
 			})
 			// posWanted := unit.center.mapData.Points.findByID(int(list[0].(float64)))
 			if posWanted == nil {
 				DebugMustF("重置目标点出错，不存在编号为 %d 的节点", int(list[0].(float64)))
 				return
 			}
-			distributor := unit.center.distributors.findOne(func(o interface{}) bool { return o.(DataWithID).GetID() == list[1].(string) })
+			distributor := unit.center.distributors.findOne(func(d *Distributor) bool { return d.ID == list[1].(string) })
 			// distributor := unit.center.distributors.find(list[1].(string))
 			if distributor == nil {
 				DebugMustF("重置目标点出错，不存在配送员[%s]", distributor.ID)
@@ -355,8 +368,7 @@ func pro_reset_destination_request_handlerGenerator(o interface{}) MessageWithCl
 					DebugTraceF("%s => %s", distributor.PosString(), posWanted.String())
 					return
 				}
-				distributor.DestPos = unit.center.mapData.Points.findOne(func(o interface{}) bool {
-					pos := o.(*Position)
+				distributor.DestPos = unit.center.mapData.Points.findOne(func(pos *Position) bool {
 					return pos.Lng == posWanted.Lng && pos.Lat == posWanted.Lat
 				})
 				// distributor.DestPos = unit.center.mapData.Points.findLngLat(posWanted.Lng, posWanted.Lat)
@@ -416,6 +428,8 @@ func pro_distributor_info_request_handlerGenerator(o interface{}) MessageWithCli
 	}
 	return f
 }
+
+//签收订单，注意签收的位置必须是订单所在的位置
 func pro_sign_order_request_handlerGenerator(o interface{}) MessageWithClientHandler {
 	unit := o.(*DistributorProcessUnit)
 	f := func(msg *MessageWithClient) {
@@ -464,7 +478,7 @@ func getOrderSelectProposal(distributors DistributorList, orders OrderList) (lis
 	}
 	return proposals, nil
 }
-func disposeOrderSelectResponse(orderID, distributorID string, distributors DistributorList, orders OrderList) error {
+func disposeOrderSelectResponse(orderID string, distributor *Distributor, distributors DistributorList, orders OrderList) error {
 	order := orders.findOne(func(o interface{}) bool { return o.(*Order).ID == orderID })
 	if order == nil {
 		DebugMustF("系统异常，分配不存在的订单：%s", orderID)
@@ -474,15 +488,15 @@ func disposeOrderSelectResponse(orderID, distributorID string, distributors Dist
 		DebugInfoF("订单[%s]已经被分配", orderID)
 		return ERR_order_already_selected
 	}
-	distributor := distributors.findOne(func(o interface{}) bool { return o.(DataWithID).GetID() == distributorID })
+	// distributor := distributors.findOne(func(d *Distributor) bool { return d.ID == distributorID })
 
 	// distributor := distributors.find(distributorID) //首先确保配送员满足订单分配条件，当前条件是已分配的订单未达到最大可接收数量
 	if distributor == nil {
-		DebugInfoF("没有找到配送员[%s]的信息", distributorID)
+		DebugInfoF("没有找到配送员[%s]的信息", distributor.Name)
 		return ERR_no_such_distributor
 	}
 	if distributor.full() {
-		DebugInfoF("配送员[%s]已经满载", distributorID)
+		DebugInfoF("配送员[%s]已经满载", distributor.Name)
 		return ERR_distributor_full
 	}
 

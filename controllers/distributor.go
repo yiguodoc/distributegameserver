@@ -9,6 +9,8 @@ import (
 	"encoding/json"
 )
 
+type distributorPredictor func(*Distributor) bool
+
 const (
 	color_orange = "orange"
 	color_red    = "red"
@@ -114,6 +116,7 @@ func (d *Distributor) SendBinaryMessage(msg []byte) error {
 }
 func (d *Distributor) IdEqals(id string) bool {
 	return d.ID == id
+	// return d.Is(func(dr *Distributor) bool { return dr.ID == id })
 }
 func (d *Distributor) SetOffline() error {
 	defer func() {
@@ -145,9 +148,13 @@ func (d *Distributor) copyAll() *Distributor {
 	}
 }
 
+func (d *Distributor) Is(f distributorPredictor) bool {
+	return f(d)
+}
+
 type DistributorList []*Distributor
 
-func (dl DistributorList) clone(f predictor) (l DistributorList) {
+func (dl DistributorList) clone(f distributorPredictor) (l DistributorList) {
 	for _, d := range dl {
 		if f == nil || f(d) {
 			l = append(l, d.copyAll())
@@ -162,7 +169,7 @@ func (dl DistributorList) forEach(f func(*Distributor)) {
 		}
 	}
 }
-func (dl DistributorList) filter(f predictor) (l DistributorList) {
+func (dl DistributorList) filter(f distributorPredictor) (l DistributorList) {
 	for _, d := range dl {
 		if f == nil || f(d) {
 			l = append(l, d)
@@ -170,7 +177,7 @@ func (dl DistributorList) filter(f predictor) (l DistributorList) {
 	}
 	return
 }
-func (dl DistributorList) findOne(f predictor) *Distributor {
+func (dl DistributorList) findOne(f distributorPredictor) *Distributor {
 	for _, p := range dl {
 		if f(p) {
 			return p

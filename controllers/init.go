@@ -46,10 +46,10 @@ func init() {
 	room.addEventSubscriber(distributorRoomEventHandler,
 		WsRoomEventCode_Online, WsRoomEventCode_Offline, WsRoomEventCode_Other)
 
-	filter := func(o interface{}) bool {
+	filter := func(d *Distributor) bool {
 		l := []string{"d01", "d02"}
 		for _, s := range l {
-			if s == o.(DataWithID).GetID() {
+			if s == d.ID {
 				return true
 			}
 		}
@@ -78,7 +78,7 @@ func distributorRoomEventHandler(code, data interface{}) {
 	switch c {
 	case WsRoomEventCode_Online:
 		msg := data.(*MessageWithClient)
-		distributor := g_UnitCenter.distributors.findOne(func(o interface{}) bool { return o.(DataWithID).GetID() == msg.TargetID })
+		distributor := g_UnitCenter.distributors.findOne(func(d *Distributor) bool { return d.ID == msg.TargetID })
 		// distributor := g_UnitCenter.distributors.find(msg.TargetID)
 		if distributor == nil {
 			DebugSysF("未查找到配送员 %s", msg.Data.(string))

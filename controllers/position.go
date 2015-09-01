@@ -34,6 +34,7 @@ const (
 
 // type positionTypeFilter func(*Position) bool
 type predictor func(interface{}) bool
+type positionPredictor func(*Position) bool
 
 //位置，订单的产生地
 type Position struct {
@@ -106,7 +107,7 @@ func (pl PositionList) clone(f predictor) (l PositionList) {
 	return
 }
 
-func (pl PositionList) filter(f predictor) (l PositionList) {
+func (pl PositionList) filter(f positionPredictor) (l PositionList) {
 	for _, p := range pl {
 		if f(p) {
 			l = append(l, p)
@@ -114,14 +115,7 @@ func (pl PositionList) filter(f predictor) (l PositionList) {
 	}
 	return
 }
-func (pl PositionList) Map(f func(interface{}) interface{}) AnyArray {
-	list := []interface{}{}
-	for _, p := range pl {
-		list = append(list, f(p))
-	}
-	return list
-}
-func (pl PositionList) findOne(f predictor) *Position {
+func (pl PositionList) findOne(f positionPredictor) *Position {
 	for _, p := range pl {
 		if f(p) {
 			return p
@@ -129,6 +123,32 @@ func (pl PositionList) findOne(f predictor) *Position {
 	}
 	return nil
 }
+func (pl PositionList) contains(f positionPredictor) bool {
+	for _, p := range pl {
+		if f(p) {
+			return true
+		}
+	}
+	return false
+}
+
+// func (pl PositionList) findOne(f predictor) *Position {
+// 	for _, p := range pl {
+// 		if f(p) {
+// 			return p
+// 		}
+// 	}
+// 	return nil
+// }
+
+func (pl PositionList) Map(f func(interface{}) interface{}) AnyArray {
+	list := []interface{}{}
+	for _, p := range pl {
+		list = append(list, f(p))
+	}
+	return list
+}
+
 func (pl PositionList) reduce(f func(interface{}) interface{}) interface{} {
 	return nil
 }
