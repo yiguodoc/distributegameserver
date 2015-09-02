@@ -54,8 +54,89 @@
   PointType = 1
   HasOrder = true
 
+[[Points]]
+  ID = 8
+  Lng = 116.625898
+  Lat = 39.931148
+  Address = ""
+  PointType = 2
+  HasOrder = false
+
+[[Points]]
+  ID = 9
+  Lng = 116.621802
+  Lat = 39.930346
+  Address = ""
+  PointType = 2
+  HasOrder = false
+
+[[Points]]
+  ID = 10
+  Lng = 116.619179
+  Lat = 39.929875
+  Address = ""
+  PointType = 2
+  HasOrder = false
+
+[[Points]]
+  ID = 11
+  Lng = 116.618209
+  Lat = 39.929848
+  Address = ""
+  PointType = 2
+  HasOrder = false
+
+[[Points]]
+  ID = 12
+  Lng = 116.615586
+  Lat = 39.930705
+  Address = ""
+  PointType = 1
+  HasOrder = true
+
+[[Points]]
+  ID = 13
+  Lng = 116.626401
+  Lat = 39.929212
+  Address = ""
+  PointType = 1
+  HasOrder = true
+
+[[Points]]
+  ID = 14
+  Lng = 116.622736
+  Lat = 39.928935
+  Address = ""
+  PointType = 1
+  HasOrder = true
+
+[[Points]]
+  ID = 15
+  Lng = 116.618676
+  Lat = 39.932531
+  Address = ""
+  PointType = 1
+  HasOrder = true
+
+[[Points]]
+  ID = 16
+  Lng = 116.617383
+  Lat = 39.93195
+  Address = ""
+  PointType = 1
+  HasOrder = true
+
+[[Points]]
+  ID = 17
+  Lng = 116.614041
+  Lat = 39.92982
+  Address = ""
+  PointType = 1
+  HasOrder = true
+
 [[Lines]]
   Distance = 547.296276362438
+  Busy = false
   [Lines.Start]
     ID = 1
     Lng = 116.639373
@@ -73,6 +154,7 @@
 
 [[Lines]]
   Distance = 333.8349182969697
+  Busy = false
   [Lines.Start]
     ID = 2
     Lng = 116.632977
@@ -90,6 +172,7 @@
 
 [[Lines]]
   Distance = 233.52273171221356
+  Busy = false
   [Lines.Start]
     ID = 2
     Lng = 116.632977
@@ -107,6 +190,7 @@
 
 [[Lines]]
   Distance = 217.5518269095082
+  Busy = false
   [Lines.Start]
     ID = 3
     Lng = 116.629204
@@ -124,6 +208,7 @@
 
 [[Lines]]
   Distance = 404.6939181356864
+  Busy = false
   [Lines.Start]
     ID = 3
     Lng = 116.629204
@@ -141,6 +226,7 @@
 
 [[Lines]]
   Distance = 578.9798476199995
+  Busy = false
   [Lines.Start]
     ID = 3
     Lng = 116.629204
@@ -152,6 +238,186 @@
     ID = 7
     Lng = 116.622593
     Lat = 39.933112
+    Address = ""
+    PointType = 1
+    HasOrder = true
+
+[[Lines]]
+  Distance = 294.76620176124374
+  Busy = false
+  [Lines.Start]
+    ID = 3
+    Lng = 116.629204
+    Lat = 39.931923
+    Address = ""
+    PointType = 2
+    HasOrder = false
+  [Lines.End]
+    ID = 8
+    Lng = 116.625898
+    Lat = 39.931148
+    Address = ""
+    PointType = 2
+    HasOrder = false
+
+[[Lines]]
+  Distance = 360.4574194788641
+  Busy = false
+  [Lines.Start]
+    ID = 8
+    Lng = 116.625898
+    Lat = 39.931148
+    Address = ""
+    PointType = 2
+    HasOrder = false
+  [Lines.End]
+    ID = 9
+    Lng = 116.621802
+    Lat = 39.930346
+    Address = ""
+    PointType = 2
+    HasOrder = false
+
+[[Lines]]
+  Distance = 229.70634894900581
+  Busy = false
+  [Lines.Start]
+    ID = 9
+    Lng = 116.621802
+    Lat = 39.930346
+    Address = ""
+    PointType = 2
+    HasOrder = false
+  [Lines.End]
+    ID = 10
+    Lng = 116.619179
+    Lat = 39.929875
+    Address = ""
+    PointType = 2
+    HasOrder = false
+
+[[Lines]]
+  Distance = 82.76410267518702
+  Busy = false
+  [Lines.Start]
+    ID = 10
+    Lng = 116.619179
+    Lat = 39.929875
+    Address = ""
+    PointType = 2
+    HasOrder = false
+  [Lines.End]
+    ID = 11
+    Lng = 116.618209
+    Lat = 39.929848
+    Address = ""
+    PointType = 2
+    HasOrder = false
+
+[[Lines]]
+  Distance = 243.1106964704514
+  Busy = false
+  [Lines.Start]
+    ID = 11
+    Lng = 116.618209
+    Lat = 39.929848
+    Address = ""
+    PointType = 2
+    HasOrder = false
+  [Lines.End]
+    ID = 12
+    Lng = 116.615586
+    Lat = 39.930705
+    Address = ""
+    PointType = 1
+    HasOrder = true
+
+[[Lines]]
+  Distance = 219.50417751156832
+  Busy = false
+  [Lines.Start]
+    ID = 8
+    Lng = 116.625898
+    Lat = 39.931148
+    Address = ""
+    PointType = 2
+    HasOrder = false
+  [Lines.End]
+    ID = 13
+    Lng = 116.626401
+    Lat = 39.929212
+    Address = ""
+    PointType = 1
+    HasOrder = true
+
+[[Lines]]
+  Distance = 175.9514165281677
+  Busy = false
+  [Lines.Start]
+    ID = 9
+    Lng = 116.621802
+    Lat = 39.930346
+    Address = ""
+    PointType = 2
+    HasOrder = false
+  [Lines.End]
+    ID = 14
+    Lng = 116.622736
+    Lat = 39.928935
+    Address = ""
+    PointType = 1
+    HasOrder = true
+
+[[Lines]]
+  Distance = 206.49977340732363
+  Busy = false
+  [Lines.Start]
+    ID = 12
+    Lng = 116.615586
+    Lat = 39.930705
+    Address = ""
+    PointType = 1
+    HasOrder = true
+  [Lines.End]
+    ID = 16
+    Lng = 116.617383
+    Lat = 39.93195
+    Address = ""
+    PointType = 1
+    HasOrder = true
+
+[[Lines]]
+  Distance = 127.78171857545341
+  Busy = false
+  [Lines.Start]
+    ID = 16
+    Lng = 116.617383
+    Lat = 39.93195
+    Address = ""
+    PointType = 1
+    HasOrder = true
+  [Lines.End]
+    ID = 15
+    Lng = 116.618676
+    Lat = 39.932531
+    Address = ""
+    PointType = 1
+    HasOrder = true
+
+[[Lines]]
+  Distance = 164.4349792222158
+  Busy = false
+  [Lines.Start]
+    ID = 12
+    Lng = 116.615586
+    Lat = 39.930705
+    Address = ""
+    PointType = 1
+    HasOrder = true
+  [Lines.End]
+    ID = 17
+    Lng = 116.614041
+    Lat = 39.92982
     Address = ""
     PointType = 1
     HasOrder = true

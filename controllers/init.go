@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	// "time"
 	// "strings"
-	// "fmt"
+	"fmt"
 	// "reflect"
 )
 
@@ -16,16 +16,20 @@ var (
 	g_distributorStore = DistributorList{ //配送员列表
 		NewDistributor("d01", "张军", 2, color_orange),
 		NewDistributor("d02", "刘晓莉", 2, color_red),
-		// NewDistributor("d03", "桑鸿庆", 3, color_purple),
+		NewDistributor("d03", "桑鸿庆", 2, color_purple),
 	}
 	g_regions = RegionList{
-		NewRegion("1", "255,128,128", 39.932725, 39.934789, 116.622593, 116.628198),
-		NewRegion("2", "255,179,128", 39.932725, 39.934789, 116.628198, 116.632007),
-		NewRegion("3", "255,255,128", 39.932725, 39.934789, 116.632007, 116.639374),
+		NewRegion("1", "255,128,128", 39.928935, 39.944789, 116.614041, 116.618676),
+		NewRegion("2", "255,179,128", 39.928935, 39.944789, 116.618676, 116.625898),
+		NewRegion("3", "255,255,128", 39.928935, 39.944789, 116.625898, 116.639373),
 	}
 )
 
 func init() {
+	i := 4
+	j := float64(6.5)
+	fmt.Println(fmt.Sprintf("i = %v j = %v", i, j))
+
 	clientMessageTypeCodeCheck()
 
 	mapData := loadMapData()
@@ -47,7 +51,7 @@ func init() {
 		WsRoomEventCode_Online, WsRoomEventCode_Offline, WsRoomEventCode_Other)
 
 	filter := func(d *Distributor) bool {
-		l := []string{"d01", "d02"}
+		l := []string{"d01", "d02", "d03"}
 		for _, s := range l {
 			if s == d.ID {
 				return true

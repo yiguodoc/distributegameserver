@@ -7,6 +7,7 @@ import (
 	// "math/rand"
 	// "time"
 	"encoding/json"
+	"sort"
 )
 
 type distributorPredictor func(*Distributor) bool
@@ -56,7 +57,8 @@ type Distributor struct {
 	Distance               float64         //所在或者将要行驶的路径长度
 	line                   *Line
 	TimeElapse             int64 //运行时间
-	// RejectedOrders         OrderList
+	Score                  int64 //得分
+	Rank                   int   //排名
 }
 
 func NewDistributorFromJson(bytes []byte) *Distributor {
@@ -80,7 +82,8 @@ func NewDistributor(id, name string, maxCount int, color string) *Distributor {
 	}
 }
 func (this *Distributor) String() string {
-	return fmt.Sprintf("ID: %-3s  Name: %-4s 游戏进程：%d 可接收新订单：%t 接收的订单：%2d online:%t", this.ID, this.Name, this.CheckPoint, !this.full(), len(this.AcceptedOrders), this.IsOnline())
+	return fmt.Sprintf("ID: %-3s  Name: %-4s 游戏进程：%d 可接收新订单：%t 接收的订单：%2d online:%t score: %d timeElapse: %d rank: %d",
+		this.ID, this.Name, this.CheckPoint, !this.fullyLoaded(), len(this.AcceptedOrders), this.IsOnline(), this.Score, this.TimeElapse, this.Rank)
 }
 func (d *Distributor) PosString() string {
 	if d.CurrentPos == nil {
@@ -91,11 +94,19 @@ func (d *Distributor) PosString() string {
 	}
 	return fmt.Sprintf("ID: %-3s  Name: %-4s  (%f, %f) => (%f, %f) %fkm/h", d.ID, d.Name, d.CurrentPos.Lng, d.CurrentPos.Lat, d.DestPos.Lng, d.DestPos.Lat, d.CurrentSpeed)
 }
-func (this *Distributor) full() bool {
+
+//接收了订单数量的上限
+func (this *Distributor) fullyLoaded() bool {
 	return len(this.AcceptedOrders) >= this.MaxAcceptedOrdersCount
 }
+
+//接收配送订单
 func (this *Distributor) acceptOrder(order *Order) {
 	this.AcceptedOrders = append(this.AcceptedOrders, order)
+}
+
+func (d *Distributor) IsOriginal() bool {
+	return d.CheckPoint == checkpoint_flag_origin
 }
 func (d *Distributor) IsOnline() bool {
 	return d.Conn != nil
@@ -154,6 +165,26 @@ func (d *Distributor) Is(f distributorPredictor) bool {
 
 type DistributorList []*Distributor
 
+func (dl DistributorList) Rank() {
+	sort.Sort(dl)
+	for i, d := range dl {
+		d.Rank = i + 1
+	}
+}
+func (dl DistributorList) Len() int {
+	return len(dl)
+}
+func (dl DistributorList) Swap(i, j int) {
+	dl[i], dl[j] = dl[j], dl[i]
+}
+func (dl DistributorList) Less(i, j int) bool {
+	if dl[i].Score == dl[j].Score {
+		return dl[i].TimeElapse < dl[j].TimeElapse
+	} else {
+		return dl[i].Score > dl[j].Score
+
+	}
+}
 func (dl DistributorList) clone(f distributorPredictor) (l DistributorList) {
 	for _, d := range dl {
 		if f == nil || f(d) {
@@ -162,12 +193,32 @@ func (dl DistributorList) clone(f distributorPredictor) (l DistributorList) {
 	}
 	return
 }
-func (dl DistributorList) forEach(f func(*Distributor)) {
+func (dl DistributorList) forEach(f distributorPredictor) {
+	if f == nil {
+		return
+	}
 	for _, d := range dl {
-		if f != nil {
-			f(d)
+		f(d)
+	}
+}
+func (dl DistributorList) forOne(f distributorPredictor) {
+	if f == nil {
+		return
+	}
+	for _, d := range dl {
+		if f(d) {
+			return
 		}
 	}
+}
+
+func (dl DistributorList) every(f distributorPredictor) bool {
+	for _, d := range dl {
+		if f(d) == false {
+			return false
+		}
+	}
+	return true
 }
 func (dl DistributorList) filter(f distributorPredictor) (l DistributorList) {
 	for _, d := range dl {

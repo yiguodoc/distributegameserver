@@ -174,6 +174,11 @@ func (dpc *DistributorProcessUnitCenter) startUnit(id string) {
 		DebugSysF("启动配送处理单元出错，指定的单元 %s 不存在", id)
 	}
 }
+func (dpc *DistributorProcessUnitCenter) starAlltUnit() {
+	for _, unit := range dpc.units {
+		unit.start()
+	}
+}
 
 type DistributorProcessUnit struct {
 	center      *DistributorProcessUnitCenter

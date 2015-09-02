@@ -121,11 +121,17 @@ require(['jquery', 'lodash', 'Framework7', 'Chart'], function ($, _, Framework7,
             conn.onmessage = function(evt) {
                 var msg = evt.data
                 msg = JSON.parse(msg)
-                console.dir(msg)
+                if(msg.ErrorMsg != null && msg.ErrorMsg.length > 0){//系统对操作的错误提示信息
+                    console.warn(msg.ErrorMsg)
+                    addMsgToView(msg.SysTime, msg.ErrorMsg)
+                }
                 var handler = _.find(MessageHandlers, {MessageType: msg.MessageType})
                 if(handler == null){
                     console.warn("消息处理函数未定义")
                 }else{
+                    if(handler.print != false){
+                        console.log("系统消息：",msg)
+                    }
                     handler.handler(msg)
                 }
                 // distributionProposals = JSON.parse(distributionProposals)

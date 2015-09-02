@@ -55,7 +55,7 @@
                                     <div class="item-inner">
                                       <!-- <div class="item-title label">Name</div> -->
                                       <div class="item-input">
-                                        <input type="text" placeholder="学号">
+                                        <input id="loginID" type="text" placeholder="学号">
                                       </div>
                                     </div>
                                   </div>
@@ -67,7 +67,7 @@
                                     <div class="item-inner">
                                       <!-- <div class="item-title label">Name</div> -->
                                       <div class="item-input">
-                                        <input type="password" placeholder="密码">
+                                        <input id="loginPWD" type="password" placeholder="密码">
                                       </div>
                                     </div>
                                   </div>
@@ -81,7 +81,7 @@
                             <div class="col-10"></div>
                             <div class="col-80">
                                 <div class=" login-btn-content">
-                                      <a href="/index?id=d01" class="button button-big button-fill external" id="btnLogin">登录</a>
+                                      <a href="#" class="button button-big button-fill external" id="btnLogin" >登录</a>
                                 </div>
 
                             </div>
@@ -156,10 +156,13 @@
         // Because we use fixed-through navbar we can enable dynamic navbar
         dynamicNavbar: true
     });
-    // $$("#btnLogin").on("click", function(e){
-    //     console.log("加载首页")
-    //     mainView.router.load({url:"/index"})
-    // })
+    $$("#btnLogin").on("click", function(e){
+        console.log("加载首页")
+        var loginID = $$("#loginID").val()
+        var loginPWD = $$("#loginPWD").val()
+        // mainView.router.load({url:"/index?id="+loginID})
+        window.location.href = "/index?id="+loginID
+    })
 
     </script>
 

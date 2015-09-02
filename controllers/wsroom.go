@@ -121,18 +121,23 @@ func (w *WsRoom) newMessage(id string, content []byte) {
 }
 
 // broadcastWebSocket broadcasts messages to WebSocket users.
-func (w *WsRoom) broadcastMsgToSubscribers(protocal ClientMessageTypeCode, obj interface{}) {
+func (w *WsRoom) broadcastMsgToSubscribers(protocal ClientMessageTypeCode, obj interface{}, err ...string) {
 	// DebugTraceF("broadcastWebSocket => %s", event)
-	msg := &MessageWithClient{protocal, "", obj}
+	// msg := &MessageWithClient{protocal, "", obj, ""}
+	msg := NewMessageWithClient(protocal, "", obj, err...)
 	w.chanPublishToSubscribers <- &roomMessage{content: msg}
 }
 
 // send messages to WebSocket special user.
-func (w *WsRoom) sendMsgToSpecialSubscriber(id string, protocal ClientMessageTypeCode, obj interface{}) {
+func (w *WsRoom) sendMsgToSpecialSubscriber(id string, protocal ClientMessageTypeCode, obj interface{}, err ...string) {
 	// DebugTraceF("broadcastWebSocket => %s", event)
-	msg := &MessageWithClient{protocal, id, obj}
+	msg := NewMessageWithClient(protocal, id, obj, err...)
+	// msg := &MessageWithClient{protocal, id, obj}
 	w.chanPublishToSubscribers <- &roomMessage{targetID: id, content: msg}
-	DebugTraceF("=>  %s : %s", id, msg)
+	if protocal != pro_2c_sys_time_elapse {
+
+		DebugTraceF("=>  %s : %v", id, msg)
+	}
 }
 
 //******************************************************************

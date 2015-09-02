@@ -80,15 +80,42 @@
 			               <div class="swiper-button-prev"></div>
 			               <div class="swiper-button-next"></div>
 			             </div>
-
+<!-- 		                    <p class="buttons-row">
+		                      <a href="#" class="button button-big button-fill button-raised color-pink">选择订单</a>
+		                      <a href="#" class="button button-big button-fill button-raised color-teal">开始配送</a>
+		                    </p> -->
 		                <div class=" login-btn-content">
-		                	<div class="row">
+		                	<div class="row" style="margin-left: 20px; margin-right: 20px;">
+		                		<!-- <div class="col-5"></div> -->
+		                		<div class="col-50">
+				                     <a href="#" class="button button-raised " id="" onclick="selectOrder()">选择订单</a>
+		                		</div>
+
+		                		<div class="col-50">
+				                     <a href="#" class="button button-raised " id="" onclick="onStartDistribution()">开始配送</a>
+		                		</div>
+
+		                		<!-- <div class="col-5"></div> -->
+		                    </div>
+
+
+		                	<!-- <div class="row">
 		                		<div class="col-10"></div>
 		                		<div class="col-80">
 				                     <a href="#" class="button button-big button-fill" id="" onclick="selectOrder()">选择订单</a>
 		                		</div>
 		                		<div class="col-10"></div>
 		                    </div>
+
+		                	<div class="row">
+		                		<div class="col-20"></div>
+		                		<div class="col-60">
+				                     <a href="#" class="button " id="" onclick="selectOrder()">开始配送</a>
+		                		</div>
+		                		<div class="col-20"></div>
+		                    </div> -->
+
+
 		                </div>
 
 		              </div>
@@ -127,15 +154,17 @@
 					<div class="page-content "> 
 					    <div class="content-block" style="margin-top: 0px;">
 					            <!-- <p style="text-align: center;">00:10</p> -->
-					            <div class="" style="text-align: center;margin-top:5px;  color: rgba(150,150,150,0.9);">00:10</div>
+					            <div id="systimeShow" class="" style="text-align: center;margin-top:5px;  color: rgba(150,150,150,0.9);"></div>
 					            <div class="content-block-inner" style="text-align: center;margin-top:50px;">
 					            	<div style="font-size: 13px; color: rgba(150,150,150,0.8);">订单签收进度</div>
-					            	<div style="font-size: 19px;">7/10</div>
+					            	<div id="orderSignProcess" style="font-size: 19px;">7/10</div>
 
 					            </div>
-					            <div style = "  text-align: center; margin-bottom: 40px; font-size: 28px; border-bottom: 1px solid rgba(200,200,200,0.5); padding-bottom: 60px; padding-top: 60px;">
-					            	<span>配送中</span>
+					            <div style = "  text-align: center; margin-bottom: 10px; font-size: 28px; border-bottom: 1px solid rgba(200,200,200,0.5);">
+					            	<!-- <span>配送中</span> -->
+					            	<img id="imgStateGif" src = "/images/marker/running.gif" style="width:100px;margin-top: 20px;margin-bottom: -8px;">
 					            </div>
+					            <div style="text-align: center;margin-bottom: 20px; color: rgba(100,100,100,0.7);"> <span id="speed">0km/h</span> </div>
 					            <div class=" login-btn-content">
 					                  <a href="#" class="button button-big button-fill disabled" id="btnSignOrder" onclick="onSignOrder()">订单签收</a>
 					            </div>
@@ -148,33 +177,28 @@
                        
 					<div class="page-content "> 
 					    <div class="content-block" style="margin-top: 0px;">
-					            <!-- <p style="text-align: center;">00:10</p> -->
-					            <div class="" style="text-align: center; margin-top: 55px; color: rgba(100,100,100,1.9); font-size: 20px;">订单配送已完成</div>
-					            <div style = "text-align: center; font-size: 15px; border-bottom: 1px solid rgba(200,200,200,0.4); padding-top: 40px; color: rgba(100,100,100,0.5);">
-					            	<span>成绩统计</span>
-					            </div>
-					            <div class="content-block-inner" style="margin-top:0px;">
-					            	<div class="row no-gutter" style="margin-top:5px;">
-					            		<div class="col-50" style="text-align: right;padding-right: 3px;"> 排名 </div>
-					            		<div class="col-50" style="text-align: left;padding-left: 3px;"> 2</div>
-					            	</div>
-					            	<div class="row no-gutter" style="margin-top:5px;">
-					            		<div class="col-50" style="text-align: right;padding-right: 3px;"> 总耗时 </div>
-					            		<div class="col-50" style="text-align: left;padding-left: 3px;"> 17分20秒</div>
-					            	</div>
+				            <!-- <p style="text-align: center;">00:10</p> -->
+				            <div class="" style="text-align: center; margin-top: 55px; color: rgba(100,100,100,1.9); font-size: 20px;">订单配送已完成</div>
+				            <div style = "text-align: center; font-size: 15px; border-bottom: 1px solid rgba(200,200,200,0.4); padding-top: 40px; color: rgba(100,100,100,0.5);">
+				            	<span>成绩统计</span>
+				            </div>
+				            <div class="content-block-inner" style="margin-top:0px;">
+				            	<div class="row no-gutter" style="margin-top:5px;">
+				            		<div class="col-50" style="text-align: right;padding-right: 3px;"> 排名 </div>
+				            		<div id="statisticRank" class="col-50" style="text-align: left;padding-left: 3px;"> 0</div>
+				            	</div>
+				            	<div class="row no-gutter" style="margin-top:5px;">
+				            		<div class="col-50" style="text-align: right;padding-right: 3px;"> 总得分 </div>
+				            		<div id = "statisticScoreTotal" class="col-50" style="text-align: left;padding-left: 3px;"> 0 </div>
+				            	</div>
+				            	
+				            	<div class="row no-gutter" style="margin-top:5px;">
+				            		<div class="col-50" style="text-align: right;padding-right: 3px;"> 总耗时 </div>
+				            		<div id = "statisticTimeTotal" class="col-50" style="text-align: left;padding-left: 3px;"> 0 </div>
+				            	</div>
 
-
-<!-- 					            	<div style="font-size: 13px; color: rgba(150,150,150,0.8);">
-					            		<span>总耗时：</span> <span>17分20秒</span>
-					            	</div>
-					            	<div style="font-size: 19px;">
-					            		<span>排名：</span> <span>2</span>
-					            	</div> -->
-
-					            </div>
-					            
+				            </div>
 					    </div>
-
 					</div>
                 </div>
 
@@ -192,8 +216,6 @@
 
 		              </div>
 		         </div>
-
-
 		    </div>
 		</div>
 		
@@ -375,7 +397,7 @@
 		    </div>
 		</div>
 
-
+		<!-- tab工具栏 -->
 		<div class="toolbar tabbar tabbar-labels">
 		  <div class="toolbar-inner">
 		      <a href="#view-main" class="tab-link active">
@@ -441,10 +463,26 @@
 	    	{MessageType: {{.pro_2c_reset_destination}}, handler: pro_2c_reset_destination_handler},
 	    	{MessageType: {{.pro_2c_sign_order}}, handler: pro_2c_sign_order_handler},
 	    	{MessageType: {{.pro_2c_all_order_signed}}, handler: pro_2c_all_order_signed_handler},
+	    	{MessageType: {{.pro_2c_speed_change}}, handler: pro_2c_speed_change_handler},
+	    	{MessageType: {{.pro_2c_sys_time_elapse}}, handler: pro_2c_sys_time_elapse_handler, print: false},
 	    	{}
 	    ]
+	    //速度发生变化
+	    function pro_2c_speed_change_handler(msg){
+			distributor = msg.Data
+	    	refreshSpeed()
+	    }
+    	//更新系统时间
+	    function pro_2c_sys_time_elapse_handler(msg){
+	    	var time = transformTimeElapseToStandardFormat(msg.Data)
+	    	$$("#systimeShow").text(time)
+	    	// console.log("系统时间更新：", time)
+	    }
 	    function pro_2c_all_order_signed_handler(msg){
 			distributor = msg.Data
+			$$("#statisticRank").text(distributor.Rank)
+			$$("#statisticScoreTotal").text(distributor.Score)
+			$$("#statisticTimeTotal").text(distributor.TimeElapse)
         	viewRouteToPage(mainView, 'processStatistic')
 
 	    }
@@ -468,7 +506,8 @@
 		    		}
 		    	})
 		    	remindOrderSigning()
-				refreshOderView()
+				refreshOrderView()
+				refreshOrderSignProcess()
 	    	}
 	    }
 	    function pro_2c_reset_destination_handler(msg){
@@ -484,6 +523,7 @@
 			refreshNodeToSelect()
 	    	setDestinationMarker()
 	    	remindOrderSigning()
+	    	refreshRunningState(2)
 	    }
 
 	    function pro_2c_move_to_new_position_handler(msg){
@@ -498,6 +538,7 @@
 			refreshNodeToSelect()
 	    	resetOrderSignButtonState(false)	    	
 	    	// setDestinationMarker()
+	    	refreshRunningState(1)
 	    }
 	    function pro_2c_message_broadcast_before_game_start_handler(msg){
 	    	$$("#waitingInfo").text(msg.Data)
@@ -506,7 +547,7 @@
 	    	mySwiper.removeAllSlides();
 	    	var orders = msg.Data
 	    	_.each(orders, function(order){
-	    	    mySwiper.appendSlide(String.format('<div class="swiper-slide"> <span class="slide-title" style="background-color: rgba({0}, 0.6);">{1}</span> <span class="slide-content">{2}北京市物资学院</span> </div>',order.Region.Color, order.ID, order.GeoSrc.Address))
+	    	    mySwiper.appendSlide(String.format('<div class="swiper-slide"> <span class="slide-title" style="background-color: rgba({0}, 0.6);margin-left: 10px; margin-right: 10px;">{1}</span> <span class="slide-content">{2}北京市物资学院</span> </div>',order.Region.Color, order.ID, order.GeoSrc.Address))
 	    	})
 	    }
 
@@ -523,9 +564,10 @@
 	    		distributor = msg.Data
 	    		resetPie()
 				flagOrderNodeMarker()
-				refreshOderView()
+				refreshOrderView()
 				var lastOrder = distributor.AcceptedOrders[_.size(distributor.AcceptedOrders)-1]
 				addMsgToView({timeStamp: transformTimeElapseToStandardFormat(lastOrder.SelectedTime), content: "选择配送订单 "+ lastOrder.ID})
+				refreshOrderSignProcess()
 	    	}else{
 	    	    console.log("没有抢到订单 ")	    		
 	    	}
@@ -558,8 +600,15 @@
 			flagOrderNodeMarker()
 			refreshNodeToSelect()
 			remindOrderSigning()
-			refreshOderView()
+			refreshOrderView()
 			addMsgToView({timeStamp: transformTimeElapseToStandardFormat(distributor.TimeElapse), content: "上线"})
+			refreshOrderSignProcess()
+			if(isDistributorOnNode(distributor) == true){
+				refreshRunningState(2)
+			}else{
+				refreshRunningState(1)
+			}
+			refreshSpeed()
 	    }
 	    function pro_2c_map_data_handler(msg){
 	    	if(mapData != null){
@@ -576,14 +625,31 @@
 	    	drawRouteNodeOnMap(mapData)
 	    }
 	    //---------------------------------------------------------
+	    function refreshSpeed(){
+	    	var speed = distributor.CurrentSpeed
+	    	$$("#speed").text(speed+"km/h")
+	    }
+	    function refreshRunningState(state){
+	    	switch(state){
+	    		case 1://跑动
+		    		$$("#imgStateGif").attr("src", "/images/marker/running.gif")
+		    		break
+	    		case 2://原地跑动
+		    		$$("#imgStateGif").attr("src", "/images/marker/stayRunning.gif")
+		    		break
+	    	}
+	    }
+	    function refreshOrderSignProcess(){
+	    	var orderSigned = _.filter(distributor.AcceptedOrders, function(order){return order.Signed == true})
+	    	$$("#orderSignProcess").text(String.format("{0}/{1}", _.size(orderSigned), _.size(distributor.AcceptedOrders)))
+	    }
 	    //添加消息到消息页面
 	    function addMsgToView(msg){
 	    	var dom = $$("#msgList")
 	    	dom.prepend(String.format('<li> <div class="item-inner"> <div class="item-title-row"> <div class="item-title">{0}</div> <div class="item-after"></div> </div>  <div class="item-text">{1}</div> </div> </li>', msg.timeStamp, msg.content))
 	    }
-
 	    //重置订单页面的订单列表，当订单数量或者状态发生变化时调用
-	    function refreshOderView(){
+	    function refreshOrderView(){
 	    	var refresher = function(domID, orders){
 	    		var dom = $$("#"+domID)
 		    	dom.children().remove()
@@ -791,6 +857,10 @@
 	            nextNodeSelector.next()
 	            // addAimMarkers([distributor.StartPos, distributor.DestPos])
 	        }          
+	    }
+	    function onStartDistribution(){
+        	viewRouteToPage(mainView, 'processDistribution')
+
 	    }
 	    function onSignOrder(){
 	    	//如果有订单，提醒签收

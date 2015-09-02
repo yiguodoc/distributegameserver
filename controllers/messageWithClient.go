@@ -85,7 +85,8 @@ var (
 	pro_move_from_route_to_node    ClientMessageTypeCode = 12 //
 	pro_game_time_tick             ClientMessageTypeCode = 13 //系统时间流逝出发
 	pro_distributor_info_request   ClientMessageTypeCode = 14 //系统时间流逝出发
-	pro_max                                              = 15
+	pro_end_game                                         = 15 //配送完毕，结束游戏
+	pro_max                                              = 16
 
 	pro_2c_min                                                       = 400
 	pro_2c_message_broadcast                   ClientMessageTypeCode = 401 //向配送员广播消息
@@ -103,11 +104,17 @@ var (
 	pro_2c_message_broadcast_before_game_start ClientMessageTypeCode = 413
 	pro_2c_move_from_node                      ClientMessageTypeCode = 414
 	pro_2c_all_order_signed                    ClientMessageTypeCode = 415
-	pro_2c_max                                 ClientMessageTypeCode = 416
+	pro_2c_sys_time_elapse                     ClientMessageTypeCode = 416 //系统时间更新
+	pro_2c_speed_change                        ClientMessageTypeCode = 417
+	pro_2c_max                                 ClientMessageTypeCode = 418
 )
 
 func (c ClientMessageTypeCode) name() (s string) {
 	switch c {
+	case pro_2c_speed_change:
+		s = "pro_2c_speed_change"
+	case pro_2c_sys_time_elapse:
+		s = "pro_2c_sys_time_elapse"
 	case pro_2c_all_order_signed:
 		s = "pro_2c_all_order_signed"
 	case pro_2c_move_from_node:
@@ -174,23 +181,34 @@ func (c ClientMessageTypeCode) name() (s string) {
 	}
 	return
 }
-func NewMessageWithClient(code ClientMessageTypeCode, targetID string, data interface{}) *MessageWithClient {
-	return &MessageWithClient{
+func NewMessageWithClient(code ClientMessageTypeCode, targetID string, data interface{}, err ...string) *MessageWithClient {
+	mwc := &MessageWithClient{
 		MessageType: code,
 		TargetID:    targetID,
 		Data:        data,
 	}
+	if len(err) > 0 {
+		if len(err) < 2 {
+			panic("系统消息参数错误，必须同时设置错误内容和系统时间")
+		} else {
+			mwc.ErrorMsg = err[0]
+			mwc.SysTime = err[1]
+		}
+	}
+	return mwc
 }
 
 type MessageWithClient struct {
 	MessageType ClientMessageTypeCode
 	TargetID    string
 	Data        interface{}
+	ErrorMsg    string //错误信息
+	SysTime     string
 	// Data        string
 }
 
 func (m *MessageWithClient) String() string {
-	return fmt.Sprintf("type: %s(%d) TargetID: %s data: %s", m.MessageType.name(), m.MessageType, m.TargetID, m.Data)
+	return fmt.Sprintf("type: %s(%d) TargetID: %s data: %s err: %s", m.MessageType.name(), m.MessageType, m.TargetID, m.Data, m.ErrorMsg)
 }
 
 // type MessageFromClient struct {

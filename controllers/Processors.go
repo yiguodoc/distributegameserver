@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"strconv"
 	"time"
 )
 
@@ -28,22 +29,31 @@ var (
 )
 
 func pro_move_from_node_to_route_handlerGenerator(o interface{}) MessageWithClientHandler {
+	center := o.(*DistributorProcessUnitCenter)
 	f := func(msg *MessageWithClient) {
 		line := msg.Data.(*Line)
 		if line.DistributorsCount() >= 2 {
 			line.busy()
 			DebugInfoF("line BUSY %s", line)
+			for id, d := range line.DistributorsOn {
+				center.wsRoom.sendMsgToSpecialSubscriber(id, pro_2c_speed_change, d)
+			}
 		}
 	}
 	return f
 }
 
 func pro_move_from_route_to_node_handlerGenerator(o interface{}) MessageWithClientHandler {
+	center := o.(*DistributorProcessUnitCenter)
 	f := func(msg *MessageWithClient) {
 		line := msg.Data.(*Line)
 		if line.DistributorsCount() < 2 {
 			line.nobusy()
 			DebugInfoF("line NOBUSY %s ", line)
+			for id, d := range line.DistributorsOn {
+				center.wsRoom.sendMsgToSpecialSubscriber(id, pro_2c_speed_change, d)
+			}
+
 		}
 	}
 	return f
@@ -54,65 +64,65 @@ func pro_order_select_response_handlerGenerator(o interface{}) MessageWithClient
 	// unit := o.(*DistributorProcessUnit)
 	center := o.(*DistributorProcessUnitCenter)
 	f := func(msg *MessageWithClient) {
-		m := msg.Data.(map[string]interface{})
-		if list, err := mappedValue(m).Getter("OrderID", "DistributorID"); err == nil {
-			orderID := list[0].(string)
-			distributorID := list[1].(string)
-			distributor := center.distributors.findOne(func(d *Distributor) bool { return d.ID == distributorID })
-			if distributor == nil {
-				return
-			}
-			//系统设定，配送员需要在仓库位置才能选择订单
-			qualifier := func(d *Distributor) bool {
-				list := center.mapData.Points.filter(func(pos *Position) bool { return pos.PointType == POSITION_TYPE_WAREHOUSE })
-				curPos := d.CurrentPos
-				return list.contains(func(pos *Position) bool { return curPos.equals(pos) })
-			}
-			if distributor.Is(qualifier) == false {
-				DebugInfoF("配送员 %s 所处位置无法选择订单", distributor.Name)
-				return
-			}
-
-			if err := disposeOrderSelectResponse(orderID, distributor, center.distributors, center.orders); err != nil {
-				DebugInfoF("处理订单分配时的信息提示：%s", err)
-			} else {
-				//将分配结果通知到各方，包括获得订单的客户端、群通知，并引发分配结果事件，使得观察者也可以得到通知
-				// distributionResult := NewOrderDistribution(orderID, distributorID)
-				// distributor := center.distributors.find(distributorID)
-				center.wsRoom.sendMsgToSpecialSubscriber(distributorID, pro_2c_order_select_result, distributor)
-
-				msg := fmt.Sprintf("订单[%s]已经由配送员[%s]选定", orderID, distributor.Name)
-				// center.wsRoom.broadcastMsgToSubscribers(pro_2c_message_broadcast, msg)
-				DebugInfo(msg)
-
-				if distributor.full() == true { //配送员的订单满载了
-					msg = fmt.Sprintf("配送员 %s 订单满载", distributor.Name)
-					center.wsRoom.broadcastMsgToSubscribers(pro_2c_message_broadcast, msg)
-					DebugInfoF(msg)
-					center.wsRoom.broadcastMsgToSubscribers(pro_2c_order_full, distributor)
-					// distributor.setCheckPoint(checkpoint_flag_order_distribute)
-					center.distributors.forEach(func(d *Distributor) {
-						if d.ID == distributorID {
-							d.CheckPoint = checkpoint_flag_order_distribute
-							DebugInfoF("配送员 %s 状态变化 => 配送环节", d.Name)
-						}
-					})
-				}
-				sendOrderProposal(center)
-
-				// if len(center.distributors.filter(func(o interface{}) bool { return o.(*Distributor).full() == false })) > 0 {
-				// 	// if len(center.distributors.notFull()) > 0 {
-				// 	// broadOrderSelectProposal(center.distributors, center.orders)
-				// 	if proposals, err := getOrderSelectProposal(center.distributors, center.orders); err == nil {
-				// 		center.wsRoom.broadcastMsgToSubscribers(pro_2c_order_distribution_proposal, proposals)
-				// 	} else {
-				// 		DebugInfoF("%s", err)
-				// 	}
-				// }
-			}
-		} else {
-			DebugMustF("客户端数据格式错误: %s", err)
+		if msg.Data == nil {
+			return
 		}
+		m := msg.Data.(map[string]interface{})
+		var list []interface{}
+
+		list, err := mappedValue(m).Getter("OrderID", "DistributorID")
+		if err != nil {
+			DebugMustF("客户端数据格式错误: %s", err)
+			return
+		}
+
+		orderID := list[0].(string)
+		distributorID := list[1].(string)
+		distributor := center.distributors.findOne(func(d *Distributor) bool { return d.ID == distributorID })
+		if distributor == nil {
+			DebugSysF("没有找到配送员[%s]的信息", distributorID)
+			return
+		}
+		//系统设定，配送员需要在仓库位置才能选择订单
+		qualifier := func(d *Distributor) bool {
+			list := center.mapData.Points.filter(func(pos *Position) bool { return pos.PointType == POSITION_TYPE_WAREHOUSE })
+			curPos := d.CurrentPos
+			return list.contains(func(pos *Position) bool { return curPos.equals(pos) })
+		}
+		if distributor.Is(qualifier) == false {
+			DebugInfoF("配送员 %s 所处位置无法选择订单", distributor.Name)
+			return
+		}
+
+		if err := disposeOrderSelectResponse(orderID, distributor, center.distributors, center.orders); err != nil {
+			DebugInfoF("处理订单分配时的信息提示：%s", err)
+			center.wsRoom.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_order_select_result, nil, err.Error(), strconv.FormatInt(distributor.TimeElapse, 10))
+			return
+		}
+		//将分配结果通知到各方，包括获得订单的客户端、群通知，并引发分配结果事件，使得观察者也可以得到通知
+		center.wsRoom.sendMsgToSpecialSubscriber(distributorID, pro_2c_order_select_result, distributor)
+
+		log := fmt.Sprintf("订单[%s]已经由配送员[%s]选定", orderID, distributor.Name)
+		// center.wsRoom.broadcastMsgToSubscribers(pro_2c_message_broadcast, msg)
+		DebugInfoF(log)
+
+		if distributor.fullyLoaded() == true { //配送员的订单满载了
+			log = fmt.Sprintf("配送员 %s 订单满载", distributor.Name)
+			center.wsRoom.broadcastMsgToSubscribers(pro_2c_message_broadcast, log)
+			DebugInfoF(log)
+			// distributor.setCheckPoint(checkpoint_flag_order_distribute)
+			center.distributors.forOne(func(d *Distributor) bool {
+				if d.ID == distributorID {
+					d.CheckPoint = checkpoint_flag_order_distribute
+					DebugInfoF("配送员 %s 状态变化 => 配送环节", d.Name)
+					return true
+				}
+				return false
+			})
+			center.wsRoom.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_order_full, distributor)
+		}
+		sendOrderProposal(center)
+
 	}
 	return f
 }
@@ -121,17 +131,11 @@ func pro_game_start_handlerGenerator(o interface{}) MessageWithClientHandler {
 	center := o.(*DistributorProcessUnitCenter)
 	f := func(msg *MessageWithClient) {
 
-		msgList := []string{"配送员全部准备完毕", "即将进入订单选择环节", "一大波订单即将到来"}
+		msgList := []string{"配送员全部准备完毕进入订单选择环节", "一大波订单即将到来"}
 		for _, msg := range msgList {
 			center.wsRoom.broadcastMsgToSubscribers(pro_2c_message_broadcast_before_game_start, msg)
 			time.Sleep(2 * time.Second)
 		}
-		// center.wsRoom.broadcastMsgToSubscribers(pro_2c_message_broadcast, "配送员全部准备完毕")
-		// time.Sleep(3 * time.Second)
-		// center.wsRoom.broadcastMsgToSubscribers(pro_2c_message_broadcast, "即将进入订单选择环节")
-		// time.Sleep(3 * time.Second)
-		// center.wsRoom.broadcastMsgToSubscribers(pro_2c_message_broadcast, "一大波订单即将到来")
-		// time.Sleep(3 * time.Second)
 		//倒计时
 		timer := time.Tick(1 * time.Second)
 		count := 3
@@ -147,11 +151,12 @@ func pro_game_start_handlerGenerator(o interface{}) MessageWithClientHandler {
 		}
 		center.wsRoom.broadcastMsgToSubscribers(pro_2c_all_prepared_4_select_order, nil)
 		sendOrderProposal(center)
+		center.starAlltUnit()
 	}
 	return f
 }
 func sendOrderProposal(center *DistributorProcessUnitCenter) {
-	if len(center.distributors.filter(func(d *Distributor) bool { return d.full() == false })) > 0 {
+	if len(center.distributors.filter(func(d *Distributor) bool { return d.fullyLoaded() == false })) > 0 {
 		// if len(center.distributors.notFull()) > 0 {
 		// broadOrderSelectProposal(center.distributors, center.orders)
 		if proposals, err := getOrderSelectProposal(center.distributors, center.orders); err == nil {
@@ -175,24 +180,37 @@ func pro_prepared_for_select_order_handlerGenerator(o interface{}) MessageWithCl
 		}
 		distributor := center.distributors.findOne(func(d *Distributor) bool { return d.ID == distributorID.(string) })
 		if distributor == nil {
-			DebugSysF("配送员 %s 不应该出现在该中心内", distributorID.(string))
+			DebugSysF("配送员 %s 不应该出现在该中心内，系统错误", distributorID.(string))
+			return
 		}
 		DebugInfoF("配送员[%s %s]准备好订单的分发了", distributorID, distributor.Name)
 		// center.distributors.preparedForOrderSelect(distributorID.(string))
-		center.distributors.forEach(func(d *Distributor) {
+		setCheckPoint := func(d *Distributor) bool {
 			if d.ID == distributorID.(string) {
 				d.CheckPoint = checkpoint_flag_order_select
+				return true
 			}
-		})
-		distributorsPrepared := center.distributors.filter(func(d *Distributor) bool {
-			return d.CheckPoint >= checkpoint_flag_order_select
-		})
-		if len(distributorsPrepared) >= len(center.distributors) {
-			// if center.distributors.allPreparedForOrderSelect() == true {
+			return false
+		}
+		center.distributors.forOne(setCheckPoint)
+		// distributorsPrepared := center.distributors.filter(func(d *Distributor) bool {
+		// 	return d.CheckPoint >= checkpoint_flag_order_select
+		// })
+		// if len(distributorsPrepared) >= len(center.distributors) {
+		// 	// if center.distributors.allPreparedForOrderSelect() == true {
+		// 	DebugInfoF("所有配送员准备完毕，可以开始订单分发了")
+		// 	center.Process(NewMessageWithClient(pro_game_start, "", nil))
+		// } else {
+		// 	DebugInfoF("还有 %d 个配送员未准备完毕", len(center.distributors)-len(distributorsPrepared))
+		// }
+		if center.distributors.every(func(d *Distributor) bool { return d.CheckPoint >= checkpoint_flag_order_select }) {
 			DebugInfoF("所有配送员准备完毕，可以开始订单分发了")
 			center.Process(NewMessageWithClient(pro_game_start, "", nil))
 		} else {
-			DebugInfoF("还有 %d 个配送员未准备完毕", len(center.distributors)-len(distributorsPrepared))
+			DebugInfoF("还有 %d 个配送员未准备完毕", len(center.distributors.filter(func(d *Distributor) bool {
+				return d.CheckPoint < checkpoint_flag_order_select
+			})))
+
 		}
 	}
 	return f
@@ -209,54 +227,55 @@ func pro_on_line_handlerGenerator(o interface{}) MessageWithClientHandler {
 	center := o.(*DistributorProcessUnitCenter)
 	f := func(msg *MessageWithClient) {
 		DebugInfoF("处理消息 %s", msg)
-		center.startUnit(msg.TargetID)
 		distributor := center.distributors.findOne(func(d *Distributor) bool { return d.ID == msg.TargetID })
-		// distributor := center.distributors.find(msg.TargetID)
 		if distributor != nil {
-			//设置默认起始点
-			if distributor.StartPos == nil {
+			if distributor.IsOriginal() { //掉线后重新上线自动启动
+				DebugTraceF("配送员上线，状态 %d 初始化", checkpoint_flag_origin)
+				//设置默认起始点
 				filter := func(pos *Position) bool {
 					return pos.PointType == POSITION_TYPE_WAREHOUSE
 				}
 				warehouses := center.mapData.Points.filter(filter)
-				// warehouses := center.mapData.Points.filter(createPositionFilter(POSITION_TYPE_WAREHOUSE))
 				if len(warehouses) > 0 {
 					distributor.StartPos = warehouses[0] //
 					distributor.CurrentPos = distributor.StartPos.copyTemp(true)
-					// if distributor.StartPos == nil {
-					// }
-					// if distributor.CurrentPos == nil { //没有保存的位置信息，设置仓库为默认的出发点
-					// }
 				} else {
 					DebugSysF("无法设置出发点")
 				}
+				distributor.NormalSpeed = defaultSpeed
+				distributor.CurrentSpeed = defaultSpeed
+
+			} else {
+				onReconnect(center, distributor)
 			}
-			distributor.NormalSpeed = defaultSpeed
-			distributor.CurrentSpeed = defaultSpeed
+
 			center.wsRoom.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_map_data, center.mapData)
 			center.wsRoom.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_distributor_info, distributor)
-			//如果在分配订单中，应该推送给其正在选择的订单
-			switch distributor.CheckPoint {
-			case checkpoint_flag_origin:
-				DebugTraceF("配送员上线，状态 %d 初始化", checkpoint_flag_origin)
-			case checkpoint_flag_order_select:
-				DebugTraceF("配送员上线，状态 %d 订单选择中", checkpoint_flag_order_select)
-				// broadOrderSelectProposal(center.distributors, center.orders)
-				if proposals, err := getOrderSelectProposal(center.distributors, center.orders); err == nil {
-					center.wsRoom.broadcastMsgToSubscribers(pro_2c_order_distribution_proposal, proposals)
-				} else {
-					DebugInfoF("%s", err)
-				}
-			case checkpoint_flag_order_distribute:
-				DebugTraceF("配送员上线，状态 %d 配送中", checkpoint_flag_order_distribute)
-			case checkpoint_flag_order_distribute_over:
-				DebugTraceF("配送员上线，状态 %d 配送完成", checkpoint_flag_order_distribute)
-				// center.wsRoom.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_map_data, center.mapData)
-			}
 		}
 	}
 	return f
 }
+func onReconnect(center *DistributorProcessUnitCenter, distributor *Distributor) {
+	center.startUnit(distributor.ID)
+	//如果在分配订单中，应该推送给其正在选择的订单
+	switch distributor.CheckPoint {
+	case checkpoint_flag_origin:
+		DebugTraceF("配送员上线，状态 %d 初始化", checkpoint_flag_origin)
+	case checkpoint_flag_order_select:
+		DebugTraceF("配送员上线，状态 %d 订单选择中", checkpoint_flag_order_select)
+		// broadOrderSelectProposal(center.distributors, center.orders)
+		if proposals, err := getOrderSelectProposal(center.distributors, center.orders); err == nil {
+			center.wsRoom.broadcastMsgToSubscribers(pro_2c_order_distribution_proposal, proposals)
+		} else {
+			DebugInfoF("%s", err)
+		}
+	case checkpoint_flag_order_distribute:
+		DebugTraceF("配送员上线，状态 %d 配送中", checkpoint_flag_order_distribute)
+	case checkpoint_flag_order_distribute_over:
+		DebugTraceF("配送员上线，状态 %d 配送完成", checkpoint_flag_order_distribute)
+	}
+}
+
 func pro_game_time_tick_handlerGenerator(o interface{}) MessageWithClientHandler {
 	unit := o.(*DistributorProcessUnit)
 	f := func(msg *MessageWithClient) {
@@ -264,6 +283,7 @@ func pro_game_time_tick_handlerGenerator(o interface{}) MessageWithClientHandler
 		//运行时间增加
 		distributor.TimeElapse++
 		// DebugInfoF("运行时间+1 => %d", distributor.TimeElapse)
+		unit.center.wsRoom.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_sys_time_elapse, distributor.TimeElapse) //通知客户端移动到新坐标
 		//----------------------------------------------------------------------------
 		//计算行走的坐标位置
 		if distributor.NormalSpeed > 0 {
@@ -359,7 +379,8 @@ func pro_reset_destination_request_handlerGenerator(o interface{}) MessageWithCl
 			* 如果在节点上，判断目标点与当前节点是否在同一条路径上，是则可以设为终点
 			* 如果在节点之间，那么终点只可以设为两个节点之一，这里只需要注意方向即可
 			 */
-			if distributor.CurrentPos.equals(distributor.StartPos) || distributor.CurrentPos.equals(distributor.DestPos) { //在节点上
+			if (PositionList{distributor.StartPos, distributor.DestPos}).contains(func(pos *Position) bool { return pos.equals(distributor.CurrentPos) }) {
+				// if distributor.CurrentPos.equals(distributor.StartPos) || distributor.CurrentPos.equals(distributor.DestPos) { //在节点上
 				//两点需要在同一条线上
 				line := unit.center.mapData.Lines.find(posWanted, distributor.StartPos)
 				// line := g_mapData.Lines.find(posWanted, distributor.CurrentPos)
@@ -369,7 +390,8 @@ func pro_reset_destination_request_handlerGenerator(o interface{}) MessageWithCl
 					return
 				}
 				distributor.DestPos = unit.center.mapData.Points.findOne(func(pos *Position) bool {
-					return pos.Lng == posWanted.Lng && pos.Lat == posWanted.Lat
+					// return pos.Lng == posWanted.Lng && pos.Lat == posWanted.Lat
+					return pos.equals(posWanted)
 				})
 				// distributor.DestPos = unit.center.mapData.Points.findLngLat(posWanted.Lng, posWanted.Lat)
 				distributor.Distance = line.Distance
@@ -457,10 +479,15 @@ func pro_sign_order_request_handlerGenerator(o interface{}) MessageWithClientHan
 			DebugInfoF("签收订单 %s , 时间 %d", order.ID, order.SignTime)
 			unit.center.wsRoom.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_sign_order, distributor)
 			DebugInfoF("配送员 %s 签收了订单 %s", unit.distributor.Name, orderID)
+			distributor.Score++
 			// DebugPrintList_Info(g_orders)
 			if unit.distributor.AcceptedOrders.all(func(o interface{}) bool { return o.(*Order).Signed == true }) {
+				//计算排名
+				unit.center.distributors.Rank()
+				DebugPrintList_Info(unit.center.distributors)
 				unit.distributor.setCheckPoint(checkpoint_flag_order_distribute_over)
 				unit.center.wsRoom.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_all_order_signed, distributor)
+				unit.center.stopUnit(distributor.ID)
 			}
 
 		} else {
@@ -488,14 +515,8 @@ func disposeOrderSelectResponse(orderID string, distributor *Distributor, distri
 		DebugInfoF("订单[%s]已经被分配", orderID)
 		return ERR_order_already_selected
 	}
-	// distributor := distributors.findOne(func(d *Distributor) bool { return d.ID == distributorID })
 
-	// distributor := distributors.find(distributorID) //首先确保配送员满足订单分配条件，当前条件是已分配的订单未达到最大可接收数量
-	if distributor == nil {
-		DebugInfoF("没有找到配送员[%s]的信息", distributor.Name)
-		return ERR_no_such_distributor
-	}
-	if distributor.full() {
+	if distributor.fullyLoaded() {
 		DebugInfoF("配送员[%s]已经满载", distributor.Name)
 		return ERR_distributor_full
 	}
