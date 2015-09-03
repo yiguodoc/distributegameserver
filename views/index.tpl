@@ -471,9 +471,7 @@
 	    ]
 	    function pro_2c_end_game_handler(msg){
 			distributor = msg.Data
-			$$("#statisticRank").text(distributor.Rank)
-			$$("#statisticScoreTotal").text(distributor.Score)
-			$$("#statisticTimeTotal").text(distributor.TimeElapse)
+			refreshStatisticPage()
         	viewRouteToPage(mainView, 'processStatistic')	    	
 	    }
 	    //速度发生变化
@@ -616,6 +614,7 @@
 	    		break
 	    		case {{.checkpoint_flag_order_distribute_over}}:
 		        	viewRouteToPage(mainView, 'processStatistic')
+		        	refreshStatisticPage()
 	    		break
 	    	}
 			refreshMyLocation()
@@ -647,6 +646,11 @@
 	    	drawRouteNodeOnMap(mapData)
 	    }
 	    //---------------------------------------------------------
+	    function refreshStatisticPage(){
+	    	$$("#statisticRank").text(distributor.Rank)
+	    	$$("#statisticScoreTotal").text(distributor.Score)
+	    	$$("#statisticTimeTotal").text(transformTimeElapseToStandardFormat(distributor.TimeElapse))
+	    }
 	    function onEndDistribution(){
 	    	var text = "配送结束将统计你的最终成绩，确定吗？"
 	    	var orderSigned = _.filter(distributor.AcceptedOrders, function(order){return order.Signed == true})
