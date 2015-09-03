@@ -66,6 +66,7 @@ var handler_map = ProHandlerGeneratorMap{
 	pro_move_from_node_to_route:   pro_move_from_node_to_route_handlerGenerator,
 	pro_move_from_route_to_node:   pro_move_from_route_to_node_handlerGenerator,
 	pro_distributor_info_request:  pro_distributor_info_request_handlerGenerator,
+	pro_end_game_request:          pro_end_game_request_handlerGenerator,
 }
 
 //后端与前端交互的消息类型的定义
@@ -85,7 +86,7 @@ var (
 	pro_move_from_route_to_node    ClientMessageTypeCode = 12 //
 	pro_game_time_tick             ClientMessageTypeCode = 13 //系统时间流逝出发
 	pro_distributor_info_request   ClientMessageTypeCode = 14 //系统时间流逝出发
-	pro_end_game                                         = 15 //配送完毕，结束游戏
+	pro_end_game_request           ClientMessageTypeCode = 15 //配送完毕，结束游戏
 	pro_max                                              = 16
 
 	pro_2c_min                                                       = 400
@@ -106,11 +107,16 @@ var (
 	pro_2c_all_order_signed                    ClientMessageTypeCode = 415
 	pro_2c_sys_time_elapse                     ClientMessageTypeCode = 416 //系统时间更新
 	pro_2c_speed_change                        ClientMessageTypeCode = 417
-	pro_2c_max                                 ClientMessageTypeCode = 418
+	pro_2c_end_game                            ClientMessageTypeCode = 418
+	pro_2c_max                                 ClientMessageTypeCode = 419
 )
 
 func (c ClientMessageTypeCode) name() (s string) {
 	switch c {
+	case pro_end_game_request:
+		s = "pro_end_game_request"
+	case pro_2c_end_game:
+		s = "pro_2c_end_game"
 	case pro_2c_speed_change:
 		s = "pro_2c_speed_change"
 	case pro_2c_sys_time_elapse:

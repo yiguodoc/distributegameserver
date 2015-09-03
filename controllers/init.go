@@ -51,7 +51,8 @@ func init() {
 		WsRoomEventCode_Online, WsRoomEventCode_Offline, WsRoomEventCode_Other)
 
 	filter := func(d *Distributor) bool {
-		l := []string{"d01", "d02", "d03"}
+		l := []string{"d01", "d02"}
+		// l := []string{"d01", "d02", "d03"}
 		for _, s := range l {
 			if s == d.ID {
 				return true

@@ -28,6 +28,23 @@ var (
 	ERR_order_already_selected        = errors.New("订单已经被分配过")
 )
 
+func pro_end_game_request_handlerGenerator(o interface{}) MessageWithClientHandler {
+	center := o.(*DistributorProcessUnitCenter)
+	f := func(msg *MessageWithClient) {
+		//计算排名
+		center.distributors.Rank()
+		DebugPrintList_Info(center.distributors)
+		if distributor := center.distributors.findOne(func(d *Distributor) bool { return d.ID == msg.TargetID }); distributor != nil {
+			distributor.setCheckPoint(checkpoint_flag_order_distribute_over)
+			center.stopUnit(msg.TargetID)
+			center.wsRoom.sendMsgToSpecialSubscriber(msg.TargetID, pro_2c_end_game, distributor)
+		}
+
+	}
+	return f
+}
+
+// func stopUnit(center *DistributorProcessUnitCenter, )
 func pro_move_from_node_to_route_handlerGenerator(o interface{}) MessageWithClientHandler {
 	center := o.(*DistributorProcessUnitCenter)
 	f := func(msg *MessageWithClient) {
@@ -482,12 +499,8 @@ func pro_sign_order_request_handlerGenerator(o interface{}) MessageWithClientHan
 			distributor.Score++
 			// DebugPrintList_Info(g_orders)
 			if unit.distributor.AcceptedOrders.all(func(o interface{}) bool { return o.(*Order).Signed == true }) {
-				//计算排名
-				unit.center.distributors.Rank()
-				DebugPrintList_Info(unit.center.distributors)
-				unit.distributor.setCheckPoint(checkpoint_flag_order_distribute_over)
+				// unit.distributor.setCheckPoint(checkpoint_flag_order_distribute_over)
 				unit.center.wsRoom.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_all_order_signed, distributor)
-				unit.center.stopUnit(distributor.ID)
 			}
 
 		} else {

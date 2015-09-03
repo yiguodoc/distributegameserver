@@ -46,6 +46,7 @@ func NewDistributorProcessUnitCenter(wsRoom *WsRoom, distributors DistributorLis
 			pro_on_line,
 			pro_off_line,
 			pro_prepared_for_select_order,
+			pro_end_game_request,
 		},
 
 		// distributorFilter: filter,
@@ -87,38 +88,38 @@ func startCenterRunning(dpc *DistributorProcessUnitCenter) *DistributorProcessUn
 	return dpc
 }
 
-// func (dpc *DistributorProcessUnitCenter) start() *DistributorProcessUnitCenter {
-// 	// dpc.distributors = g_distributorStore.clone(dpc.distributorFilter)
-// 	for _, distributor := range dpc.distributors {
-// 		dpc.newUnit(distributor)
-// 	}
-// 	if dpc.mapDataLoader != nil {
-// 		dpc.mapData = dpc.mapDataLoader()
-// 	}
-// 	go func() {
-// 		timer := time.Tick(1 * time.Second) //计时器功能
-// 		for {
-// 			select {
-// 			case msg := <-dpc.chanEvent:
-// 				DebugInfoF("%s", msg)
-// 				if processor, ok := dpc.processors[msg.MessageType]; ok { //首先自行处理
-// 					go processor(msg)
-// 				} else {
-// 					if unit, ok := dpc.units[msg.TargetID]; ok { //之后交于处理单位处理
-// 						go unit.process(msg)
-// 					} else {
-// 						DebugSysF("未找到消息处理单位：%s", msg)
-// 					}
-// 				}
-// 			case <-timer:
-// 				for _, unit := range dpc.units {
-// 					go unit.process(NewMessageWithClient(pro_game_time_tick, "", nil))
-// 				}
-// 			}
-// 		}
-// 	}()
-// 	return dpc
-// }
+func (dpc *DistributorProcessUnitCenter) start() *DistributorProcessUnitCenter {
+	// dpc.distributors = g_distributorStore.clone(dpc.distributorFilter)
+	for _, distributor := range dpc.distributors {
+		dpc.newUnit(distributor)
+	}
+	if dpc.mapDataLoader != nil {
+		dpc.mapData = dpc.mapDataLoader()
+	}
+	go func() {
+		timer := time.Tick(1 * time.Second) //计时器功能
+		for {
+			select {
+			case msg := <-dpc.chanEvent:
+				DebugInfoF("%s", msg)
+				if processor, ok := dpc.processors[msg.MessageType]; ok { //首先自行处理
+					go processor(msg)
+				} else {
+					if unit, ok := dpc.units[msg.TargetID]; ok { //之后交于处理单位处理
+						go unit.process(msg)
+					} else {
+						DebugSysF("未找到消息处理单位：%s", msg)
+					}
+				}
+			case <-timer:
+				for _, unit := range dpc.units {
+					go unit.process(NewMessageWithClient(pro_game_time_tick, "", nil))
+				}
+			}
+		}
+	}()
+	return dpc
+}
 
 func (dpc *DistributorProcessUnitCenter) Process(msg *MessageWithClient) {
 	dpc.chanEvent <- msg

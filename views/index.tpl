@@ -168,6 +168,7 @@
 					            <div class=" login-btn-content">
 					                  <a href="#" class="button button-big button-fill disabled" id="btnSignOrder" onclick="onSignOrder()">订单签收</a>
 					            </div>
+					            <div style = "text-align:center;margin-top: 25px; text-decoration: underline;"> <span onclick="onEndDistribution()">结束配送 </span> </div>
 					    </div>
 
 					</div>
@@ -464,9 +465,17 @@
 	    	{MessageType: {{.pro_2c_sign_order}}, handler: pro_2c_sign_order_handler},
 	    	{MessageType: {{.pro_2c_all_order_signed}}, handler: pro_2c_all_order_signed_handler},
 	    	{MessageType: {{.pro_2c_speed_change}}, handler: pro_2c_speed_change_handler},
+	    	{MessageType: {{.pro_2c_end_game}}, handler: pro_2c_end_game_handler},
 	    	{MessageType: {{.pro_2c_sys_time_elapse}}, handler: pro_2c_sys_time_elapse_handler, print: false},
 	    	{}
 	    ]
+	    function pro_2c_end_game_handler(msg){
+			distributor = msg.Data
+			$$("#statisticRank").text(distributor.Rank)
+			$$("#statisticScoreTotal").text(distributor.Score)
+			$$("#statisticTimeTotal").text(distributor.TimeElapse)
+        	viewRouteToPage(mainView, 'processStatistic')	    	
+	    }
 	    //速度发生变化
 	    function pro_2c_speed_change_handler(msg){
 			distributor = msg.Data
@@ -480,11 +489,24 @@
 	    }
 	    function pro_2c_all_order_signed_handler(msg){
 			distributor = msg.Data
-			$$("#statisticRank").text(distributor.Rank)
-			$$("#statisticScoreTotal").text(distributor.Score)
-			$$("#statisticTimeTotal").text(distributor.TimeElapse)
-        	viewRouteToPage(mainView, 'processStatistic')
-
+			myApp.modal({
+			  title:  '提示',
+			  text: '订单签收完毕，是否结束游戏查看成绩？',
+			  buttons: [
+			    {
+			      text: '是',
+			      onClick: function() {
+			        send({MessageType: {{.pro_end_game_request}}, Data: null})//请求重置目标点
+			      }
+			    },
+			    {
+			      text: '否',
+			      onClick: function() {
+			        
+			      }
+			    },
+			  ]
+			})
 	    }
 	    function pro_2c_sign_order_handler(msg){
 	    	if(msg.Data == null){
@@ -625,6 +647,31 @@
 	    	drawRouteNodeOnMap(mapData)
 	    }
 	    //---------------------------------------------------------
+	    function onEndDistribution(){
+	    	var text = "配送结束将统计你的最终成绩，确定吗？"
+	    	var orderSigned = _.filter(distributor.AcceptedOrders, function(order){return order.Signed == true})
+	    	if(_.size(distributor.AcceptedOrders) > _.size(orderSigned)){
+	    		text = "您尚有未签收的订单，结束配送后将不能签收，确定吗？"
+	    	}
+	    	myApp.modal({
+	    	  title:  '提示',
+	    	  text: text,
+	    	  buttons: [
+	    	    {
+	    	      text: '是',
+	    	      onClick: function() {
+	    	        send({MessageType: {{.pro_end_game_request}}, Data: null})//请求重置目标点
+	    	      }
+	    	    },
+	    	    {
+	    	      text: '否',
+	    	      onClick: function() {
+	    	        
+	    	      }
+	    	    },
+	    	  ]
+	    	})
+	    }
 	    function refreshSpeed(){
 	    	var speed = distributor.CurrentSpeed
 	    	$$("#speed").text(speed+"km/h")
