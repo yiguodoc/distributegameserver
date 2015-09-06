@@ -169,7 +169,8 @@ func pro_game_start_handlerGenerator(o interface{}) MessageWithClientHandler {
 		}
 		center.wsRoom.broadcastMsgToSubscribers(pro_2c_all_prepared_4_select_order, nil)
 		sendOrderProposal(center)
-		center.starAlltUnit()
+		center.startAlltUnit()
+		center.startGameTiming()
 	}
 	return f
 }
@@ -298,10 +299,17 @@ func pro_game_time_tick_handlerGenerator(o interface{}) MessageWithClientHandler
 	unit := o.(*DistributorProcessUnit)
 	f := func(msg *MessageWithClient) {
 		distributor := unit.distributor
-		//运行时间增加
-		distributor.TimeElapse++
-		// DebugInfoF("运行时间+1 => %d", distributor.TimeElapse)
-		unit.center.wsRoom.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_sys_time_elapse, distributor.TimeElapse) //通知客户端移动到新坐标
+		distributor.TimeElapse = unit.center.TimeElapse
+		// if distributor.TimeElapse < unit.center.GameTimeMaxLength { //如果时间超过了最长设定时间，此时，客户端应该发起结束游戏的提示
+
+		// 	//运行时间增加
+		// 	distributor.TimeElapse++
+		// 	// DebugInfoF("运行时间+1 => %d", distributor.TimeElapse)
+		// 	unit.center.wsRoom.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_sys_time_elapse, distributor.TimeElapse) //通知客户端移动到新坐标
+		// } else {
+		// 	unit.center.wsRoom.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_end_game, distributor)
+		// 	return
+		// }
 		//----------------------------------------------------------------------------
 		//计算行走的坐标位置
 		if distributor.NormalSpeed > 0 {

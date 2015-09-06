@@ -472,6 +472,8 @@
 	    function pro_2c_end_game_handler(msg){
 			distributor = msg.Data
 			refreshStatisticPage()
+			//提示游戏结束
+			myApp.alert('游戏结束，将转入统计页面', '提示');
         	viewRouteToPage(mainView, 'processStatistic')	    	
 	    }
 	    //速度发生变化
@@ -630,6 +632,8 @@
 				refreshRunningState(1)
 			}
 			refreshSpeed()
+
+
 	    }
 	    function pro_2c_map_data_handler(msg){
 	    	if(mapData != null){

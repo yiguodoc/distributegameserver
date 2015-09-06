@@ -13,23 +13,35 @@ type DataWithID interface {
 }
 type DistributorProcessUnitList map[string]*DistributorProcessUnit
 
+func (l DistributorProcessUnitList) forEach(f func(*DistributorProcessUnit)) {
+	if f == nil {
+		return
+	}
+	for _, v := range l {
+		f(v)
+	}
+}
+
 type DistributorProcessUnitCenter struct {
-	units         DistributorProcessUnitList
-	chanEvent     chan *MessageWithClient
-	processors    map[ClientMessageTypeCode]MessageWithClientHandler
-	supportPro    []ClientMessageTypeCode
-	distributors  DistributorList
-	orders        OrderList
-	mapData       *MapData
-	mapDataLoader func() *MapData
-	wsRoom        *WsRoom
+	units             DistributorProcessUnitList
+	chanEvent         chan *MessageWithClient
+	processors        map[ClientMessageTypeCode]MessageWithClientHandler
+	supportPro        []ClientMessageTypeCode
+	distributors      DistributorList
+	orders            OrderList
+	mapData           *MapData
+	mapDataLoader     func() *MapData
+	wsRoom            *WsRoom
+	GameTimeMaxLength int64 //游戏最大时长
+	TimeElapse        int64 //运行时间
+	gameStarted       bool
 	// distributorFilter predictor
 	// distributorFilter func(interface{}) bool
 	// distributorFilter func(interface{}) DistributorList
 	// chanResult chan bool //返回执行的结果
 }
 
-func NewDistributorProcessUnitCenter(wsRoom *WsRoom, distributors DistributorList, orders OrderList, mapData *MapData) *DistributorProcessUnitCenter {
+func NewDistributorProcessUnitCenter(wsRoom *WsRoom, distributors DistributorList, orders OrderList, mapData *MapData, timeMaxLength int64) *DistributorProcessUnitCenter {
 	center := &DistributorProcessUnitCenter{
 		units:        DistributorProcessUnitList{},
 		chanEvent:    make(chan *MessageWithClient),
@@ -48,7 +60,7 @@ func NewDistributorProcessUnitCenter(wsRoom *WsRoom, distributors DistributorLis
 			pro_prepared_for_select_order,
 			pro_end_game_request,
 		},
-
+		GameTimeMaxLength: timeMaxLength,
 		// distributorFilter: filter,
 		// distributorFilter: filterGenerator(distributors),
 	}
@@ -56,43 +68,16 @@ func NewDistributorProcessUnitCenter(wsRoom *WsRoom, distributors DistributorLis
 	return center
 }
 
-func startCenterRunning(dpc *DistributorProcessUnitCenter) *DistributorProcessUnitCenter {
-	for _, distributor := range dpc.distributors {
-		dpc.newUnit(distributor)
-	}
-	if dpc.mapDataLoader != nil {
-		dpc.mapData = dpc.mapDataLoader()
-	}
-	go func() {
-		timer := time.Tick(1 * time.Second) //计时器功能
-		for {
-			select {
-			case msg := <-dpc.chanEvent:
-				DebugInfoF("%s", msg)
-				if processor, ok := dpc.processors[msg.MessageType]; ok { //首先自行处理
-					go processor(msg)
-				} else {
-					if unit, ok := dpc.units[msg.TargetID]; ok { //之后交于处理单位处理
-						go unit.process(msg)
-					} else {
-						DebugSysF("未找到消息处理单位：%s", msg)
-					}
-				}
-			case <-timer:
-				for _, unit := range dpc.units {
-					go unit.process(NewMessageWithClient(pro_game_time_tick, "", nil))
-				}
-			}
-		}
-	}()
-	return dpc
-}
-
 func (dpc *DistributorProcessUnitCenter) start() *DistributorProcessUnitCenter {
 	// dpc.distributors = g_distributorStore.clone(dpc.distributorFilter)
-	for _, distributor := range dpc.distributors {
+	// for _, distributor := range dpc.distributors {
+	// 	distributor.GameTimeMaxLength = dpc.GameTimeMaxLength
+	// 	dpc.newUnit(distributor)
+	// }
+	dpc.distributors.forEach(func(distributor *Distributor) {
+		distributor.GameTimeMaxLength = dpc.GameTimeMaxLength
 		dpc.newUnit(distributor)
-	}
+	})
 	if dpc.mapDataLoader != nil {
 		dpc.mapData = dpc.mapDataLoader()
 	}
@@ -112,15 +97,28 @@ func (dpc *DistributorProcessUnitCenter) start() *DistributorProcessUnitCenter {
 					}
 				}
 			case <-timer:
-				for _, unit := range dpc.units {
-					go unit.process(NewMessageWithClient(pro_game_time_tick, "", nil))
+				f := func(code ClientMessageTypeCode) {
+					dpc.units.forEach(func(unit *DistributorProcessUnit) {
+						go unit.process(NewMessageWithClient(pro_game_time_tick, unit.distributor.ID, unit))
+					})
+				}
+				if dpc.TimeElapse < dpc.GameTimeMaxLength && dpc.gameStarted == true { //尚处于单局游戏时间内
+					dpc.TimeElapse++
+					f(pro_game_time_tick)
+					// for _, unit := range dpc.units {
+					// 	go unit.process(NewMessageWithClient(pro_game_time_tick, "", nil))
+					// }
+				} else { //游戏时间到达最终时限
+					f(pro_end_game_request)
 				}
 			}
 		}
 	}()
 	return dpc
 }
-
+func (dpc *DistributorProcessUnitCenter) startGameTiming() {
+	dpc.gameStarted = true
+}
 func (dpc *DistributorProcessUnitCenter) Process(msg *MessageWithClient) {
 	dpc.chanEvent <- msg
 }
@@ -175,7 +173,7 @@ func (dpc *DistributorProcessUnitCenter) startUnit(id string) {
 		DebugSysF("启动配送处理单元出错，指定的单元 %s 不存在", id)
 	}
 }
-func (dpc *DistributorProcessUnitCenter) starAlltUnit() {
+func (dpc *DistributorProcessUnitCenter) startAlltUnit() {
 	for _, unit := range dpc.units {
 		unit.start()
 	}

@@ -10,6 +10,8 @@ import (
 	// "reflect"
 )
 
+var default_time_of_one_loop int64 = 5 * 60
+
 var (
 	g_UnitCenter       *DistributorProcessUnitCenter
 	g_room_viewer      *WsRoom            //= NewRoom(eventReceiver)
@@ -60,9 +62,9 @@ func init() {
 		}
 		return false
 	}
-	g_UnitCenter = NewDistributorProcessUnitCenter(room, g_distributorStore.clone(filter), orders, mapData)
-	// g_UnitCenter.start()
-	startCenterRunning(g_UnitCenter)
+	g_UnitCenter = NewDistributorProcessUnitCenter(room, g_distributorStore.clone(filter), orders, mapData, default_time_of_one_loop)
+	g_UnitCenter.start()
+	// startCenterRunning(g_UnitCenter)
 
 	// g_UnitCenter.Process(NewMessageWithClient(pro_order_select_response, "", map[string]interface{}{"OrderID": "900100001", "DistributorID": "d01"}))
 	// g_UnitCenter.Process(NewMessageWithClient(pro_order_select_response, "", map[string]interface{}{"OrderID": "900100002", "DistributorID": "d01"}))
