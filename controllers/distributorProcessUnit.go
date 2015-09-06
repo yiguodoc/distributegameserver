@@ -86,7 +86,7 @@ func (dpc *DistributorProcessUnitCenter) start() *DistributorProcessUnitCenter {
 		for {
 			select {
 			case msg := <-dpc.chanEvent:
-				DebugInfoF("%s", msg)
+				DebugInfoF("%v", msg)
 				if processor, ok := dpc.processors[msg.MessageType]; ok { //首先自行处理
 					go processor(msg)
 				} else {

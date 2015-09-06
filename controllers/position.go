@@ -141,16 +141,27 @@ func (pl PositionList) contains(f positionPredictor) bool {
 // 	return nil
 // }
 
-func (pl PositionList) Map(f func(interface{}) interface{}) AnyArray {
-	list := []interface{}{}
-	for _, p := range pl {
-		list = append(list, f(p))
+func (pl PositionList) Map(list interface{}, f func(*Position, interface{}) interface{}) interface{} {
+	// func (pl PositionList) Map(f func(interface{}) interface{}) AnyArray {
+	// list := []interface{}{}
+	// for _, p := range pl {
+	// 	list = append(list, f(p))
+	// }
+	// return list
+
+	if len(pl) > 0 {
+		return (pl[1:]).reduce(f(pl[0], list), f)
+	} else {
+		return list
 	}
-	return list
 }
 
-func (pl PositionList) reduce(f func(interface{}) interface{}) interface{} {
-	return nil
+func (pl PositionList) reduce(list interface{}, f func(*Position, interface{}) interface{}) interface{} {
+	if len(pl) > 0 {
+		return (pl[1:]).reduce(f(pl[0], list), f)
+	} else {
+		return list
+	}
 }
 
 // func (pl PositionList) findByID1(id int) *Position {

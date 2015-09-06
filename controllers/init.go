@@ -34,16 +34,21 @@ func init() {
 
 	clientMessageTypeCodeCheck()
 
-	mapData := loadMapData()
 	//加载地图数据
-	f := func(o interface{}) interface{} {
-		pos := o.(*Position)
-		if pos.HasOrder {
-			return NewOrder(generateOrderID(), pos)
-		}
-		return nil
-	}
-	orders := mapData.Points.Map(f).transform(Sys_Type_Order).(OrderList)
+	mapData := loadMapData()
+	// f := func(o interface{}) interface{} {
+	// 	pos := o.(*Position)
+	// 	if pos.HasOrder {
+	// 		return NewOrder(generateOrderID(), pos)
+	// 	}
+	// 	return nil
+	// }
+
+	orders := mapData.Points.filter(func(pos *Position) bool { return pos.HasOrder }).Map(OrderList{}, func(pos *Position, list interface{}) interface{} {
+		o := NewOrder(generateOrderID(), pos)
+		return append(list.(OrderList), o)
+	}).(OrderList)
+	// orders := mapData.Points.Map(f).transform(Sys_Type_Order).(OrderList)
 	// orders := OrderList{} //所有的订单
 	DebugPrintList_Info(orders)
 
