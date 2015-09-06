@@ -193,7 +193,7 @@ func (dl DistributorList) clone(f distributorPredictor) (l DistributorList) {
 	}
 	return
 }
-func (dl DistributorList) forEach(f distributorPredictor) {
+func (dl DistributorList) forEach(f func(*Distributor)) {
 	if f == nil {
 		return
 	}

@@ -37,7 +37,8 @@ func pro_end_game_request_handlerGenerator(o interface{}) MessageWithClientHandl
 		if distributor := center.distributors.findOne(func(d *Distributor) bool { return d.ID == msg.TargetID }); distributor != nil {
 			distributor.setCheckPoint(checkpoint_flag_order_distribute_over)
 			center.stopUnit(msg.TargetID)
-			center.wsRoom.sendMsgToSpecialSubscriber(msg.TargetID, pro_2c_end_game, distributor)
+			center.distributors.forEach(func(d *Distributor) { center.wsRoom.sendMsgToSpecialSubscriber(d.ID, pro_2c_end_game, d) })
+			// center.wsRoom.sendMsgToSpecialSubscriber(msg.TargetID, pro_2c_end_game, distributor)
 		}
 
 	}
