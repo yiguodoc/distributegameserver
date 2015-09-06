@@ -23,17 +23,32 @@ var (
 	ERR_order_already_selected        = errors.New("订单已经被分配过")
 )
 
+// func pro_rank_changed_handlerGenerator(o interface{}) MessageWithClientHandler {
+// 	center := o.(*DistributorProcessUnitCenter)
+// 	f := func(msg *MessageWithClient) {
+// 		center.distributors.forEach(func(d *Distributor) { center.wsRoom.sendMsgToSpecialSubscriber(d.ID, pro_2c_end_game, d) })
+// 	}
+// 	return f
+// }
 func pro_end_game_request_handlerGenerator(o interface{}) MessageWithClientHandler {
 	center := o.(*DistributorProcessUnitCenter)
 	f := func(msg *MessageWithClient) {
-		//计算排名
-		center.distributors.Rank()
-		DebugPrintList_Info(center.distributors)
 		if distributor := center.distributors.findOne(func(d *Distributor) bool { return d.ID == msg.TargetID }); distributor != nil {
+			//计算得分
+			//签收完一个订单得到该订单对应的分数，没有完成的订单减去惩罚分数
+			unSignedOrders := distributor.AcceptedOrders.Filter(func(o *Order) bool { return o.Signed == false })
+			distributor.Score -= int64(len(unSignedOrders))
+			//计算排名
+			center.distributors.Rank()
+			DebugPrintList_Info(center.distributors)
 			distributor.setCheckPoint(checkpoint_flag_order_distribute_over)
-			center.stopUnit(msg.TargetID)
-			center.distributors.forEach(func(d *Distributor) { center.wsRoom.sendMsgToSpecialSubscriber(d.ID, pro_2c_end_game, d) })
-			// center.wsRoom.sendMsgToSpecialSubscriber(msg.TargetID, pro_2c_end_game, distributor)
+			center.stopUnit(distributor.ID)
+			center.wsRoom.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_end_game, distributor)
+			center.distributors.forEach(func(d *Distributor) {
+				if d.ID != distributor.ID {
+					center.wsRoom.sendMsgToSpecialSubscriber(d.ID, pro_2c_rank_change, d)
+				}
+			})
 		}
 
 	}
@@ -291,7 +306,7 @@ func onReconnect(center *DistributorProcessUnitCenter, distributor *Distributor)
 }
 
 func getOrderSelectProposal(distributors DistributorList, orders OrderList) (list OrderList, err error) {
-	proposals, err := createDistributionProposal(orders.Filter(func(o interface{}) bool { return o.(*Order).Distributed == false }), distributors)
+	proposals, err := createDistributionProposal(orders.Filter(func(o *Order) bool { return o.Distributed == false }), distributors)
 	// proposals, err := createDistributionProposal(orders.Filter(newOrderDistributeFilter(false)), distributors)
 	if err != nil {
 		return nil, err
@@ -317,7 +332,7 @@ func disposeOrderSelectResponse(orderID string, distributor *Distributor, distri
 	//确定结果
 	order.distribute(distributor.TimeElapse)
 	distributor.acceptOrder(order)
-	DebugTraceF("未分配订单减少到 %d 个", len(orders.Filter(func(o interface{}) bool { return o.(*Order).Distributed == false })))
+	DebugTraceF("未分配订单减少到 %d 个", len(orders.Filter(func(o *Order) bool { return o.Distributed == false })))
 	return nil
 }
 

@@ -466,9 +466,14 @@
 	    	{MessageType: {{.pro_2c_all_order_signed}}, handler: pro_2c_all_order_signed_handler},
 	    	{MessageType: {{.pro_2c_speed_change}}, handler: pro_2c_speed_change_handler},
 	    	{MessageType: {{.pro_2c_end_game}}, handler: pro_2c_end_game_handler},
+	    	{MessageType: {{.pro_2c_rank_change}}, handler: pro_2c_rank_change_handler},
 	    	{MessageType: {{.pro_2c_sys_time_elapse}}, handler: pro_2c_sys_time_elapse_handler, print: false},
 	    	{}
 	    ]
+	    function pro_2c_rank_change_handler(msg){
+	    	distributor = msg.Data
+	    	refreshStatisticPage()
+	    }
 	    function pro_2c_end_game_handler(msg){
 			distributor = msg.Data
 			refreshStatisticPage()

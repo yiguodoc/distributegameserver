@@ -138,7 +138,7 @@ func (ol OrderList) InfoList() (list []string) {
 	}
 	return
 }
-func (ol OrderList) Filter(f predictor) (l OrderList) {
+func (ol OrderList) Filter(f func(*Order) bool) (l OrderList) {
 	for _, o := range ol {
 		if f(o) == true {
 			l = append(l, o)

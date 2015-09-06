@@ -87,7 +87,8 @@ var (
 	pro_game_time_tick             ClientMessageTypeCode = 13 //系统时间流逝出发
 	pro_distributor_info_request   ClientMessageTypeCode = 14 //系统时间流逝出发
 	pro_end_game_request           ClientMessageTypeCode = 15 //配送完毕，结束游戏
-	pro_max                                              = 16
+	pro_max                        ClientMessageTypeCode = 16
+	// pro_rank_changed               ClientMessageTypeCode = 16
 
 	pro_2c_min                                                       = 400
 	pro_2c_message_broadcast                   ClientMessageTypeCode = 401 //向配送员广播消息
@@ -108,11 +109,16 @@ var (
 	pro_2c_sys_time_elapse                     ClientMessageTypeCode = 416 //系统时间更新
 	pro_2c_speed_change                        ClientMessageTypeCode = 417
 	pro_2c_end_game                            ClientMessageTypeCode = 418
-	pro_2c_max                                 ClientMessageTypeCode = 419
+	pro_2c_rank_change                         ClientMessageTypeCode = 419
+	pro_2c_max                                 ClientMessageTypeCode = 420
 )
 
 func (c ClientMessageTypeCode) name() (s string) {
 	switch c {
+	// case pro_rank_changed:
+	// 	s = "pro_rank_changed"
+	case pro_2c_rank_change:
+		s = "pro_2c_rank_change"
 	case pro_end_game_request:
 		s = "pro_end_game_request"
 	case pro_2c_end_game:
