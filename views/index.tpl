@@ -541,7 +541,7 @@
 	    	console.info("重置目的地成功")
     		distributor = msg.Data
 	    	setDestinationMarker()
-			refreshNodeToSelect()
+			// refreshNodeToSelect()
 	    }
 	    function pro_2c_reach_route_node_handler(msg){
     		distributor = msg.Data

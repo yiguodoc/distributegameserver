@@ -30,7 +30,7 @@ func pro_game_time_tick_handlerGenerator(o interface{}) MessageWithClientHandler
 		// 	//运行时间增加
 		// 	distributor.TimeElapse++
 		// 	// DebugInfoF("运行时间+1 => %d", distributor.TimeElapse)
-		// 	unit.center.wsRoom.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_sys_time_elapse, distributor.TimeElapse) //通知客户端移动到新坐标
+		unit.center.wsRoom.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_sys_time_elapse, distributor.TimeElapse)
 		// } else {
 		// 	unit.center.wsRoom.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_end_game, distributor)
 		// 	return
