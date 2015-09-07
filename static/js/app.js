@@ -114,6 +114,11 @@ require(['jquery', 'lodash', 'Framework7', 'Chart'], function ($, _, Framework7,
             conn = new WebSocket(wsUrl);
             conn.onclose = function(evt) {
                 console.log("与服务器连接连接关闭，刷新重试")
+                myApp.alert("您已掉线，5秒后重新连接")
+                setTimeout(function () {
+                        myApp.closeModal();
+                        prepareConn()
+                    }, 5000);
             }
             conn.onopen = function(evt){
                 console.log("与服务器连接成功")
