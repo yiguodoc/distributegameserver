@@ -300,7 +300,7 @@ func onReconnect(center *DistributorProcessUnitCenter, distributor *Distributor)
 		// broadOrderSelectProposal(center.distributors, center.orders)
 		if proposals, err := getOrderSelectProposal(center.distributors, center.orders); err == nil {
 			// center.wsRoom.broadcastMsgToSubscribers(pro_2c_order_distribution_proposal, proposals)
-			center.wsRoom.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_order_distribution_proposal, distributor)
+			center.wsRoom.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_order_distribution_proposal, proposals)
 		} else {
 			DebugInfoF("%s", err)
 		}
