@@ -55,8 +55,8 @@ type Order struct {
 	Distributed  bool //分配状态
 	Signed       bool //签收状态
 	Region       *Region
-	SignTime     int64 //签收时间
-	SelectedTime int64 //被选择的时间
+	SignTime     int //签收时间
+	SelectedTime int //被选择的时间
 }
 
 func NewOrder(id string, pos *Position) *Order {
@@ -80,11 +80,11 @@ func (o *Order) isDistributed() bool {
 func (o *Order) isSigned() bool {
 	return o.Signed
 }
-func (o *Order) sign(time int64) {
+func (o *Order) sign(time int) {
 	o.Signed = true
 	o.SignTime = time
 }
-func (o *Order) distribute(time int64) {
+func (o *Order) distribute(time int) {
 	o.Distributed = true
 	o.SelectedTime = time
 }

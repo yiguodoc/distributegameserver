@@ -290,7 +290,7 @@
 		        <div data-page="map" class="page" id="pageMap">
 		              <!-- Scrollable page content -->
 		              <div class="page-content "> 
-				        <div  class="content-block-title" style="margin-top: 10px;">未签收<span id="orderListUnsignedLabel">（0）</span></div>
+				        <div  class="content-block-title" style="margin-top: 20px;">未签收<span id="orderListUnsignedLabel">（0）</span></div>
 				        <div class="list-block media-list">
 				          <ul id="orderListUnsigned">
 				            <li>
@@ -706,7 +706,7 @@
 	    //添加消息到消息页面
 	    function addMsgToView(msg){
 	    	var dom = $$("#msgList")
-	    	dom.prepend(String.format('<li> <div class="item-inner"> <div class="item-title-row"> <div class="item-title">{0}</div> <div class="item-after"></div> </div>  <div class="item-text">{1}</div> </div> </li>', msg.timeStamp, msg.content))
+	    	dom.prepend(String.format('<li> <div class="item-inner"> <div class="item-title-row"> <div class="item-title"></div> <div class="item-after" style="font-size:14px;">{0}</div> </div>  <div class="item-text" style="padding-left: 5px; color: black; ">{1}</div> </div> </li>', msg.timeStamp, msg.content))
 	    }
 	    //重置订单页面的订单列表，当订单数量或者状态发生变化时调用
 	    function refreshOrderView(){

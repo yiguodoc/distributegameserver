@@ -56,10 +56,10 @@ type Distributor struct {
 	CurrentSpeed           float64         //当前运行速度，0表示停止
 	Distance               float64         //所在或者将要行驶的路径长度
 	line                   *Line
-	GameTimeMaxLength      int64 //游戏最大时长
-	TimeElapse             int64 //运行时间
-	Score                  int64 //得分
-	Rank                   int   //排名
+	GameTimeMaxLength      int //游戏最大时长
+	TimeElapse             int //运行时间
+	Score                  int //得分
+	Rank                   int //排名
 }
 
 func NewDistributorFromJson(bytes []byte) *Distributor {
@@ -168,8 +168,18 @@ type DistributorList []*Distributor
 
 func (dl DistributorList) Rank() {
 	sort.Sort(dl)
-	for i, d := range dl {
-		d.Rank = i + 1
+	f := func(d *Distributor, lastRank, lastScore, lastTimeLength int) (myRank, myScore, myTimeLength int) {
+		if d.Score == lastScore && d.TimeElapse == lastTimeLength {
+			d.Rank = lastRank
+		} else {
+			d.Rank = lastRank + 1
+		}
+		return d.Rank, d.Score, d.TimeElapse
+	}
+	var myRank, myScore, myTimeLength int = 0, -1, -1
+	for _, d := range dl {
+		// d.Rank = i + 1
+		myRank, myScore, myTimeLength = f(d, myRank, myScore, myTimeLength)
 	}
 }
 func (dl DistributorList) Len() int {

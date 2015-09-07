@@ -37,7 +37,7 @@ func pro_end_game_request_handlerGenerator(o interface{}) MessageWithClientHandl
 			//计算得分
 			//签收完一个订单得到该订单对应的分数，没有完成的订单减去惩罚分数
 			unSignedOrders := distributor.AcceptedOrders.Filter(func(o *Order) bool { return o.Signed == false })
-			distributor.Score -= int64(len(unSignedOrders))
+			distributor.Score -= (len(unSignedOrders))
 			//计算排名
 			center.distributors.Rank()
 			DebugPrintList_Info(center.distributors)
@@ -124,7 +124,7 @@ func pro_order_select_response_handlerGenerator(o interface{}) MessageWithClient
 
 		if err := disposeOrderSelectResponse(orderID, distributor, center.distributors, center.orders); err != nil {
 			DebugInfoF("处理订单分配时的信息提示：%s", err)
-			center.wsRoom.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_order_select_result, nil, err.Error(), strconv.FormatInt(distributor.TimeElapse, 10))
+			center.wsRoom.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_order_select_result, nil, err.Error(), strconv.Itoa(distributor.TimeElapse))
 			return
 		}
 		//将分配结果通知到各方，包括获得订单的客户端、群通知，并引发分配结果事件，使得观察者也可以得到通知

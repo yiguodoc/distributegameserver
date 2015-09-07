@@ -10,7 +10,7 @@ import (
 	// "reflect"
 )
 
-var default_time_of_one_loop int64 = 5 * 60
+var default_time_of_one_loop = 5 * 60
 
 var (
 	g_UnitCenter       *DistributorProcessUnitCenter
@@ -36,31 +36,22 @@ func init() {
 
 	//加载地图数据
 	mapData := loadMapData()
-	// f := func(o interface{}) interface{} {
-	// 	pos := o.(*Position)
-	// 	if pos.HasOrder {
-	// 		return NewOrder(generateOrderID(), pos)
-	// 	}
-	// 	return nil
-	// }
 
-	orders := mapData.Points.filter(func(pos *Position) bool { return pos.HasOrder }).Map(OrderList{}, func(pos *Position, list interface{}) interface{} {
+	orders := mapData.Points.filter(func(pos *Position) bool {
+		return pos.HasOrder
+	}).Map(OrderList{}, func(pos *Position, list interface{}) interface{} {
 		o := NewOrder(generateOrderID(), pos)
 		return append(list.(OrderList), o)
 	}).(OrderList)
-	// orders := mapData.Points.Map(f).transform(Sys_Type_Order).(OrderList)
 	// orders := OrderList{} //所有的订单
 	DebugPrintList_Info(orders)
 
-	room := NewRoom()
-	room.init()
-	room.addEventSubscriber(distributorRoomEventHandler,
-		WsRoomEventCode_Online, WsRoomEventCode_Offline, WsRoomEventCode_Other)
+	room := NewRoom().start()
+	room.addEventSubscriber(distributorRoomEventHandler, WsRoomEventCode_Online, WsRoomEventCode_Offline, WsRoomEventCode_Other)
 
 	filter := func(d *Distributor) bool {
-		l := []string{"d01", "d02"}
-		// l := []string{"d01", "d02", "d03"}
-		for _, s := range l {
+		l := []string{"d01", "d02", "d03"}
+		for _, s := range l[:] {
 			if s == d.ID {
 				return true
 			}
@@ -69,18 +60,10 @@ func init() {
 	}
 	g_UnitCenter = NewDistributorProcessUnitCenter(room, g_distributorStore.clone(filter), orders, mapData, default_time_of_one_loop)
 	g_UnitCenter.start()
-	// startCenterRunning(g_UnitCenter)
 
 	// g_UnitCenter.Process(NewMessageWithClient(pro_order_select_response, "", map[string]interface{}{"OrderID": "900100001", "DistributorID": "d01"}))
 	// g_UnitCenter.Process(NewMessageWithClient(pro_order_select_response, "", map[string]interface{}{"OrderID": "900100002", "DistributorID": "d01"}))
-	//测试用
-	//将订单分配给配送员
-	// g_distributors[0].AcceptedOrders = g_orders[0:]
-	// g_distributors[0].setCheckPoint(checkpoint_flag_order_distribute)
-	// g_distributors[1].AcceptedOrders = g_orders[2:]
-	// g_distributors[1].setCheckPoint(checkpoint_flag_order_distribute)
-	// g_ordersDistributed = g_ordersUndistributed[:]
-	// g_ordersUndistributed = g_ordersUndistributed[0:0]
+
 	//--------------------------------------------------------------------------
 }
 

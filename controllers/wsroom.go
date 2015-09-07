@@ -64,7 +64,6 @@ func (s SubscriberList) InfoList() (l []string) {
 type roomMessage struct {
 	targetID string
 	content  interface{}
-	// msg      *MessageWithClient
 }
 type WsRoomEventCode int
 
@@ -110,32 +109,19 @@ func (w *WsRoom) newMessage(id string, content []byte) {
 		targetID: id,
 		content:  content,
 	}
-	// var msg MessageWithClient
-	// err := json.Unmarshal(content, &msg)
-	// if err != nil {
-	// 	DebugMustF("解析客户端信息时出错：%s", err)
-	// 	DebugTrace(string(content))
-	// } else {
-	// 	w.chanMessage <- &msg
-	// }
 }
 
 // broadcastWebSocket broadcasts messages to WebSocket users.
 func (w *WsRoom) broadcastMsgToSubscribers(protocal ClientMessageTypeCode, obj interface{}, err ...string) {
-	// DebugTraceF("broadcastWebSocket => %s", event)
-	// msg := &MessageWithClient{protocal, "", obj, ""}
 	msg := NewMessageWithClient(protocal, "", obj, err...)
 	w.chanPublishToSubscribers <- &roomMessage{content: msg}
 }
 
 // send messages to WebSocket special user.
 func (w *WsRoom) sendMsgToSpecialSubscriber(id string, protocal ClientMessageTypeCode, obj interface{}, err ...string) {
-	// DebugTraceF("broadcastWebSocket => %s", event)
 	msg := NewMessageWithClient(protocal, id, obj, err...)
-	// msg := &MessageWithClient{protocal, id, obj}
 	w.chanPublishToSubscribers <- &roomMessage{targetID: id, content: msg}
 	if protocal != pro_2c_sys_time_elapse {
-
 		DebugTraceF("=>  %s : %v", id, msg)
 	}
 }
@@ -152,7 +138,7 @@ func NewRoom() *WsRoom {
 		eventSubscribers:         SysEventSubscribeList{},
 	}
 }
-func (w *WsRoom) init() {
+func (w *WsRoom) start() *WsRoom {
 	go func() {
 		for {
 			select {
@@ -161,23 +147,13 @@ func (w *WsRoom) init() {
 			case id := <-w.chanUnsubscribe:
 				w.setUserOffline(id)
 			case msg := <-w.chanMessage: //有信息从客户端传入，
-				// if w.EventReceiver != nil {
-				// 	w.EventReceiver(msg.id, msg.content)
-				// }
 				w.eventSubscribers.notifyEventSubscribers(int(WsRoomEventCode_Other), msg)
-				// DebugTraceF("message => %s", msg)
-				// if code, err := msg.MessageType.mapToSysEventCode(); err == nil {
-				// 	w.triggerSysEvent(code, msg.Data)
-				// } else {
-				// 	DebugInfoF("客户端事件 %s 未处理", msg.MessageType.name())
-				// }
 			case msg := <-w.chanPublishToSubscribers:
-				// DebugTraceF("publish distributors => %s", msg.msg)
-				// distributors := w.subscribers.filtedSubscribers(subscriber_type_distributor)
 				w.writeMsgToSubscribers(msg)
 			}
 		}
 	}()
+	return w
 }
 func (w *WsRoom) writeMsgToSubscribers(roommsg *roomMessage) {
 	msg := roommsg.content
@@ -207,11 +183,12 @@ func (w *WsRoom) writeMsgToSubscribers(roommsg *roomMessage) {
 }
 
 //为该房间提供事件订阅功能
-func (w *WsRoom) addEventSubscriber(f eventProcessor, codes ...WsRoomEventCode) {
+func (w *WsRoom) addEventSubscriber(f eventProcessor, codes ...WsRoomEventCode) *WsRoom {
 	// w.eventSubscribers.addEventSubscriber(f, codes...)
 	for _, code := range codes {
 		w.eventSubscribers.addEventSubscriber(f, int(code))
 	}
+	return w
 }
 
 //移除对该房间的事件的订阅

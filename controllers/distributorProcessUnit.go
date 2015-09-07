@@ -32,8 +32,8 @@ type DistributorProcessUnitCenter struct {
 	mapData           *MapData
 	mapDataLoader     func() *MapData
 	wsRoom            *WsRoom
-	GameTimeMaxLength int64 //游戏最大时长
-	TimeElapse        int64 //运行时间
+	GameTimeMaxLength int //游戏最大时长
+	TimeElapse        int //运行时间
 	gameStarted       bool
 	// distributorFilter predictor
 	// distributorFilter func(interface{}) bool
@@ -41,7 +41,7 @@ type DistributorProcessUnitCenter struct {
 	// chanResult chan bool //返回执行的结果
 }
 
-func NewDistributorProcessUnitCenter(wsRoom *WsRoom, distributors DistributorList, orders OrderList, mapData *MapData, timeMaxLength int64) *DistributorProcessUnitCenter {
+func NewDistributorProcessUnitCenter(wsRoom *WsRoom, distributors DistributorList, orders OrderList, mapData *MapData, timeMaxLength int) *DistributorProcessUnitCenter {
 	center := &DistributorProcessUnitCenter{
 		units:        DistributorProcessUnitList{},
 		chanEvent:    make(chan *MessageWithClient),
