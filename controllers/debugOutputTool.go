@@ -60,8 +60,8 @@ func DebugPrintList_Info(list IPrintList) {
 	// for _, str := range strs {
 	// 	DebugInfo(str)
 	// }
-	// DebugInfo(log)
 	PrintList(list, DebugInfo)
+	DebugInfoF("****************************************************************************%s", GetFileLocation())
 }
 func DebugPrintList_Trace(list IPrintList) {
 	PrintList(list, DebugTrace)

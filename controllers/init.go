@@ -4,10 +4,11 @@ import (
 	// "github.com/ssor/fauxgaux"
 	// "github.com/gorilla/websocket"
 	"encoding/json"
-	// "time"
+	"time"
 	// "strings"
 	"fmt"
 	// "reflect"
+	"math/rand"
 )
 
 var default_time_of_one_loop = 5 * 60
@@ -42,8 +43,10 @@ func init() {
 	}).Map(OrderList{}, func(pos *Position, list interface{}) interface{} {
 		o := NewOrder(generateOrderID(), pos)
 		return append(list.(OrderList), o)
-	}).(OrderList)
+	}).(OrderList) //.random()
 	// orders := OrderList{} //所有的订单
+	DebugPrintList_Info(orders)
+	orders = orders.random(rand.New(rand.NewSource(time.Now().UnixNano())))
 	DebugPrintList_Info(orders)
 
 	room := NewRoom().start()

@@ -4,6 +4,7 @@ import (
 	// "github.com/astaxie/beego"
 	// "errors"
 	"fmt"
+	"math/rand"
 	// "time"
 )
 
@@ -91,6 +92,15 @@ func (o *Order) distribute(time int) {
 
 type OrderList []*Order
 
+func (l OrderList) random(rander *rand.Rand) OrderList {
+	if len(l) <= 1 {
+		return l
+	}
+	r := rander.Intn(len(l))
+	last := append(append(OrderList{}, l[:r]...), l[r+1:]...)
+	return append(OrderList{l[r]}, last.random(rander)...)
+}
+
 func (l OrderList) findOne(f predictor) *Order {
 	for _, o := range l {
 		if f(o) {
@@ -100,14 +110,6 @@ func (l OrderList) findOne(f predictor) *Order {
 	return nil
 }
 
-// func (l OrderList) findByID(id string) *Order {
-// 	for _, o := range l {
-// 		if o.ID == id {
-// 			return o
-// 		}
-// 	}
-// 	return nil
-// }
 func (l OrderList) all(f predictor) bool {
 	for _, o := range l {
 		if f(o) == false {
