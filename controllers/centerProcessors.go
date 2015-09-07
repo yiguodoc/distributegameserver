@@ -63,9 +63,13 @@ func pro_move_from_node_to_route_handlerGenerator(o interface{}) MessageWithClie
 		if line.DistributorsCount() >= 2 {
 			line.busy()
 			DebugInfoF("line BUSY %s", line)
-			for id, d := range line.DistributorsOn {
-				center.wsRoom.sendMsgToSpecialSubscriber(id, pro_2c_speed_change, d)
-			}
+			line.DistributorsOn.forEach(func(d *Distributor) {
+				d.CurrentSpeed = d.NormalSpeed / 2
+				center.wsRoom.sendMsgToSpecialSubscriber(d.ID, pro_2c_speed_change, d)
+			})
+			// for id, d := range line.DistributorsOn {
+			// 	center.wsRoom.sendMsgToSpecialSubscriber(id, pro_2c_speed_change, d)
+			// }
 		}
 	}
 	return f
@@ -78,9 +82,13 @@ func pro_move_from_route_to_node_handlerGenerator(o interface{}) MessageWithClie
 		if line.DistributorsCount() < 2 {
 			line.nobusy()
 			DebugInfoF("line NOBUSY %s ", line)
-			for id, d := range line.DistributorsOn {
-				center.wsRoom.sendMsgToSpecialSubscriber(id, pro_2c_speed_change, d)
-			}
+			line.DistributorsOn.forEach(func(d *Distributor) {
+				d.CurrentSpeed = d.NormalSpeed
+				center.wsRoom.sendMsgToSpecialSubscriber(d.ID, pro_2c_speed_change, d)
+			})
+			// for id, d := range line.DistributorsOn {
+			// 	center.wsRoom.sendMsgToSpecialSubscriber(id, pro_2c_speed_change, d)
+			// }
 
 		}
 	}

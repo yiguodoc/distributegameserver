@@ -51,7 +51,7 @@ func init() {
 
 	filter := func(d *Distributor) bool {
 		l := []string{"d01", "d02", "d03"}
-		for _, s := range l[:] {
+		for _, s := range l[:2] {
 			if s == d.ID {
 				return true
 			}
