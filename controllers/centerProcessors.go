@@ -281,13 +281,10 @@ func pro_on_line_handlerGenerator(o interface{}) MessageWithClientHandler {
 				}
 				distributor.NormalSpeed = defaultSpeed
 				distributor.CurrentSpeed = defaultSpeed
-
-			} else {
-				onReconnect(center, distributor)
 			}
-
 			center.wsRoom.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_map_data, center.mapData)
 			center.wsRoom.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_distributor_info, distributor)
+			onReconnect(center, distributor)
 		}
 	}
 	return f
@@ -302,7 +299,8 @@ func onReconnect(center *DistributorProcessUnitCenter, distributor *Distributor)
 		DebugTraceF("配送员上线，状态 %d 订单选择中", checkpoint_flag_order_select)
 		// broadOrderSelectProposal(center.distributors, center.orders)
 		if proposals, err := getOrderSelectProposal(center.distributors, center.orders); err == nil {
-			center.wsRoom.broadcastMsgToSubscribers(pro_2c_order_distribution_proposal, proposals)
+			// center.wsRoom.broadcastMsgToSubscribers(pro_2c_order_distribution_proposal, proposals)
+			center.wsRoom.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_order_distribution_proposal, distributor)
 		} else {
 			DebugInfoF("%s", err)
 		}
