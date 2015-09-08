@@ -221,6 +221,10 @@ func pro_sign_order_request_handlerGenerator(o interface{}) MessageWithClientHan
 				unit.center.wsRoom.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_sign_order, nil)
 				return
 			}
+			if order.isSigned() {
+				DebugSysF("订单已经签收过 %s", order)
+				return
+			}
 			if distributor.AcceptedOrders.contains(func(o interface{}) bool { return o.(*Order).ID == orderID }) == false {
 				DebugSysF("订单 %s 必须由本人签收", orderID)
 				unit.center.wsRoom.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_sign_order, nil)
