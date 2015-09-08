@@ -101,16 +101,16 @@ var (
 	pro_2c_reach_route_node                    ClientMessageTypeCode = 408 //到达一个路径节点
 	pro_2c_sign_order                          ClientMessageTypeCode = 409 //订单签收完成
 	pro_2c_distributor_info                    ClientMessageTypeCode = 410 //
-	pro_2c_order_full                          ClientMessageTypeCode = 411 //订单满载
-	pro_2c_all_prepared_4_select_order         ClientMessageTypeCode = 412
-	pro_2c_message_broadcast_before_game_start ClientMessageTypeCode = 413
-	pro_2c_move_from_node                      ClientMessageTypeCode = 414
-	pro_2c_all_order_signed                    ClientMessageTypeCode = 415
-	pro_2c_sys_time_elapse                     ClientMessageTypeCode = 416 //系统时间更新
-	pro_2c_speed_change                        ClientMessageTypeCode = 417
-	pro_2c_end_game                            ClientMessageTypeCode = 418
-	pro_2c_rank_change                         ClientMessageTypeCode = 419
-	pro_2c_max                                 ClientMessageTypeCode = 420
+	pro_2c_all_prepared_4_select_order         ClientMessageTypeCode = 411
+	pro_2c_message_broadcast_before_game_start ClientMessageTypeCode = 412
+	pro_2c_move_from_node                      ClientMessageTypeCode = 413
+	pro_2c_all_order_signed                    ClientMessageTypeCode = 414
+	pro_2c_sys_time_elapse                     ClientMessageTypeCode = 415 //系统时间更新
+	pro_2c_speed_change                        ClientMessageTypeCode = 416
+	pro_2c_end_game                            ClientMessageTypeCode = 417
+	pro_2c_rank_change                         ClientMessageTypeCode = 418
+	pro_2c_max                                 ClientMessageTypeCode = 419
+	// pro_2c_order_full                          ClientMessageTypeCode = 411 //订单满载
 )
 
 func (c ClientMessageTypeCode) name() (s string) {
@@ -135,8 +135,8 @@ func (c ClientMessageTypeCode) name() (s string) {
 		s = "pro_2c_message_broadcast_before_game_start"
 	case pro_2c_all_prepared_4_select_order:
 		s = "pro_2c_all_prepared_4_select_order"
-	case pro_2c_order_full:
-		s = "pro_2c_order_full"
+	// case pro_2c_order_full:
+	// 	s = "pro_2c_order_full"
 	case pro_2c_distributor_info:
 		s = "pro_2c_distributor_info"
 	case pro_game_time_tick:

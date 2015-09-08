@@ -455,7 +455,7 @@
 	    	{MessageType: {{.pro_timer_count_down}}, handler: pro_timer_count_down_handler},
 	    	{MessageType: {{.pro_2c_message_broadcast}}, handler: pro_2c_message_broadcast_handler},
 	    	{MessageType: {{.pro_2c_order_select_result}}, handler: pro_2c_order_select_result_handler},
-	    	{MessageType: {{.pro_2c_order_full}}, handler: pro_2c_order_full_handler},
+	    	// {MessageType: {{.pro_2c_order_full}}, handler: pro_2c_order_full_handler},
 	    	{MessageType: {{.pro_2c_reach_route_node}}, handler: pro_2c_reach_route_node_handler},
 	    	{MessageType: {{.pro_2c_move_to_new_position}}, handler: pro_2c_move_to_new_position_handler},
 	    	{MessageType: {{.pro_2c_move_from_node}}, handler: pro_2c_move_from_node_handler},
@@ -599,10 +599,10 @@
 	    	    console.log("没有抢到订单 ")	    		
 	    	}
 	    }
-	    function pro_2c_order_full_handler(msg){
-	    	distributor = msg.Data
-        	viewRouteToPage(mainView, 'processDistribution')
-	    }
+	    // function pro_2c_order_full_handler(msg){
+	    // 	distributor = msg.Data
+     //    	viewRouteToPage(mainView, 'processDistribution')
+	    // }
 	    function pro_2c_distributor_info_handler(msg){
 	    	var data = msg.Data
 	    	console.log(data)
@@ -637,8 +637,6 @@
 				refreshRunningState(1)
 			}
 			refreshSpeed()
-
-
 	    }
 	    function pro_2c_map_data_handler(msg){
 	    	if(mapData != null){

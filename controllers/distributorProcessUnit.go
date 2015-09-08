@@ -25,6 +25,7 @@ func (l DistributorProcessUnitList) forEach(f func(*DistributorProcessUnit)) {
 type DistributorProcessUnitCenter struct {
 	units             DistributorProcessUnitList
 	chanEvent         chan *MessageWithClient
+	chanStop          chan bool
 	processors        map[ClientMessageTypeCode]MessageWithClientHandler
 	supportPro        []ClientMessageTypeCode
 	distributors      DistributorList
@@ -45,6 +46,7 @@ func NewDistributorProcessUnitCenter(wsRoom *WsRoom, distributors DistributorLis
 	center := &DistributorProcessUnitCenter{
 		units:        DistributorProcessUnitList{},
 		chanEvent:    make(chan *MessageWithClient),
+		chanStop:     make(chan bool),
 		orders:       orders,
 		mapData:      mapData,
 		wsRoom:       wsRoom,
@@ -61,19 +63,20 @@ func NewDistributorProcessUnitCenter(wsRoom *WsRoom, distributors DistributorLis
 			pro_end_game_request,
 		},
 		GameTimeMaxLength: timeMaxLength,
-		// distributorFilter: filter,
-		// distributorFilter: filterGenerator(distributors),
 	}
 	center.processors = handler_map.generateHandlerMap(center.supportPro, center)
 	return center
 }
-
+func (dpc *DistributorProcessUnitCenter) stop() {
+	if dpc.wsRoom != nil {
+		dpc.wsRoom.stop()
+	}
+	if dpc.chanStop != nil {
+		dpc.chanStop <- true
+		dpc.chanStop = nil
+	}
+}
 func (dpc *DistributorProcessUnitCenter) start() *DistributorProcessUnitCenter {
-	// dpc.distributors = g_distributorStore.clone(dpc.distributorFilter)
-	// for _, distributor := range dpc.distributors {
-	// 	distributor.GameTimeMaxLength = dpc.GameTimeMaxLength
-	// 	dpc.newUnit(distributor)
-	// }
 	dpc.distributors.forEach(func(distributor *Distributor) {
 		distributor.GameTimeMaxLength = dpc.GameTimeMaxLength
 		dpc.newUnit(distributor)
@@ -111,6 +114,8 @@ func (dpc *DistributorProcessUnitCenter) start() *DistributorProcessUnitCenter {
 				} else { //游戏时间到达最终时限
 					f(pro_end_game_request)
 				}
+			case <-dpc.chanStop:
+				break
 			}
 		}
 	}()
@@ -124,7 +129,6 @@ func (dpc *DistributorProcessUnitCenter) Process(msg *MessageWithClient) {
 }
 
 func (dpc *DistributorProcessUnitCenter) newUnit(distributor *Distributor) *DistributorProcessUnit {
-	// func (dpc *DistributorProcessUnitCenter) newUnit(distributor *Distributor, processors ...(func(ClientMessageTypeCode, interface{}, *DistributorProcessUnit))) {
 	if u, ok := dpc.units[distributor.ID]; ok {
 		DebugInfoF("配送处理单元 %s 重复添加", distributor.ID)
 		return u

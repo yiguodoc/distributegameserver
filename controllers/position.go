@@ -116,20 +116,23 @@ func (pl PositionList) filter(f positionPredictor) (l PositionList) {
 	return
 }
 func (pl PositionList) findOne(f positionPredictor) *Position {
-	for _, p := range pl {
-		if f(p) {
-			return p
-		}
+	if f == nil || len(pl) <= 0 {
+		return nil
 	}
-	return nil
+	if f(pl[0]) {
+		return pl[0]
+	} else {
+		return pl[1:].findOne(f)
+	}
+	// for _, p := range pl {
+	// 	if f(p) {
+	// 		return p
+	// 	}
+	// }
+	// return nil
 }
 func (pl PositionList) contains(f positionPredictor) bool {
-	for _, p := range pl {
-		if f(p) {
-			return true
-		}
-	}
-	return false
+	return pl.findOne(f) != nil
 }
 
 // func (pl PositionList) findOne(f predictor) *Position {
@@ -142,13 +145,6 @@ func (pl PositionList) contains(f positionPredictor) bool {
 // }
 
 func (pl PositionList) Map(list interface{}, f func(*Position, interface{}) interface{}) interface{} {
-	// func (pl PositionList) Map(f func(interface{}) interface{}) AnyArray {
-	// list := []interface{}{}
-	// for _, p := range pl {
-	// 	list = append(list, f(p))
-	// }
-	// return list
-
 	if len(pl) > 0 {
 		return (pl[1:]).reduce(f(pl[0], list), f)
 	} else {

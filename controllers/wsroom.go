@@ -77,6 +77,7 @@ var (
 //房间对外开放接收消息的接口，并通过外部导入的处理对象完成消息向外部环境的分发
 //房间的人也是抽象的满足一系列接口的对象，配送员、观察者都可以进行抽象
 type WsRoom struct {
+	chanStop                 chan bool
 	chanSubscribe            (chan Subscriber)   // Channel for new join users.
 	chanUnsubscribe          (chan string)       // Channel for exit users.
 	chanPublishToSubscribers (chan *roomMessage) // Send events here to publish them.
@@ -130,6 +131,7 @@ func (w *WsRoom) sendMsgToSpecialSubscriber(id string, protocal ClientMessageTyp
 
 func NewRoom() *WsRoom {
 	return &WsRoom{
+		chanStop:                 make(chan bool),
 		chanSubscribe:            make(chan Subscriber),   // Channel for new join users.
 		chanUnsubscribe:          make(chan string),       // Channel for exit users.
 		chanPublishToSubscribers: make(chan *roomMessage), // Send events here to publish them.
@@ -150,10 +152,18 @@ func (w *WsRoom) start() *WsRoom {
 				w.eventSubscribers.notifyEventSubscribers(int(WsRoomEventCode_Other), msg)
 			case msg := <-w.chanPublishToSubscribers:
 				w.writeMsgToSubscribers(msg)
+			case <-w.chanStop:
+				break
 			}
 		}
 	}()
 	return w
+}
+func (w *WsRoom) stop() {
+	if w.chanStop != nil {
+		w.chanStop <- true
+		w.chanStop = nil
+	}
 }
 func (w *WsRoom) writeMsgToSubscribers(roommsg *roomMessage) {
 	msg := roommsg.content

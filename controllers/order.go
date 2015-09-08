@@ -99,38 +99,68 @@ func (l OrderList) random(rander *rand.Rand, list OrderList) OrderList {
 	r := rander.Intn(len(l))
 	last := append(append(OrderList{}, l[:r]...), l[r+1:]...)
 	return last.random(rander, append(list, l[r]))
-	// return append(OrderList{l[r]}, last.random(rander)...)
 }
 
 func (l OrderList) findOne(f predictor) *Order {
-	for _, o := range l {
-		if f(o) {
-			return o
-		}
+	if len(l) <= 0 || f == nil {
+		return nil
 	}
-	return nil
+	if f(l[0]) {
+		return l[0]
+	} else {
+		return l[1:].findOne(f)
+	}
+
+	// for _, o := range l {
+	// 	if f(o) {
+	// 		return o
+	// 	}
+	// }
+	// return nil
 }
 
 func (l OrderList) all(f predictor) bool {
-	for _, o := range l {
-		if f(o) == false {
-			return false
-		}
+	if len(l) <= 0 || f == nil {
+		return true
 	}
-	return true
+	if f(l[0]) == false {
+		return false
+	} else {
+		return l[1:].all(f)
+	}
+	// for _, o := range l {
+	// 	if f(o) == false {
+	// 		return false
+	// 	}
+	// }
+	// return true
 }
 func (l OrderList) contains(f predictor) bool {
 	return l.findOne(f) != nil
 }
 
 //
-func (l OrderList) remove(order *Order) (list OrderList) {
-	for _, o := range l {
-		if o.ID != order.ID {
-			list = append(list, o)
-		}
+func (ll OrderList) remove(f func(*Order) bool, list ...OrderList) (l OrderList) {
+	var ol OrderList
+	if len(list) <= 0 {
+		ol = OrderList{}
+	} else {
+		ol = list[0]
 	}
-	return
+	if len(ll) <= 0 {
+		return ol
+	}
+	if f(ll[0]) {
+		return ll[1:].remove(f, append(ol, ll[0]))
+	} else {
+		return ll[1:].remove(f, ol)
+	}
+	// for _, o := range ll {
+	// 	if o.ID != order.ID {
+	// 		l = append(l, o)
+	// 	}
+	// }
+	// return
 }
 func (ol OrderList) ListName() string {
 	return "订单"

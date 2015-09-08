@@ -17,9 +17,9 @@ var (
 	g_UnitCenter       *DistributorProcessUnitCenter
 	g_room_viewer      *WsRoom            //= NewRoom(eventReceiver)
 	g_distributorStore = DistributorList{ //配送员列表
-		NewDistributor("d01", "张军", 2, color_orange),
-		NewDistributor("d02", "刘晓莉", 2, color_red),
-		NewDistributor("d03", "桑鸿庆", 2, color_purple),
+		NewDistributor("d01", "张军", color_orange),
+		NewDistributor("d02", "刘晓莉", color_red),
+		NewDistributor("d03", "桑鸿庆", color_purple),
 	}
 	g_regions = RegionList{
 		NewRegion("1", "255,128,128", 39.928935, 39.944789, 116.614041, 116.618676),
@@ -54,7 +54,7 @@ func init() {
 
 	filter := func(d *Distributor) bool {
 		l := []string{"d01", "d02", "d03"}
-		for _, s := range l[:2] {
+		for _, s := range l[:] {
 			if s == d.ID {
 				return true
 			}

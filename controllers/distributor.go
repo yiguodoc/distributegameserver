@@ -42,24 +42,24 @@ var (
 
 // 配送员
 type Distributor struct {
-	ID                     string
-	Name                   string
-	AcceptedOrders         OrderList
-	CheckPoint             CheckPoint //所处的关卡
-	Online                 bool
-	Color                  string          //地图上marker颜色
-	StartPos, DestPos      *Position       //配送时设置的出发和目的路径点
-	CurrentPos             *Position       //配送时实时所在的路径
-	MaxAcceptedOrdersCount int             `json:"-"` //配送员可以接收的最大订单数量
-	Conn                   *websocket.Conn `json:"-"` // Only for WebSocket users; otherwise nil.
-	NormalSpeed            float64         //运行速度 km/h
-	CurrentSpeed           float64         //当前运行速度，0表示停止
-	Distance               float64         //所在或者将要行驶的路径长度
-	line                   *Line
-	GameTimeMaxLength      int //游戏最大时长
-	TimeElapse             int //运行时间
-	Score                  int //得分
-	Rank                   int //排名
+	ID                string
+	Name              string
+	AcceptedOrders    OrderList
+	CheckPoint        CheckPoint //所处的关卡
+	Online            bool
+	Color             string          //地图上marker颜色
+	StartPos, DestPos *Position       //配送时设置的出发和目的路径点
+	CurrentPos        *Position       //配送时实时所在的路径
+	Conn              *websocket.Conn `json:"-"` // Only for WebSocket users; otherwise nil.
+	NormalSpeed       float64         //运行速度 km/h
+	CurrentSpeed      float64         //当前运行速度，0表示停止
+	Distance          float64         //所在或者将要行驶的路径长度
+	line              *Line
+	GameTimeMaxLength int //游戏最大时长
+	TimeElapse        int //运行时间
+	Score             int //得分
+	Rank              int //排名
+	// MaxAcceptedOrdersCount int             `json:"-"` //配送员可以接收的最大订单数量
 }
 
 func NewDistributorFromJson(bytes []byte) *Distributor {
@@ -72,19 +72,19 @@ func NewDistributorFromJson(bytes []byte) *Distributor {
 		return &Distributor
 	}
 }
-func NewDistributor(id, name string, maxCount int, color string) *Distributor {
+func NewDistributor(id, name string, color string) *Distributor {
 	return &Distributor{
-		ID:                     id,
-		Name:                   name,
-		AcceptedOrders:         OrderList{},
-		MaxAcceptedOrdersCount: maxCount,
-		CheckPoint:             checkpoint_flag_origin,
-		Color:                  color,
+		ID:             id,
+		Name:           name,
+		AcceptedOrders: OrderList{},
+		CheckPoint:     checkpoint_flag_origin,
+		Color:          color,
+		// MaxAcceptedOrdersCount: maxCount,
 	}
 }
 func (this *Distributor) String() string {
-	return fmt.Sprintf("ID: %-3s  Name: %-4s 游戏进程：%d 可接收新订单：%t 接收的订单：%2d online:%t score: %d timeElapse: %d rank: %d",
-		this.ID, this.Name, this.CheckPoint, !this.fullyLoaded(), len(this.AcceptedOrders), this.IsOnline(), this.Score, this.TimeElapse, this.Rank)
+	return fmt.Sprintf("ID: %-3s  Name: %-4s 游戏进程：%d  接收的订单：%2d online:%t score: %d timeElapse: %d rank: %d",
+		this.ID, this.Name, this.CheckPoint, len(this.AcceptedOrders), this.IsOnline(), this.Score, this.TimeElapse, this.Rank)
 }
 func (d *Distributor) PosString() string {
 	if d.CurrentPos == nil {
@@ -96,10 +96,10 @@ func (d *Distributor) PosString() string {
 	return fmt.Sprintf("ID: %-3s  Name: %-4s  (%f, %f) => (%f, %f) %fkm/h", d.ID, d.Name, d.CurrentPos.Lng, d.CurrentPos.Lat, d.DestPos.Lng, d.DestPos.Lat, d.CurrentSpeed)
 }
 
-//接收了订单数量的上限
-func (this *Distributor) fullyLoaded() bool {
-	return len(this.AcceptedOrders) >= this.MaxAcceptedOrdersCount
-}
+// //接收了订单数量的上限
+// func (this *Distributor) fullyLoaded() bool {
+// 	return len(this.AcceptedOrders) >= this.MaxAcceptedOrdersCount
+// }
 
 //接收配送订单
 func (this *Distributor) acceptOrder(order *Order) {
@@ -151,12 +151,12 @@ func (d *Distributor) setCheckPoint(check CheckPoint) {
 }
 func (d *Distributor) copyAll() *Distributor {
 	return &Distributor{
-		ID:                     d.ID,
-		Name:                   d.Name,
-		AcceptedOrders:         OrderList{},
-		MaxAcceptedOrdersCount: d.MaxAcceptedOrdersCount,
-		CheckPoint:             d.CheckPoint,
-		Color:                  d.Color,
+		ID:             d.ID,
+		Name:           d.Name,
+		AcceptedOrders: OrderList{},
+		CheckPoint:     d.CheckPoint,
+		Color:          d.Color,
+		// MaxAcceptedOrdersCount: d.MaxAcceptedOrdersCount,
 	}
 }
 

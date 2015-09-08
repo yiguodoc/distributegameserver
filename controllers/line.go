@@ -57,13 +57,20 @@ func (l *Line) removeDistributor(id string) {
 	l.DistributorsOn = l.DistributorsOn.filter(func(d *Distributor) bool { return d.ID != id })
 }
 func (l *Line) withEnd(pos1, pos2 *Position) bool {
-	if l.Start.equals(pos1) && l.End.equals(pos2) {
-		return true
+	f := func(pos *Position) positionPredictor {
+		return func(pIn *Position) bool {
+			return pIn.equals(pos)
+		}
 	}
-	if l.End.equals(pos1) && l.Start.equals(pos2) {
-		return true
-	}
-	return false
+	pl := PositionList{l.Start, l.End}
+	return pl.contains(f(pos1)) && pl.contains(f(pos2))
+	// if l.Start.equals(pos1) && l.End.equals(pos2) {
+	// 	return true
+	// }
+	// if l.End.equals(pos1) && l.Start.equals(pos2) {
+	// 	return true
+	// }
+	// return false
 }
 func (l *Line) String() string {
 	return fmt.Sprintf("line: %f米 (%f, %f) => (%f, %f)", l.Distance, l.Start.Lng, l.Start.Lat, l.End.Lng, l.End.Lat)
@@ -81,10 +88,18 @@ func (ll LineList) InfoList() (l []string) {
 	return
 }
 func (ll LineList) find(pos1, pos2 *Position) *Line {
-	for _, line := range ll {
-		if line.withEnd(pos1, pos2) == true {
-			return line
-		}
+	if len(ll) <= 0 {
+		return nil
 	}
-	return nil
+	if ll[0].withEnd(pos1, pos2) == true {
+		return ll[0]
+	} else {
+		return ll[1:].find(pos1, pos2)
+	}
+	// for _, line := range ll {
+	// 	if line.withEnd(pos1, pos2) == true {
+	// 		return line
+	// 	}
+	// }
+	// return nil
 }

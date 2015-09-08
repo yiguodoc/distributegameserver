@@ -142,21 +142,21 @@ func pro_order_select_response_handlerGenerator(o interface{}) MessageWithClient
 		// center.wsRoom.broadcastMsgToSubscribers(pro_2c_message_broadcast, msg)
 		DebugInfoF(log)
 
-		if distributor.fullyLoaded() == true { //配送员的订单满载了
-			log = fmt.Sprintf("配送员 %s 订单满载", distributor.Name)
-			center.wsRoom.broadcastMsgToSubscribers(pro_2c_message_broadcast, log)
-			DebugInfoF(log)
-			// distributor.setCheckPoint(checkpoint_flag_order_distribute)
-			center.distributors.forOne(func(d *Distributor) bool {
-				if d.ID == distributorID {
-					d.CheckPoint = checkpoint_flag_order_distribute
-					DebugInfoF("配送员 %s 状态变化 => 配送环节", d.Name)
-					return true
-				}
-				return false
-			})
-			center.wsRoom.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_order_full, distributor)
-		}
+		// if distributor.fullyLoaded() == true { //配送员的订单满载了
+		// 	log = fmt.Sprintf("配送员 %s 订单满载", distributor.Name)
+		// 	center.wsRoom.broadcastMsgToSubscribers(pro_2c_message_broadcast, log)
+		// 	DebugInfoF(log)
+		// 	// distributor.setCheckPoint(checkpoint_flag_order_distribute)
+		// 	center.distributors.forOne(func(d *Distributor) bool {
+		// 		if d.ID == distributorID {
+		// 			d.CheckPoint = checkpoint_flag_order_distribute
+		// 			DebugInfoF("配送员 %s 状态变化 => 配送环节", d.Name)
+		// 			return true
+		// 		}
+		// 		return false
+		// 	})
+		// 	center.wsRoom.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_order_full, distributor)
+		// }
 		sendOrderProposal(center)
 
 	}
@@ -193,15 +193,15 @@ func pro_game_start_handlerGenerator(o interface{}) MessageWithClientHandler {
 	return f
 }
 func sendOrderProposal(center *DistributorProcessUnitCenter) {
-	if len(center.distributors.filter(func(d *Distributor) bool { return d.fullyLoaded() == false })) > 0 {
-		// if len(center.distributors.notFull()) > 0 {
-		// broadOrderSelectProposal(center.distributors, center.orders)
-		if proposals, err := getOrderSelectProposal(center.distributors, center.orders); err == nil {
-			center.wsRoom.broadcastMsgToSubscribers(pro_2c_order_distribution_proposal, proposals)
-		} else {
-			DebugInfoF("%s", err)
-		}
+	// if len(center.distributors.filter(func(d *Distributor) bool { return d.fullyLoaded() == false })) > 0 {
+	// if len(center.distributors.notFull()) > 0 {
+	// broadOrderSelectProposal(center.distributors, center.orders)
+	if proposals, err := getOrderSelectProposal(center.distributors, center.orders); err == nil {
+		center.wsRoom.broadcastMsgToSubscribers(pro_2c_order_distribution_proposal, proposals)
+	} else {
+		DebugInfoF("%s", err)
 	}
+	// }
 }
 
 func pro_prepared_for_select_order_handlerGenerator(o interface{}) MessageWithClientHandler {
@@ -330,10 +330,10 @@ func disposeOrderSelectResponse(orderID string, distributor *Distributor, distri
 		return ERR_order_already_selected
 	}
 
-	if distributor.fullyLoaded() {
-		DebugInfoF("配送员[%s]已经满载", distributor.Name)
-		return ERR_distributor_full
-	}
+	// if distributor.fullyLoaded() {
+	// 	DebugInfoF("配送员[%s]已经满载", distributor.Name)
+	// 	return ERR_distributor_full
+	// }
 
 	//确定结果
 	order.distribute(distributor.TimeElapse)
