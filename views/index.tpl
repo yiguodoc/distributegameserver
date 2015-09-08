@@ -916,27 +916,6 @@
 	            // addAimMarkers([distributor.StartPos, distributor.DestPos])
 	        }          
 	    }
-	    function onStartDistribution(){
-        	viewRouteToPage(mainView, 'processDistribution')
-
-	    }
-	    function onSignOrder(){
-	    	//如果有订单，提醒签收
-	    	var pos = distributor.CurrentPos
-	    	var orderTemp = _.find(distributor.AcceptedOrders, function(order){
-	    		return order.GeoSrc.Lat == pos.Lat && order.GeoSrc.Lng == pos.Lng && order.Signed == false
-	    	})
-	    	if(orderTemp != null){
-	    		console.log("签收订单 %s", orderTemp.ID)
-		        send({MessageType: {{.pro_sign_order_request}}, Data: {OrderID: orderTemp.ID, DistributorID: distributor.ID}})//请求重置目标点
-	    	}
-	    }
-        function onFocusOnNextNode(){
-    		nextNodeSelector.next()
-        }
-        function onFocusOnPreNode(){
-        	nextNodeSelector.pre()
-        }
 	    function isDistributorOnNode(){
 	        var crt = distributor.CurrentPos
     		return _.some([distributor.DestPos, distributor.StartPos], function(point){
@@ -958,6 +937,29 @@
 	            // mySwiper.appendSlide('<div class="swiper-slide"> <span class="slide-title">订单编号04</span> <span class="slide-content">地址04</span> </div>')
 	        }
 	    }
+	    
+	    function onStartDistribution(){
+        	viewRouteToPage(mainView, 'processDistribution')
+
+	    }
+	    function onSignOrder(){
+	    	//如果有订单，提醒签收
+	    	var pos = distributor.CurrentPos
+	    	var orderTemp = _.find(distributor.AcceptedOrders, function(order){
+	    		return order.GeoSrc.Lat == pos.Lat && order.GeoSrc.Lng == pos.Lng && order.Signed == false
+	    	})
+	    	if(orderTemp != null){
+	    		console.log("签收订单 %s", orderTemp.ID)
+		        send({MessageType: {{.pro_sign_order_request}}, Data: {OrderID: orderTemp.ID, DistributorID: distributor.ID}})//请求重置目标点
+	    	}
+	    }
+        function onFocusOnNextNode(){
+    		nextNodeSelector.next()
+        }
+        function onFocusOnPreNode(){
+        	nextNodeSelector.pre()
+        }
+
 	    function onChooseDestNode(){
 	    	var selectedPos = nextNodeSelector.currentPostion()
 	    	if(selectedPos == null){

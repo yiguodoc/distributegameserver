@@ -21,7 +21,7 @@ func getClientMessageTypeCodeList() (l []ClientMessageTypeCode) {
 		}
 		return
 	}
-	l = append(append(l, f(pro_min+1, int(pro_max)-1)...), f(pro_2c_min+1, int(pro_2c_max)-1)...)
+	l = append(append(l, f(int(pro_min)+1, int(pro_max)-1)...), f(pro_2c_min+1, int(pro_2c_max)-1)...)
 	// for i := pro_min + 1; i < int(pro_max); i++ {
 	// 	l = append(l, ClientMessageTypeCode(i))
 	// }
@@ -71,7 +71,7 @@ var handler_map = ProHandlerGeneratorMap{
 
 //后端与前端交互的消息类型的定义
 var (
-	pro_min                                              = 0
+	pro_min                        ClientMessageTypeCode = 0
 	pro_on_line                    ClientMessageTypeCode = 1  //配送员上线
 	pro_off_line                   ClientMessageTypeCode = 2  //配送员下线
 	pro_prepared_for_select_order  ClientMessageTypeCode = 3  //配送员准备好抢订单了,当所有配送员都准备好之后，就可以分发订单了
@@ -87,6 +87,7 @@ var (
 	pro_game_time_tick             ClientMessageTypeCode = 13 //系统时间流逝出发
 	pro_distributor_info_request   ClientMessageTypeCode = 14 //系统时间流逝出发
 	pro_end_game_request           ClientMessageTypeCode = 15 //配送完毕，结束游戏
+	pro_start_distribution_request ClientMessageTypeCode = 16 //开始配送环节
 	pro_max                        ClientMessageTypeCode = 16
 	// pro_rank_changed               ClientMessageTypeCode = 16
 
@@ -109,7 +110,8 @@ var (
 	pro_2c_speed_change                        ClientMessageTypeCode = 416
 	pro_2c_end_game                            ClientMessageTypeCode = 417
 	pro_2c_rank_change                         ClientMessageTypeCode = 418
-	pro_2c_max                                 ClientMessageTypeCode = 419
+	pro_2c_check_point_change                  ClientMessageTypeCode = 419
+	pro_2c_max                                 ClientMessageTypeCode = 420
 	// pro_2c_order_full                          ClientMessageTypeCode = 411 //订单满载
 )
 

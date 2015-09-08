@@ -233,3 +233,66 @@ func (w *WsRoom) newUserOnline(sub Subscriber) {
 	}
 	DebugTraceF("上线后，最新用户人数：%d", len(w.subscribers))
 }
+func distributorRoomEventHandlerGenerator(center *DistributorProcessUnitCenter) func(code, data interface{}) {
+	return func(code, data interface{}) {
+		c := WsRoomEventCode(code.(int))
+
+		switch c {
+		case WsRoomEventCode_Online:
+			msg := data.(*MessageWithClient)
+			distributor := center.distributors.findOne(func(d *Distributor) bool { return d.ID == msg.TargetID })
+			if distributor == nil {
+				DebugSysF("未查找到配送员 %s", msg.Data.(string))
+				return
+			}
+			center.Process(msg)
+			DebugTraceF("配送员上线 ：%s", distributor.String())
+
+		case WsRoomEventCode_Offline:
+			msg := data.(*MessageWithClient)
+			center.Process(msg)
+
+		case WsRoomEventCode_Other:
+			roommsg := data.(*roomMessage)
+			var msg MessageWithClient
+			err := json.Unmarshal(roommsg.content.([]byte), &msg)
+			if err != nil {
+				DebugSysF("解析数据出错：%s", err)
+				return
+			}
+			msg.TargetID = roommsg.targetID
+			center.Process(&msg)
+		}
+	}
+}
+
+// func distributorRoomEventHandler(code, data interface{}) {
+// 	c := WsRoomEventCode(code.(int))
+
+// 	switch c {
+// 	case WsRoomEventCode_Online:
+// 		msg := data.(*MessageWithClient)
+// 		distributor := g_UnitCenter.distributors.findOne(func(d *Distributor) bool { return d.ID == msg.TargetID })
+// 		if distributor == nil {
+// 			DebugSysF("未查找到配送员 %s", msg.Data.(string))
+// 			return
+// 		}
+// 		g_UnitCenter.Process(msg)
+// 		DebugTraceF("配送员上线 ：%s", distributor.String())
+
+// 	case WsRoomEventCode_Offline:
+// 		msg := data.(*MessageWithClient)
+// 		g_UnitCenter.Process(msg)
+
+// 	case WsRoomEventCode_Other:
+// 		roommsg := data.(*roomMessage)
+// 		var msg MessageWithClient
+// 		err := json.Unmarshal(roommsg.content.([]byte), &msg)
+// 		if err != nil {
+// 			DebugSysF("解析数据出错：%s", err)
+// 			return
+// 		}
+// 		msg.TargetID = roommsg.targetID
+// 		g_UnitCenter.Process(&msg)
+// 	}
+// }

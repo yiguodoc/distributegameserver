@@ -36,20 +36,15 @@ type DistributorProcessUnitCenter struct {
 	GameTimeMaxLength int //游戏最大时长
 	TimeElapse        int //运行时间
 	gameStarted       bool
-	// distributorFilter predictor
-	// distributorFilter func(interface{}) bool
-	// distributorFilter func(interface{}) DistributorList
-	// chanResult chan bool //返回执行的结果
 }
 
-func NewDistributorProcessUnitCenter(wsRoom *WsRoom, distributors DistributorList, orders OrderList, mapData *MapData, timeMaxLength int) *DistributorProcessUnitCenter {
+func NewDistributorProcessUnitCenter(distributors DistributorList, orders OrderList, mapData *MapData, timeMaxLength int) *DistributorProcessUnitCenter {
 	center := &DistributorProcessUnitCenter{
 		units:        DistributorProcessUnitList{},
 		chanEvent:    make(chan *MessageWithClient),
 		chanStop:     make(chan bool),
 		orders:       orders,
 		mapData:      mapData,
-		wsRoom:       wsRoom,
 		processors:   make(ProHandlerMap),
 		distributors: distributors,
 		supportPro: []ClientMessageTypeCode{
@@ -65,6 +60,7 @@ func NewDistributorProcessUnitCenter(wsRoom *WsRoom, distributors DistributorLis
 		GameTimeMaxLength: timeMaxLength,
 	}
 	center.processors = handler_map.generateHandlerMap(center.supportPro, center)
+	center.wsRoom = NewRoom().addEventSubscriber(distributorRoomEventHandlerGenerator(center), WsRoomEventCode_Online, WsRoomEventCode_Offline, WsRoomEventCode_Other)
 	return center
 }
 func (dpc *DistributorProcessUnitCenter) stop() {
@@ -84,6 +80,7 @@ func (dpc *DistributorProcessUnitCenter) start() *DistributorProcessUnitCenter {
 	if dpc.mapDataLoader != nil {
 		dpc.mapData = dpc.mapDataLoader()
 	}
+	dpc.wsRoom.start()
 	go func() {
 		timer := time.Tick(1 * time.Second) //计时器功能
 		for {

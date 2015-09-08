@@ -307,7 +307,7 @@ func onReconnect(center *DistributorProcessUnitCenter, distributor *Distributor)
 	case checkpoint_flag_order_distribute:
 		DebugTraceF("配送员上线，状态 %d 配送中", checkpoint_flag_order_distribute)
 	case checkpoint_flag_order_distribute_over:
-		DebugTraceF("配送员上线，状态 %d 配送完成", checkpoint_flag_order_distribute)
+		DebugTraceF("配送员上线，状态 %d 配送完成", checkpoint_flag_order_distribute_over)
 	}
 }
 
