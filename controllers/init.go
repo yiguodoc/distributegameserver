@@ -31,7 +31,13 @@ var (
 func init() {
 
 	clientMessageTypeCodeCheck()
-
+	restartGame()
+	//--------------------------------------------------------------------------
+}
+func restartGame() {
+	if g_UnitCenter != nil {
+		g_UnitCenter.stop()
+	}
 	//加载地图数据
 	mapData := loadMapData()
 
@@ -55,7 +61,6 @@ func init() {
 	// g_UnitCenter.Process(NewMessageWithClient(pro_order_select_response, "", map[string]interface{}{"OrderID": "900100001", "DistributorID": "d01"}))
 	// g_UnitCenter.Process(NewMessageWithClient(pro_order_select_response, "", map[string]interface{}{"OrderID": "900100002", "DistributorID": "d01"}))
 
-	//--------------------------------------------------------------------------
 }
 
 //字符串数组中是否含有指定字符串

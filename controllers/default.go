@@ -42,6 +42,13 @@ type MapData struct {
 	Lines  LineList
 }
 
+func (m *MainController) RestartGame() {
+	restartGame()
+	m.ServeJson()
+}
+func (m *MainController) RankIndex() {
+	m.TplNames = "rankIndex.tpl"
+}
 func (m *MainController) Index() {
 	m.Data["HOST"] = fmt.Sprintf("%s:%d", m.Ctx.Input.Host(), m.Ctx.Input.Port())
 	distributorID := m.GetString("id")
