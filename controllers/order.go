@@ -92,13 +92,14 @@ func (o *Order) distribute(time int) {
 
 type OrderList []*Order
 
-func (l OrderList) random(rander *rand.Rand) OrderList {
+func (l OrderList) random(rander *rand.Rand, list OrderList) OrderList {
 	if len(l) <= 1 {
-		return l
+		return append(list, l...)
 	}
 	r := rander.Intn(len(l))
 	last := append(append(OrderList{}, l[:r]...), l[r+1:]...)
-	return append(OrderList{l[r]}, last.random(rander)...)
+	return last.random(rander, append(list, l[r]))
+	// return append(OrderList{l[r]}, last.random(rander)...)
 }
 
 func (l OrderList) findOne(f predictor) *Order {

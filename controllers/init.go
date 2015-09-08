@@ -46,7 +46,7 @@ func init() {
 	}).(OrderList) //.random()
 	// orders := OrderList{} //所有的订单
 	DebugPrintList_Info(orders)
-	orders = orders.random(rand.New(rand.NewSource(time.Now().UnixNano())))
+	orders = orders.random(rand.New(rand.NewSource(time.Now().UnixNano())), OrderList{})
 	DebugPrintList_Info(orders)
 
 	room := NewRoom().start()
