@@ -35,6 +35,7 @@ var (
 func pro_game_timeout_handlerGenerator(o interface{}) MessageWithClientHandler {
 	center := o.(*DistributorProcessUnitCenter)
 	f := func(msg *MessageWithClient) {
+		center.gameStarted = false
 
 		center.stopAllUnits()
 		center.distributors.forEach(func(d *Distributor) {

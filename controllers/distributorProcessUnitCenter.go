@@ -173,9 +173,10 @@ func (dpc *DistributorProcessUnitCenter) start() *DistributorProcessUnitCenter {
 					// 	go unit.process(NewMessageWithClient(pro_game_time_tick, "", nil))
 					// }
 				} else if dpc.gameStarted == true && dpc.TimeElapse >= dpc.GameTimeMaxLength { //游戏时间到达最终时限
+					DebugSysF("游戏到达最终时限，开始统计成绩")
 					// f(pro_end_game_request)
 					// DebugSysF("%d %d", dpc.TimeElapse, dpc.GameTimeMaxLength)
-					dpc.Process(NewMessageWithClient(pro_game_timeout, "", dpc))
+					go dpc.Process(NewMessageWithClient(pro_game_timeout, "", dpc))
 				} else {
 					// DebugSysF("没有逻辑处理")
 				}
