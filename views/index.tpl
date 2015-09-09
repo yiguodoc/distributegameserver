@@ -88,7 +88,7 @@
 		                	<div class="row" style="margin-left: 20px; margin-right: 20px;">
 		                		<!-- <div class="col-5"></div> -->
 		                		<div class="col-50">
-				                     <a href="#" class="button button-raised " id="" onclick="selectOrder()">选择订单</a>
+				                     <a href="#" class="button button-raised " id="btnSelectOrder" onclick="selectOrder()">选择订单</a>
 		                		</div>
 
 		                		<div class="col-50">
@@ -923,21 +923,28 @@
     		})
 	    }
 	    function selectOrder(){
-	        var index = mySwiper.activeIndex
-	        if(index >= 0){
-	            console.log("选择了第 %d 个Slide", index)
-	            var $slide = $(mySwiper.slides[index])
-	            var $title = $(".slide-title", $slide)
-	            var orderID = $title.text()
-	            console.log("获取的订单ID为：%s", orderID)
-	            var msg = {MessageType: {{.pro_order_select_response}}, Data:{OrderID: orderID, DistributorID: distributorID}}
-	            send(msg)
+	    	var debunced = _.debounce(function(){
+		        var index = mySwiper.activeIndex
+		        if(index >= 0){
+		            console.log("选择了第 %d 个Slide", index)
+		            var $slide = $(mySwiper.slides[index])
+		            var $title = $(".slide-title", $slide)
+		            var orderID = $title.text()
+		            console.log("获取的订单ID为：%s", orderID)
+		            var msg = {MessageType: {{.pro_order_select_response}}, Data:{OrderID: orderID, DistributorID: distributorID}}
+		            send(msg)
 
-	            // mySwiper.removeSlide(index)
-	            // mySwiper.appendSlide('<div class="swiper-slide"> <span class="slide-title">订单编号04</span> <span class="slide-content">地址04</span> </div>')
-	        }
+		            // mySwiper.removeSlide(index)
+		            // mySwiper.appendSlide('<div class="swiper-slide"> <span class="slide-title">订单编号04</span> <span class="slide-content">地址04</span> </div>')
+		        }	    		
+	    	}, 1000)
+	    	debunced()
+	    	$$("#btnSelectOrder").addClass("disabled")
+	    	setTimeout(function(){
+	    		$$("#btnSelectOrder").removeClass("disabled")
+	    	}, 2000)
 	    }
-	    
+
 	    function onStartDistribution(){
         	viewRouteToPage(mainView, 'processDistribution')
 

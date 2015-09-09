@@ -73,6 +73,8 @@ func pro_game_time_tick_handlerGenerator(o interface{}) MessageWithClientHandler
 						DebugInfoF("配送员已经行驶到目标点 %s", distributor)
 						DebugTraceF("配送员实时位置：%s", distributor.PosString())
 						//配送员从路上转移到节点
+						distributor.CurrentSpeed = distributor.NormalSpeed
+						unit.center.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_speed_change, distributor)
 						unit.center.Process(NewMessageWithClient(pro_move_from_route_to_node, distributor.ID, line))
 					} else {
 						just_move_to_route := false //测算一下是否是从节点上路的第一步

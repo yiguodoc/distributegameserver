@@ -114,7 +114,7 @@ func pro_move_from_route_to_node_handlerGenerator(o interface{}) MessageWithClie
 	center := o.(*DistributorProcessUnitCenter)
 	f := func(msg *MessageWithClient) {
 		line := msg.Data.(*Line)
-		if line.DistributorsCount() < 2 {
+		if line.DistributorsCount() < 2 { //这里只是可能会变得不堵
 			line.nobusy()
 			DebugInfoF("line NOBUSY %s ", line)
 			line.DistributorsOn.forEach(func(d *Distributor) {
@@ -231,11 +231,9 @@ func sendOrderProposal(center *DistributorProcessUnitCenter) {
 	// if len(center.distributors.filter(func(d *Distributor) bool { return d.fullyLoaded() == false })) > 0 {
 	// if len(center.distributors.notFull()) > 0 {
 	// broadOrderSelectProposal(center.distributors, center.orders)
-	if proposals, err := getOrderSelectProposal(center.distributors, center.orders); err == nil {
-		center.broadcastMsgToSubscribers(pro_2c_order_distribution_proposal, proposals)
-	} else {
-		DebugInfoF("%s", err)
-	}
+	proposals := getOrderSelectProposal(center.distributors, center.orders)
+	center.broadcastMsgToSubscribers(pro_2c_order_distribution_proposal, proposals)
+
 	// }
 }
 
@@ -336,12 +334,13 @@ func onReconnect(center *DistributorProcessUnitCenter, distributor *Distributor)
 	case checkpoint_flag_order_select:
 		DebugTraceF("配送员上线，状态 %d 订单选择中", checkpoint_flag_order_select)
 		// broadOrderSelectProposal(center.distributors, center.orders)
-		if proposals, err := getOrderSelectProposal(center.distributors, center.orders); err == nil {
-			// center.wsRoom.broadcastMsgToSubscribers(pro_2c_order_distribution_proposal, proposals)
-			center.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_order_distribution_proposal, proposals)
-		} else {
-			DebugInfoF("%s", err)
-		}
+		proposals := getOrderSelectProposal(center.distributors, center.orders)
+		// if proposals, err := getOrderSelectProposal(center.distributors, center.orders); err == nil {
+		// center.wsRoom.broadcastMsgToSubscribers(pro_2c_order_distribution_proposal, proposals)
+		center.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_order_distribution_proposal, proposals)
+		// } else {
+		// 	DebugInfoF("%s", err)
+		// }
 	case checkpoint_flag_order_distribute:
 		DebugTraceF("配送员上线，状态 %d 配送中", checkpoint_flag_order_distribute)
 	case checkpoint_flag_order_distribute_over:
@@ -349,13 +348,20 @@ func onReconnect(center *DistributorProcessUnitCenter, distributor *Distributor)
 	}
 }
 
-func getOrderSelectProposal(distributors DistributorList, orders OrderList) (list OrderList, err error) {
-	proposals, err := createDistributionProposal(orders.Filter(func(o *Order) bool { return o.Distributed == false }), distributors)
-	// proposals, err := createDistributionProposal(orders.Filter(newOrderDistributeFilter(false)), distributors)
-	if err != nil {
-		return nil, err
+func getOrderSelectProposal(distributors DistributorList, orders OrderList) (list OrderList) {
+	ordersUndistributed := orders.Filter(func(o *Order) bool { return o.Distributed == false })
+	if len(ordersUndistributed) >= len(distributors) {
+		list = ordersUndistributed[0:len(distributors)]
+	} else {
+		list = ordersUndistributed
 	}
-	return proposals, nil
+	return
+	// proposals, err := createDistributionProposal(orders.Filter(func(o *Order) bool { return o.Distributed == false }), distributors)
+	// // proposals, err := createDistributionProposal(orders.Filter(newOrderDistributeFilter(false)), distributors)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// return proposals, nil
 }
 func disposeOrderSelectResponse(orderID string, distributor *Distributor, distributors DistributorList, orders OrderList) error {
 	order := orders.findOne(func(o interface{}) bool { return o.(*Order).ID == orderID })
