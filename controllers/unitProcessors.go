@@ -30,7 +30,7 @@ func pro_game_time_tick_handlerGenerator(o interface{}) MessageWithClientHandler
 		// 	//运行时间增加
 		// 	distributor.TimeElapse++
 		// 	// DebugInfoF("运行时间+1 => %d", distributor.TimeElapse)
-		unit.center.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_sys_time_elapse, distributor.TimeElapse)
+		unit.center.sendMsgToSpecialSubscriber(distributor, pro_2c_sys_time_elapse, distributor.TimeElapse)
 		// } else {
 		// 	unit.center.wsRoom.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_end_game, distributor)
 		// 	return
@@ -69,13 +69,13 @@ func pro_game_time_tick_handlerGenerator(o interface{}) MessageWithClientHandler
 						line.removeDistributor(distributor.ID)
 						distributor.line = nil
 						// unit.center.wsRoom.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_move_to_new_position, distributor) //通知客户端移动到新坐标
-						unit.center.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_reach_route_node, distributor) //通知客户端移动到新坐标
+						unit.center.sendMsgToSpecialSubscriber(distributor, pro_2c_reach_route_node, distributor) //通知客户端移动到新坐标
 						DebugInfoF("配送员已经行驶到目标点 %s", distributor)
 						DebugTraceF("配送员实时位置：%s", distributor.PosString())
 						//配送员从路上转移到节点
 						distributor.CurrentSpeed = distributor.NormalSpeed
-						unit.center.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_speed_change, distributor)
-						unit.center.Process(NewMessageWithClient(pro_move_from_route_to_node, distributor.ID, line))
+						unit.center.sendMsgToSpecialSubscriber(distributor, pro_2c_speed_change, distributor)
+						unit.center.Process(NewMessageWithClient(pro_move_from_route_to_node, distributor, line))
 					} else {
 						just_move_to_route := false //测算一下是否是从节点上路的第一步
 						if distributor.CurrentPos.equals(distributor.StartPos) {
@@ -87,10 +87,10 @@ func pro_game_time_tick_handlerGenerator(o interface{}) MessageWithClientHandler
 						if just_move_to_route {
 							//配送员从节点到路上
 							line.addDistributor(distributor)
-							unit.center.Process(NewMessageWithClient(pro_move_from_node_to_route, distributor.ID, line))
-							unit.center.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_move_from_node, distributor) //通知客户端移动到新坐标
+							unit.center.Process(NewMessageWithClient(pro_move_from_node_to_route, distributor, line))
+							unit.center.sendMsgToSpecialSubscriber(distributor, pro_2c_move_from_node, distributor) //通知客户端移动到新坐标
 						} else {
-							unit.center.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_move_to_new_position, distributor) //通知客户端移动到新坐标
+							unit.center.sendMsgToSpecialSubscriber(distributor, pro_2c_move_to_new_position, distributor) //通知客户端移动到新坐标
 						}
 					}
 
@@ -113,9 +113,10 @@ func pro_reset_destination_request_handlerGenerator(o interface{}) MessageWithCl
 				DebugMustF("重置目标点出错，不存在编号为 %d 的节点", int(list[0].(float64)))
 				return
 			}
-			distributor := unit.center.distributors.findOne(func(d *Distributor) bool { return d.ID == list[1].(string) })
+			// distributor := unit.center.distributors.findOne(func(d *Distributor) bool { return d.ID == list[1].(string) })
 			// distributor := unit.center.distributors.find(list[1].(string))
-			if distributor == nil {
+			distributor := msg.Target
+			if distributor.ID != list[1].(string) {
 				DebugMustF("重置目标点出错，不存在配送员[%s]", distributor.ID)
 				return
 			}
@@ -149,7 +150,7 @@ func pro_reset_destination_request_handlerGenerator(o interface{}) MessageWithCl
 				// distributor.DestPos = unit.center.mapData.Points.findLngLat(posWanted.Lng, posWanted.Lat)
 				distributor.Distance = line.Distance
 				distributor.line = line
-				unit.center.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_reset_destination, distributor)
+				unit.center.sendMsgToSpecialSubscriber(distributor, pro_2c_reset_destination, distributor)
 				DebugInfoF("配送员设置目标点为 %s , 与当前位置 %s 距离为 %f 米", distributor.DestPos.SimpleString(), distributor.CurrentPos.SimpleString(), distributor.Distance)
 			} else { //在节点之间
 				//如果已经设置了终点，那么新设的点如果和当前的终点相同直接返回
@@ -161,7 +162,7 @@ func pro_reset_destination_request_handlerGenerator(o interface{}) MessageWithCl
 					p := distributor.StartPos
 					distributor.StartPos = distributor.DestPos
 					distributor.DestPos = p
-					unit.center.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_reset_destination, distributor)
+					unit.center.sendMsgToSpecialSubscriber(distributor, pro_2c_reset_destination, distributor)
 					return
 				}
 				DebugInfoF("没有操作的飞过")
@@ -187,7 +188,7 @@ func pro_change_state_request_handlerGenerator(o interface{}) MessageWithClientH
 			} else {
 				distributor.NormalSpeed = defaultSpeed
 			}
-			unit.center.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_change_state, distributor)
+			unit.center.sendMsgToSpecialSubscriber(distributor, pro_2c_change_state, distributor)
 			DebugInfoF("配送员 %s 当前速度：%f", unit.distributor.Name, unit.distributor.NormalSpeed)
 		} else {
 			DebugMustF("更改运动状态时，客户端数据格式错误: %s", err)
@@ -199,7 +200,7 @@ func pro_distributor_info_request_handlerGenerator(o interface{}) MessageWithCli
 	unit := o.(*DistributorProcessUnit)
 	f := func(msg *MessageWithClient) {
 		distributor := unit.distributor
-		unit.center.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_distributor_info, distributor)
+		unit.center.sendMsgToSpecialSubscriber(distributor, pro_2c_distributor_info, distributor)
 	}
 	return f
 }
@@ -212,7 +213,7 @@ func pro_sign_order_request_handlerGenerator(o interface{}) MessageWithClientHan
 			distributor := unit.distributor
 			if distributor.ID != list[0].(string) {
 				DebugMustF("订单签收出错，不存在配送员[%s]", list[0].(string))
-				unit.center.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_sign_order, nil)
+				unit.center.sendMsgToSpecialSubscriber(distributor, pro_2c_sign_order, nil)
 				return
 			}
 			orderID := list[1].(string)
@@ -220,7 +221,7 @@ func pro_sign_order_request_handlerGenerator(o interface{}) MessageWithClientHan
 			// order := unit.center.orders.findByID(orderID)
 			if order == nil {
 				DebugSysF("不存在订单 %s", orderID)
-				unit.center.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_sign_order, nil)
+				unit.center.sendMsgToSpecialSubscriber(distributor, pro_2c_sign_order, nil)
 				return
 			}
 			if order.isSigned() {
@@ -229,18 +230,18 @@ func pro_sign_order_request_handlerGenerator(o interface{}) MessageWithClientHan
 			}
 			if distributor.AcceptedOrders.contains(func(o interface{}) bool { return o.(*Order).ID == orderID }) == false {
 				DebugSysF("订单 %s 必须由本人签收", orderID)
-				unit.center.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_sign_order, nil)
+				unit.center.sendMsgToSpecialSubscriber(distributor, pro_2c_sign_order, nil)
 				return
 			}
 			order.sign(distributor.TimeElapse)
 			DebugInfoF("签收订单 %s , 时间 %d", order.ID, order.SignTime)
-			unit.center.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_sign_order, distributor)
+			unit.center.sendMsgToSpecialSubscriber(distributor, pro_2c_sign_order, distributor)
 			DebugInfoF("配送员 %s 签收了订单 %s", unit.distributor.Name, orderID)
 			distributor.Score++
 			// DebugPrintList_Info(g_orders)
 			if unit.distributor.AcceptedOrders.all(func(o interface{}) bool { return o.(*Order).Signed == true }) {
 				// unit.distributor.setCheckPoint(checkpoint_flag_order_distribute_over)
-				unit.center.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_all_order_signed, distributor)
+				unit.center.sendMsgToSpecialSubscriber(distributor, pro_2c_all_order_signed, distributor)
 			}
 
 		} else {

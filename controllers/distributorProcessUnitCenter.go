@@ -51,43 +51,48 @@ func NewDistributorProcessUnitCenter(distributors DistributorList, orders OrderL
 	// center.wsRoom = NewRoom().addEventSubscriber(distributorRoomEventHandlerGenerator(center), WsRoomEventCode_Online, WsRoomEventCode_Offline, WsRoomEventCode_Other)
 	return center
 }
+func (dpc *DistributorProcessUnitCenter) containsDistributor(id string) *Distributor {
+	return dpc.distributors.findOne(func(d *Distributor) bool { return d.ID == id })
+}
 
 // 上线
-func (dpc *DistributorProcessUnitCenter) distributorOnLine(id string, conn *websocket.Conn) {
-	DebugTraceF("配送员 %s 连接服务", id)
-	distributor := dpc.distributors.findOne(func(d *Distributor) bool { return d.ID == id })
-	if distributor != nil {
-		distributor.SetConn(conn)
-		//处理上线事件
-		DebugInfoF("配送员 %s 上线", distributor.Name)
-		dpc.Process(NewMessageWithClient(pro_on_line, id, id))
-	} else {
-		DebugInfoF("不存在配送员 %s", id)
-	}
+func (dpc *DistributorProcessUnitCenter) distributorOnLine(distributor *Distributor, conn *websocket.Conn) {
+	// func (dpc *DistributorProcessUnitCenter) distributorOnLine(id string, conn *websocket.Conn) {
+	// DebugTraceF("配送员 %s 连接服务", distributor.Name)
+	// distributor := dpc.distributors.findOne(func(d *Distributor) bool { return d.ID == id })
+	// if distributor != nil {
+	distributor.SetConn(conn)
+	//处理上线事件
+	DebugInfoF("配送员 %s 上线", distributor.Name)
+	dpc.Process(NewMessageWithClient(pro_on_line, distributor, distributor))
+	// } else {
+	// 	DebugInfoF("不存在配送员 %s", id)
+	// }
 }
 
-func (dpc *DistributorProcessUnitCenter) distributorOffLine(id string) {
-	distributor := dpc.distributors.findOne(func(d *Distributor) bool { return d.ID == id })
-	if distributor != nil {
-		distributor.SetOffline()
-		//处理下线事件
-		dpc.Process(NewMessageWithClient(pro_off_line, id, id))
-	}
+func (dpc *DistributorProcessUnitCenter) distributorOffLine(distributor *Distributor) {
+	// func (dpc *DistributorProcessUnitCenter) distributorOffLine(id string) {
+	// distributor := dpc.distributors.findOne(func(d *Distributor) bool { return d.ID == id })
+	// if distributor != nil {
+	distributor.SetOffline()
+	//处理下线事件
+	dpc.Process(NewMessageWithClient(pro_off_line, distributor, distributor))
+	// }
 }
-func (dpc *DistributorProcessUnitCenter) distributorMessageIn(id string, content []byte) {
+func (dpc *DistributorProcessUnitCenter) distributorMessageIn(distributor *Distributor, content []byte) {
 	var msg MessageWithClient
 	err := json.Unmarshal(content, &msg)
 	if err != nil {
 		DebugSysF("解析数据出错：%s", err)
 		return
 	}
-	msg.TargetID = id
+	msg.Target = distributor
 	dpc.Process(&msg)
 }
 
 // broadcastWebSocket broadcasts messages to WebSocket users.
 func (dpc *DistributorProcessUnitCenter) broadcastMsgToSubscribers(protocal ClientMessageTypeCode, obj interface{}, err ...string) {
-	msg := NewMessageWithClient(protocal, "", obj, err...)
+	msg := NewMessageWithClient(protocal, nil, obj, err...)
 	data, e := json.Marshal(msg)
 	if e != nil {
 		DebugMustF("Fail to marshal event: %s", e)
@@ -96,30 +101,31 @@ func (dpc *DistributorProcessUnitCenter) broadcastMsgToSubscribers(protocal Clie
 	dpc.distributors.forEach(func(d *Distributor) {
 		if d.SendBinaryMessage(data) != nil {
 			// User disconnected.
-			dpc.distributorOffLine(d.ID)
+			dpc.distributorOffLine(d)
 		}
 	})
 }
 
 // send messages to WebSocket special user.
-func (dpc *DistributorProcessUnitCenter) sendMsgToSpecialSubscriber(id string, protocal ClientMessageTypeCode, obj interface{}, err ...string) {
-	msg := NewMessageWithClient(protocal, id, obj, err...)
+func (dpc *DistributorProcessUnitCenter) sendMsgToSpecialSubscriber(distributor *Distributor, protocal ClientMessageTypeCode, obj interface{}, err ...string) {
+	// func (dpc *DistributorProcessUnitCenter) sendMsgToSpecialSubscriber(id string, protocal ClientMessageTypeCode, obj interface{}, err ...string) {
+	msg := NewMessageWithClient(protocal, distributor, obj, err...)
 	data, e := json.Marshal(msg)
 	if e != nil {
 		DebugMustF("Fail to marshal event: %s", e)
 		return
 	}
-	distributor := dpc.distributors.findOne(func(d *Distributor) bool { return id == d.ID })
-	if distributor != nil {
-		if distributor.SendBinaryMessage(data) != nil {
-			// User disconnected.
-			dpc.distributorOffLine(distributor.ID)
-		}
-	} else {
-		DebugSysF("系统异常，无法向 %d 发送消息", id)
+	// distributor := dpc.distributors.findOne(func(d *Distributor) bool { return id == d.ID })
+	// if distributor != nil {
+	if distributor.SendBinaryMessage(data) != nil {
+		// User disconnected.
+		dpc.distributorOffLine(distributor)
 	}
+	// } else {
+	// 	DebugSysF("系统异常，无法向 %d 发送消息", id)
+	// }
 	if protocal != pro_2c_sys_time_elapse {
-		DebugTraceF("=>  %s : %v", id, msg)
+		DebugTraceF("=>  %s : %v", distributor.ID, msg)
 	}
 }
 
@@ -150,7 +156,7 @@ func (dpc *DistributorProcessUnitCenter) start() *DistributorProcessUnitCenter {
 				if processor, ok := dpc.processors[msg.MessageType]; ok { //首先自行处理
 					go processor(msg)
 				} else {
-					if unit, ok := dpc.units[msg.TargetID]; ok { //之后交于处理单位处理
+					if unit, ok := dpc.units[msg.Target.ID]; ok { //之后交于处理单位处理
 						go unit.process(msg)
 					} else {
 						DebugSysF("未找到消息处理单位：%s", msg)
@@ -166,7 +172,7 @@ func (dpc *DistributorProcessUnitCenter) start() *DistributorProcessUnitCenter {
 					dpc.TimeElapse++
 					// f(pro_game_time_tick)
 					dpc.units.forEach(func(unit *DistributorProcessUnit) {
-						go unit.process(NewMessageWithClient(pro_game_time_tick, unit.distributor.ID, unit))
+						go unit.process(NewMessageWithClient(pro_game_time_tick, unit.distributor, unit))
 					})
 
 					// for _, unit := range dpc.units {
@@ -176,7 +182,7 @@ func (dpc *DistributorProcessUnitCenter) start() *DistributorProcessUnitCenter {
 					DebugSysF("游戏到达最终时限，开始统计成绩")
 					// f(pro_end_game_request)
 					// DebugSysF("%d %d", dpc.TimeElapse, dpc.GameTimeMaxLength)
-					go dpc.Process(NewMessageWithClient(pro_game_timeout, "", dpc))
+					go dpc.Process(NewMessageWithClient(pro_game_timeout, nil, dpc))
 				} else {
 					// DebugSysF("没有逻辑处理")
 				}

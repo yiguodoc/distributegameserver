@@ -199,11 +199,12 @@ func (c ClientMessageTypeCode) name() (s string) {
 	}
 	return
 }
-func NewMessageWithClient(code ClientMessageTypeCode, targetID string, data interface{}, err ...string) *MessageWithClient {
+func NewMessageWithClient(code ClientMessageTypeCode, distributor *Distributor, data interface{}, err ...string) *MessageWithClient {
 	mwc := &MessageWithClient{
 		MessageType: code,
-		TargetID:    targetID,
 		Data:        data,
+		Target:      distributor,
+		// TargetID:    targetID,
 	}
 	if len(err) > 0 {
 		if len(err) < 2 {
@@ -218,15 +219,16 @@ func NewMessageWithClient(code ClientMessageTypeCode, targetID string, data inte
 
 type MessageWithClient struct {
 	MessageType ClientMessageTypeCode
-	TargetID    string
-	Data        interface{}
-	ErrorMsg    string //错误信息
-	SysTime     string
+	Target      *Distributor `json:"-"`
+	// TargetID    string `json:"-"`
+	Data     interface{}
+	ErrorMsg string //错误信息
+	SysTime  string
 	// Data        string
 }
 
 func (m *MessageWithClient) String() string {
-	return fmt.Sprintf("type: %s(%d) TargetID: %s data: %s err: %s", m.MessageType.name(), m.MessageType, m.TargetID, m.Data, m.ErrorMsg)
+	return fmt.Sprintf("type: %s(%d) TargetID: %s data: %s err: %s", m.MessageType.name(), m.MessageType, m.Target.ID, m.Data, m.ErrorMsg)
 }
 
 // type MessageFromClient struct {
