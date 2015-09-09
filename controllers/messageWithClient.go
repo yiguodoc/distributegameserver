@@ -119,6 +119,8 @@ var (
 
 func (c ClientMessageTypeCode) name() (s string) {
 	switch c {
+	case pro_start_distribution_request:
+		s = "pro_start_distribution_request"
 	case pro_game_timeout:
 		s = "pro_game_timeout"
 	case pro_2c_rank_change:

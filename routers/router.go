@@ -13,7 +13,7 @@ func init() {
 	beego.Router("/distribution", &controllers.MainController{}, "GET:DistributionIndex")
 	beego.Router("/userListIndex", &controllers.MainController{}, "GET:UserListIndex")
 	beego.Router("/viewer", &controllers.MainController{}, "GET:ViewerIndex")
-	beego.Router("/wsViewer", &controllers.MainController{}, "GET:ServerWSViewer")
+	// beego.Router("/wsViewer", &controllers.MainController{}, "GET:ServerWSViewer")
 	beego.Router("/addressEdit", &controllers.MainController{}, "GET:AddressEditIndex")
 	beego.Router("/rankIndex", &controllers.MainController{}, "GET:RankIndex")
 

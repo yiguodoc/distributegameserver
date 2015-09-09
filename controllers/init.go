@@ -15,7 +15,6 @@ var default_time_of_one_loop = 5 * 60
 
 var (
 	g_UnitCenter       *DistributorProcessUnitCenter
-	g_room_viewer      *WsRoom            //= NewRoom(eventReceiver)
 	g_distributorStore = DistributorList{ //配送员列表
 		NewDistributor("d01", "张军", color_orange),
 		NewDistributor("d02", "刘晓莉", color_red),
@@ -26,6 +25,7 @@ var (
 		NewRegion("2", "255,179,128", 39.928935, 39.944789, 116.618676, 116.625898),
 		NewRegion("3", "255,255,128", 39.928935, 39.944789, 116.625898, 116.639373),
 	}
+	// g_room_viewer      *WsRoom            //= NewRoom(eventReceiver)
 )
 
 func init() {
@@ -54,7 +54,7 @@ func restartGame() {
 	// room.addEventSubscriber(distributorRoomEventHandler, WsRoomEventCode_Online, WsRoomEventCode_Offline, WsRoomEventCode_Other)
 
 	l := []string{"d01", "d02", "d03"}
-	filter := func(d *Distributor) bool { return stringInArray(d.ID, l) }
+	filter := func(d *Distributor) bool { return stringInArray(d.ID, l[:2]) }
 	g_UnitCenter = NewDistributorProcessUnitCenter(g_distributorStore.clone(filter), orders, mapData, default_time_of_one_loop).start()
 	// g_UnitCenter.start()
 

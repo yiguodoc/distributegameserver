@@ -43,8 +43,8 @@ func pro_game_timeout_handlerGenerator(o interface{}) MessageWithClientHandler {
 		center.distributors.Rank()
 		DebugPrintList_Info(center.distributors)
 		center.distributors.forEach(func(d *Distributor) {
-			center.wsRoom.sendMsgToSpecialSubscriber(d.ID, pro_2c_end_game, d)
-			center.wsRoom.sendMsgToSpecialSubscriber(d.ID, pro_2c_rank_change, d)
+			center.sendMsgToSpecialSubscriber(d.ID, pro_2c_end_game, d)
+			center.sendMsgToSpecialSubscriber(d.ID, pro_2c_rank_change, d)
 		})
 
 		// if distributor := center.distributors.findOne(func(d *Distributor) bool { return d.ID == msg.TargetID }); distributor != nil {
@@ -78,10 +78,10 @@ func pro_end_game_request_handlerGenerator(o interface{}) MessageWithClientHandl
 			DebugPrintList_Info(center.distributors)
 			distributor.setCheckPoint(checkpoint_flag_order_distribute_over)
 			center.stopUnit(distributor.ID)
-			center.wsRoom.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_end_game, distributor)
+			center.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_end_game, distributor)
 			center.distributors.forEach(func(d *Distributor) {
 				if d.ID != distributor.ID {
-					center.wsRoom.sendMsgToSpecialSubscriber(d.ID, pro_2c_rank_change, d)
+					center.sendMsgToSpecialSubscriber(d.ID, pro_2c_rank_change, d)
 				}
 			})
 		}
@@ -100,7 +100,7 @@ func pro_move_from_node_to_route_handlerGenerator(o interface{}) MessageWithClie
 			DebugInfoF("line BUSY %s", line)
 			line.DistributorsOn.forEach(func(d *Distributor) {
 				d.CurrentSpeed = d.NormalSpeed / 2
-				center.wsRoom.sendMsgToSpecialSubscriber(d.ID, pro_2c_speed_change, d)
+				center.sendMsgToSpecialSubscriber(d.ID, pro_2c_speed_change, d)
 			})
 			// for id, d := range line.DistributorsOn {
 			// 	center.wsRoom.sendMsgToSpecialSubscriber(id, pro_2c_speed_change, d)
@@ -119,7 +119,7 @@ func pro_move_from_route_to_node_handlerGenerator(o interface{}) MessageWithClie
 			DebugInfoF("line NOBUSY %s ", line)
 			line.DistributorsOn.forEach(func(d *Distributor) {
 				d.CurrentSpeed = d.NormalSpeed
-				center.wsRoom.sendMsgToSpecialSubscriber(d.ID, pro_2c_speed_change, d)
+				center.sendMsgToSpecialSubscriber(d.ID, pro_2c_speed_change, d)
 			})
 			// for id, d := range line.DistributorsOn {
 			// 	center.wsRoom.sendMsgToSpecialSubscriber(id, pro_2c_speed_change, d)
@@ -167,11 +167,11 @@ func pro_order_select_response_handlerGenerator(o interface{}) MessageWithClient
 
 		if err := disposeOrderSelectResponse(orderID, distributor, center.distributors, center.orders); err != nil {
 			DebugInfoF("处理订单分配时的信息提示：%s", err)
-			center.wsRoom.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_order_select_result, nil, err.Error(), strconv.Itoa(distributor.TimeElapse))
+			center.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_order_select_result, nil, err.Error(), strconv.Itoa(distributor.TimeElapse))
 			return
 		}
 		//将分配结果通知到各方，包括获得订单的客户端、群通知，并引发分配结果事件，使得观察者也可以得到通知
-		center.wsRoom.sendMsgToSpecialSubscriber(distributorID, pro_2c_order_select_result, distributor)
+		center.sendMsgToSpecialSubscriber(distributorID, pro_2c_order_select_result, distributor)
 
 		log := fmt.Sprintf("订单[%s]已经由配送员[%s]选定", orderID, distributor.Name)
 		// center.wsRoom.broadcastMsgToSubscribers(pro_2c_message_broadcast, msg)
@@ -204,7 +204,7 @@ func pro_game_start_handlerGenerator(o interface{}) MessageWithClientHandler {
 
 		msgList := []string{"配送员全部准备完毕进入订单选择环节", "一大波订单即将到来"}
 		for _, msg := range msgList {
-			center.wsRoom.broadcastMsgToSubscribers(pro_2c_message_broadcast_before_game_start, msg)
+			center.broadcastMsgToSubscribers(pro_2c_message_broadcast_before_game_start, msg)
 			time.Sleep(2 * time.Second)
 		}
 		//倒计时
@@ -217,10 +217,10 @@ func pro_game_start_handlerGenerator(o interface{}) MessageWithClientHandler {
 			if count <= 0 {
 				break
 			}
-			center.wsRoom.broadcastMsgToSubscribers(pro_2c_message_broadcast_before_game_start, count)
+			center.broadcastMsgToSubscribers(pro_2c_message_broadcast_before_game_start, count)
 			count--
 		}
-		center.wsRoom.broadcastMsgToSubscribers(pro_2c_all_prepared_4_select_order, nil)
+		center.broadcastMsgToSubscribers(pro_2c_all_prepared_4_select_order, nil)
 		sendOrderProposal(center)
 		center.startAlltUnit()
 		center.startGameTiming()
@@ -232,7 +232,7 @@ func sendOrderProposal(center *DistributorProcessUnitCenter) {
 	// if len(center.distributors.notFull()) > 0 {
 	// broadOrderSelectProposal(center.distributors, center.orders)
 	if proposals, err := getOrderSelectProposal(center.distributors, center.orders); err == nil {
-		center.wsRoom.broadcastMsgToSubscribers(pro_2c_order_distribution_proposal, proposals)
+		center.broadcastMsgToSubscribers(pro_2c_order_distribution_proposal, proposals)
 	} else {
 		DebugInfoF("%s", err)
 	}
@@ -290,15 +290,16 @@ func pro_prepared_for_select_order_handlerGenerator(o interface{}) MessageWithCl
 func pro_off_line_handlerGenerator(o interface{}) MessageWithClientHandler {
 	center := o.(*DistributorProcessUnitCenter)
 	f := func(msg *MessageWithClient) {
-		DebugInfoF("%s", msg)
+		DebugTraceF("%s", msg)
 		center.stopUnit(msg.TargetID)
+		DebugInfoF("配送员 %s 离线", msg.TargetID)
 	}
 	return f
 }
 func pro_on_line_handlerGenerator(o interface{}) MessageWithClientHandler {
 	center := o.(*DistributorProcessUnitCenter)
 	f := func(msg *MessageWithClient) {
-		DebugInfoF("处理消息 %s", msg)
+		DebugTraceF("处理消息 %s", msg)
 		distributor := center.distributors.findOne(func(d *Distributor) bool { return d.ID == msg.TargetID })
 		if distributor != nil {
 			if distributor.IsOriginal() { //掉线后重新上线自动启动
@@ -317,9 +318,11 @@ func pro_on_line_handlerGenerator(o interface{}) MessageWithClientHandler {
 				distributor.NormalSpeed = defaultSpeed
 				distributor.CurrentSpeed = defaultSpeed
 			}
-			center.wsRoom.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_map_data, center.mapData)
-			center.wsRoom.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_distributor_info, distributor)
+			center.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_map_data, center.mapData)
+			center.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_distributor_info, distributor)
 			onReconnect(center, distributor)
+		} else {
+			DebugInfoF("不存在配送员 %s", msg.TargetID)
 		}
 	}
 	return f
@@ -335,7 +338,7 @@ func onReconnect(center *DistributorProcessUnitCenter, distributor *Distributor)
 		// broadOrderSelectProposal(center.distributors, center.orders)
 		if proposals, err := getOrderSelectProposal(center.distributors, center.orders); err == nil {
 			// center.wsRoom.broadcastMsgToSubscribers(pro_2c_order_distribution_proposal, proposals)
-			center.wsRoom.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_order_distribution_proposal, proposals)
+			center.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_order_distribution_proposal, proposals)
 		} else {
 			DebugInfoF("%s", err)
 		}
