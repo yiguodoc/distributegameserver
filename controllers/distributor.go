@@ -101,6 +101,11 @@ func (d *Distributor) PosString() string {
 // 	return len(this.AcceptedOrders) >= this.MaxAcceptedOrdersCount
 // }
 
+func (d *Distributor) caculateScore() {
+	unSignedOrders := d.AcceptedOrders.Filter(func(o *Order) bool { return o.Signed == false })
+	d.Score -= len(unSignedOrders)
+}
+
 //接收配送订单
 func (this *Distributor) acceptOrder(order *Order) {
 	this.AcceptedOrders = append(this.AcceptedOrders, order)

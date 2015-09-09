@@ -67,6 +67,7 @@ var handler_map = ProHandlerGeneratorMap{
 	pro_move_from_route_to_node:   pro_move_from_route_to_node_handlerGenerator,
 	pro_distributor_info_request:  pro_distributor_info_request_handlerGenerator,
 	pro_end_game_request:          pro_end_game_request_handlerGenerator,
+	pro_game_timeout:              pro_game_timeout_handlerGenerator,
 }
 
 //后端与前端交互的消息类型的定义
@@ -88,7 +89,8 @@ var (
 	pro_distributor_info_request   ClientMessageTypeCode = 14 //系统时间流逝出发
 	pro_end_game_request           ClientMessageTypeCode = 15 //配送完毕，结束游戏
 	pro_start_distribution_request ClientMessageTypeCode = 16 //开始配送环节
-	pro_max                        ClientMessageTypeCode = 16
+	pro_game_timeout               ClientMessageTypeCode = 17
+	pro_max                        ClientMessageTypeCode = 18
 	// pro_rank_changed               ClientMessageTypeCode = 16
 
 	pro_2c_min                                                       = 400
@@ -117,8 +119,8 @@ var (
 
 func (c ClientMessageTypeCode) name() (s string) {
 	switch c {
-	// case pro_rank_changed:
-	// 	s = "pro_rank_changed"
+	case pro_game_timeout:
+		s = "pro_game_timeout"
 	case pro_2c_rank_change:
 		s = "pro_2c_rank_change"
 	case pro_end_game_request:
@@ -137,8 +139,8 @@ func (c ClientMessageTypeCode) name() (s string) {
 		s = "pro_2c_message_broadcast_before_game_start"
 	case pro_2c_all_prepared_4_select_order:
 		s = "pro_2c_all_prepared_4_select_order"
-	// case pro_2c_order_full:
-	// 	s = "pro_2c_order_full"
+	case pro_2c_check_point_change:
+		s = "pro_2c_check_point_change"
 	case pro_2c_distributor_info:
 		s = "pro_2c_distributor_info"
 	case pro_game_time_tick:

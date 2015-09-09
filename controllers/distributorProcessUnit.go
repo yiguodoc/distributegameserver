@@ -56,6 +56,7 @@ func NewDistributorProcessUnitCenter(distributors DistributorList, orders OrderL
 			pro_off_line,
 			pro_prepared_for_select_order,
 			pro_end_game_request,
+			pro_game_timeout,
 		},
 		GameTimeMaxLength: timeMaxLength,
 	}
@@ -97,19 +98,24 @@ func (dpc *DistributorProcessUnitCenter) start() *DistributorProcessUnitCenter {
 					}
 				}
 			case <-timer:
-				f := func(code ClientMessageTypeCode) {
+				// f := func(code ClientMessageTypeCode) {
+				// 	dpc.units.forEach(func(unit *DistributorProcessUnit) {
+				// 		go unit.process(NewMessageWithClient(code, unit.distributor.ID, unit))
+				// 	})
+				// }
+				if dpc.TimeElapse < dpc.GameTimeMaxLength && dpc.gameStarted == true { //尚处于单局游戏时间内
+					dpc.TimeElapse++
+					// f(pro_game_time_tick)
 					dpc.units.forEach(func(unit *DistributorProcessUnit) {
 						go unit.process(NewMessageWithClient(pro_game_time_tick, unit.distributor.ID, unit))
 					})
-				}
-				if dpc.TimeElapse < dpc.GameTimeMaxLength && dpc.gameStarted == true { //尚处于单局游戏时间内
-					dpc.TimeElapse++
-					f(pro_game_time_tick)
+
 					// for _, unit := range dpc.units {
 					// 	go unit.process(NewMessageWithClient(pro_game_time_tick, "", nil))
 					// }
 				} else { //游戏时间到达最终时限
-					f(pro_end_game_request)
+					// f(pro_end_game_request)
+					dpc.Process(NewMessageWithClient(pro_game_timeout, "", dpc))
 				}
 			case <-dpc.chanStop:
 				break
@@ -149,6 +155,12 @@ func (dpc *DistributorProcessUnitCenter) newUnit(distributor *Distributor) *Dist
 		unit.processors = handler_map.generateHandlerMap(unit.supportPro, unit)
 		// unit.start()
 		return unit
+	}
+}
+
+func (dpc *DistributorProcessUnitCenter) stopAllUnits() {
+	for _, u := range dpc.units {
+		u.stop()
 	}
 }
 func (dpc *DistributorProcessUnitCenter) stopUnit(id string) {

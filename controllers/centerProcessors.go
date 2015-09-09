@@ -30,14 +30,49 @@ var (
 // 	}
 // 	return f
 // }
+
+//整个游戏结束
+func pro_game_timeout_handlerGenerator(o interface{}) MessageWithClientHandler {
+	center := o.(*DistributorProcessUnitCenter)
+	f := func(msg *MessageWithClient) {
+
+		center.stopAllUnits()
+		center.distributors.forEach(func(d *Distributor) {
+			d.caculateScore()
+		})
+		center.distributors.Rank()
+		DebugPrintList_Info(center.distributors)
+		center.distributors.forEach(func(d *Distributor) {
+			center.wsRoom.sendMsgToSpecialSubscriber(d.ID, pro_2c_end_game, d)
+			center.wsRoom.sendMsgToSpecialSubscriber(d.ID, pro_2c_rank_change, d)
+		})
+
+		// if distributor := center.distributors.findOne(func(d *Distributor) bool { return d.ID == msg.TargetID }); distributor != nil {
+		// 	//计算排名
+		// 	center.distributors.Rank()
+		// 	DebugPrintList_Info(center.distributors)
+		// 	distributor.setCheckPoint(checkpoint_flag_order_distribute_over)
+		// 	center.stopUnit(distributor.ID)
+		// 	center.wsRoom.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_end_game, distributor)
+		// 	center.distributors.forEach(func(d *Distributor) {
+		// 		if d.ID != distributor.ID {
+		// 			center.wsRoom.sendMsgToSpecialSubscriber(d.ID, pro_2c_rank_change, d)
+		// 		}
+		// 	})
+		// }
+
+	}
+	return f
+}
+
+//单独申请配送结束
 func pro_end_game_request_handlerGenerator(o interface{}) MessageWithClientHandler {
 	center := o.(*DistributorProcessUnitCenter)
 	f := func(msg *MessageWithClient) {
 		if distributor := center.distributors.findOne(func(d *Distributor) bool { return d.ID == msg.TargetID }); distributor != nil {
 			//计算得分
 			//签收完一个订单得到该订单对应的分数，没有完成的订单减去惩罚分数
-			unSignedOrders := distributor.AcceptedOrders.Filter(func(o *Order) bool { return o.Signed == false })
-			distributor.Score -= (len(unSignedOrders))
+			distributor.caculateScore()
 			//计算排名
 			center.distributors.Rank()
 			DebugPrintList_Info(center.distributors)
