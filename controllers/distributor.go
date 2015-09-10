@@ -171,7 +171,7 @@ func (d *Distributor) Is(f distributorPredictor) bool {
 
 type DistributorList []*Distributor
 
-func (dl DistributorList) Rank() {
+func (dl DistributorList) Rank() DistributorList {
 	sort.Sort(dl)
 	f := func(d *Distributor, lastRank, lastScore, lastTimeLength int) (myRank, myScore, myTimeLength int) {
 		if d.Score == lastScore && d.TimeElapse == lastTimeLength {
@@ -186,6 +186,7 @@ func (dl DistributorList) Rank() {
 		// d.Rank = i + 1
 		myRank, myScore, myTimeLength = f(d, myRank, myScore, myTimeLength)
 	}
+	return dl
 }
 func (dl DistributorList) Len() int {
 	return len(dl)

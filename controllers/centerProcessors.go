@@ -41,15 +41,17 @@ func pro_game_timeout_handlerGenerator(o interface{}) MessageWithClientHandler {
 		center.distributors.forEach(func(d *Distributor) {
 			d.caculateScore()
 		})
-		center.distributors.Rank()
+		center.distributors.Rank().forEach(func(d *Distributor) {
+			center.sendMsgToSpecialSubscriber(d, pro_2c_rank_change, d)
+		})
 		DebugPrintList_Info(center.distributors)
 		center.distributors.filter(func(d *Distributor) bool { return d.CheckPoint < checkpoint_flag_order_distribute_over }).
 			forEach(func(d *Distributor) {
 			center.sendMsgToSpecialSubscriber(d, pro_2c_end_game, d)
 		})
-		center.distributors.forEach(func(d *Distributor) {
-			center.sendMsgToSpecialSubscriber(d, pro_2c_rank_change, d)
-		})
+		// center.distributors.forEach(func(d *Distributor) {
+		// 	center.sendMsgToSpecialSubscriber(d, pro_2c_rank_change, d)
+		// })
 
 		// if distributor := center.distributors.findOne(func(d *Distributor) bool { return d.ID == msg.TargetID }); distributor != nil {
 		// 	//计算排名
