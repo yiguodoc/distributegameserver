@@ -600,8 +600,6 @@
 	    	    mySwiper.appendSlide(String.format(dom, order.ID, order.GeoSrc.Address+"北京市物资学院", 1, distance))
 	    	})
 	    }
-					    		// '<span class="slide-content" style="margin-top:8px;">分值：{2}</span> '+
-					    		// '<span class="slide-content" style="margin-top:8px;">距离：{3}</span> '+
 
 	    function pro_timer_count_down_handler(msg){
             console.log("-> "+ msg.Data)	    	
@@ -625,10 +623,7 @@
 	    	    console.log("没有抢到订单 ")	    		
 	    	}
 	    }
-	    // function pro_2c_order_full_handler(msg){
-	    // 	distributor = msg.Data
-     //    	viewRouteToPage(mainView, 'processDistribution')
-	    // }
+
 	    function pro_2c_distributor_info_handler(msg){
 	    	var data = msg.Data
 	    	console.log(data)

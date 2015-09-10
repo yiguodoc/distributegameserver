@@ -28,7 +28,7 @@ type DistributorProcessUnitCenter struct {
 func NewDistributorProcessUnitCenter(distributors DistributorList, orders OrderList, mapData *MapData, timeMaxLength int) *DistributorProcessUnitCenter {
 	center := &DistributorProcessUnitCenter{
 		units:        DistributorProcessUnitList{},
-		chanEvent:    make(chan *MessageWithClient),
+		chanEvent:    make(chan *MessageWithClient, 128),
 		chanStop:     make(chan bool),
 		orders:       orders,
 		mapData:      mapData,
@@ -154,7 +154,8 @@ func (dpc *DistributorProcessUnitCenter) start() *DistributorProcessUnitCenter {
 			case msg := <-dpc.chanEvent:
 				DebugTraceF("<- %v", msg)
 				if processor, ok := dpc.processors[msg.MessageType]; ok { //首先自行处理
-					go processor(msg)
+					processor(msg)
+					// go processor(msg)
 				} else {
 					if unit, ok := dpc.units[msg.Target.ID]; ok { //之后交于处理单位处理
 						go unit.process(msg)
@@ -163,25 +164,14 @@ func (dpc *DistributorProcessUnitCenter) start() *DistributorProcessUnitCenter {
 					}
 				}
 			case <-timer:
-				// f := func(code ClientMessageTypeCode) {
-				// 	dpc.units.forEach(func(unit *DistributorProcessUnit) {
-				// 		go unit.process(NewMessageWithClient(code, unit.distributor.ID, unit))
-				// 	})
-				// }
 				if dpc.TimeElapse < dpc.GameTimeMaxLength && dpc.gameStarted == true { //尚处于单局游戏时间内
 					dpc.TimeElapse++
-					// f(pro_game_time_tick)
 					dpc.units.forEach(func(unit *DistributorProcessUnit) {
 						go unit.process(NewMessageWithClient(pro_game_time_tick, unit.distributor, unit))
 					})
 
-					// for _, unit := range dpc.units {
-					// 	go unit.process(NewMessageWithClient(pro_game_time_tick, "", nil))
-					// }
 				} else if dpc.gameStarted == true && dpc.TimeElapse >= dpc.GameTimeMaxLength { //游戏时间到达最终时限
 					DebugSysF("游戏到达最终时限，开始统计成绩")
-					// f(pro_end_game_request)
-					// DebugSysF("%d %d", dpc.TimeElapse, dpc.GameTimeMaxLength)
 					go dpc.Process(NewMessageWithClient(pro_game_timeout, nil, dpc))
 				} else {
 					// DebugSysF("没有逻辑处理")

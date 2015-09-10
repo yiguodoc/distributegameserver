@@ -75,7 +75,7 @@ func (u *DistributorProcessUnit) stop() {
 func (u *DistributorProcessUnit) start() {
 	DebugInfoF("处理单元 %s %s 启动", u.distributor.ID, u.distributor.Name)
 
-	u.chanEvent = make(chan *MessageWithClient)
+	u.chanEvent = make(chan *MessageWithClient, 128)
 	f := func() {
 		// timer := time.Tick(1 * time.Second) //计时器功能
 		for {

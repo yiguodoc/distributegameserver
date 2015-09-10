@@ -6,7 +6,7 @@ import (
 	"github.com/gorilla/websocket"
 	// "math/rand"
 	// "time"
-	"encoding/json"
+	// "encoding/json"
 	"sort"
 )
 
@@ -62,16 +62,16 @@ type Distributor struct {
 	// MaxAcceptedOrdersCount int             `json:"-"` //配送员可以接收的最大订单数量
 }
 
-func NewDistributorFromJson(bytes []byte) *Distributor {
-	var Distributor Distributor
-	err := json.Unmarshal(bytes, &Distributor)
-	if err != nil {
-		DebugSysF("解析JSON生成 Distributor 时出错：%s", err)
-		return nil
-	} else {
-		return &Distributor
-	}
-}
+// func NewDistributorFromJson(bytes []byte) *Distributor {
+// 	var Distributor Distributor
+// 	err := json.Unmarshal(bytes, &Distributor)
+// 	if err != nil {
+// 		DebugSysF("解析JSON生成 Distributor 时出错：%s", err)
+// 		return nil
+// 	} else {
+// 		return &Distributor
+// 	}
+// }
 func NewDistributor(id, name string, color string) *Distributor {
 	return &Distributor{
 		ID:             id,
@@ -83,8 +83,8 @@ func NewDistributor(id, name string, color string) *Distributor {
 	}
 }
 func (this *Distributor) String() string {
-	return fmt.Sprintf("ID: %-3s  Name: %-4s 游戏进程：%d  接收的订单：%2d online:%t score: %d timeElapse: %d rank: %d",
-		this.ID, this.Name, this.CheckPoint, len(this.AcceptedOrders), this.IsOnline(), this.Score, this.TimeElapse, this.Rank)
+	return fmt.Sprintf("ID: %-3s  Name: %-4s 游戏进程：%d  接收的订单：%2d online:%t score: %d timeElapse: %d rank: %d checkPoint: %d",
+		this.ID, this.Name, this.CheckPoint, len(this.AcceptedOrders), this.IsOnline(), this.Score, this.TimeElapse, this.Rank, this.CheckPoint)
 }
 func (d *Distributor) PosString() string {
 	if d.CurrentPos == nil {

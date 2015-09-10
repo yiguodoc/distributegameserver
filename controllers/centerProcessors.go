@@ -43,8 +43,11 @@ func pro_game_timeout_handlerGenerator(o interface{}) MessageWithClientHandler {
 		})
 		center.distributors.Rank()
 		DebugPrintList_Info(center.distributors)
-		center.distributors.forEach(func(d *Distributor) {
+		center.distributors.filter(func(d *Distributor) bool { return d.CheckPoint < checkpoint_flag_order_distribute_over }).
+			forEach(func(d *Distributor) {
 			center.sendMsgToSpecialSubscriber(d, pro_2c_end_game, d)
+		})
+		center.distributors.forEach(func(d *Distributor) {
 			center.sendMsgToSpecialSubscriber(d, pro_2c_rank_change, d)
 		})
 

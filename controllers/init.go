@@ -11,7 +11,7 @@ import (
 	"math/rand"
 )
 
-var default_time_of_one_loop = 5 * 60
+var default_time_of_one_loop = 3 * 60
 
 var (
 	g_UnitCenter       *DistributorProcessUnitCenter
@@ -47,20 +47,11 @@ func restartGame() {
 		o := NewOrder(generateOrderID(), pos)
 		return append(list.(OrderList), o)
 	}).(OrderList).random(rand.New(rand.NewSource(time.Now().UnixNano())), OrderList{})
-	// orders := OrderList{} //所有的订单
 	DebugPrintList_Info(orders)
 
-	// room := NewRoom().start()
-	// room.addEventSubscriber(distributorRoomEventHandler, WsRoomEventCode_Online, WsRoomEventCode_Offline, WsRoomEventCode_Other)
-
 	l := []string{"d01", "d02", "d03"}
-	filter := func(d *Distributor) bool { return stringInArray(d.ID, l[:1]) }
+	filter := func(d *Distributor) bool { return stringInArray(d.ID, l[:]) }
 	g_UnitCenter = NewDistributorProcessUnitCenter(g_distributorStore.clone(filter), orders, mapData, default_time_of_one_loop).start()
-	// g_UnitCenter.start()
-
-	// g_UnitCenter.Process(NewMessageWithClient(pro_order_select_response, "", map[string]interface{}{"OrderID": "900100001", "DistributorID": "d01"}))
-	// g_UnitCenter.Process(NewMessageWithClient(pro_order_select_response, "", map[string]interface{}{"OrderID": "900100002", "DistributorID": "d01"}))
-
 }
 
 //字符串数组中是否含有指定字符串
