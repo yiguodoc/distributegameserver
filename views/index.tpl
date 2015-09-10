@@ -50,40 +50,53 @@
 		        <div data-page="processSelectOrder" class="page" id="1">
 		              <div class="page-content "> 
 				        <div class="content-block" style="margin-top: 20px;  margin-bottom: 15px;">
-			                <!-- <p style="text-align: center;">我是{{.distributor.Name}}</p> -->
-			                <div id="canvas-holder" style="text-align: center;">
+			                <!-- <div id="canvas-holder" style="text-align: center;">
 	                			<canvas id="chart-area" width="130" height="130"/>
-	                		</div>
-			                <p style="text-align: center;margin-top:0px;font-size: 12px;">订单区域分布比例</p>
+	                		</div> -->
+			                <!-- <p style="text-align: center;margin-top:0px;font-size: 12px;">订单区域分布比例</p> -->
+
+	                		<div class="card">
+                				<div style="text-align: center; padding-top: 10px; font-size: 14px; border-bottom: solid 1px rgba(100,100,100,0.2); padding-bottom: 8px;"> 订单统计</div>
+		                		<div class="card-content">
+		                		    <div class="card-content-inner" style="padding-top: 0px;">
+		                		    	<div class="content-block-inner" style="margin-top:0px;">
+		                		    		<div class="row no-gutter" style="margin-top:5px;">
+		                		    			<div class="col-50" style="text-align: left;padding-left: 32px;"> 已选订单 </div>
+		                		    			<div id="ordersSelectedCount" class="col-50" style="text-align: left;padding-left: 30px;"> 0</div>
+		                		    		</div>
+		                		    		<div class="row no-gutter" style="margin-top:5px;">
+		                		    			<div class="col-50" style="text-align: left;padding-left: 32px;"> 订单分值 </div>
+		                		    			<div id = "ordersTotalScore" class="col-50" style="text-align: left;padding-left: 30px;"> 0 </div>
+		                		    		</div>
+		                		    		
+		                		    		<div class="row no-gutter" style="margin-top:5px;">
+		                		    			<div class="col-50" style="text-align: left;padding-left: 32px;"> 平均距离 </div>
+		                		    			<div id = "ordersAverageDistance" class="col-50" style="text-align: left;padding-left: 30px;"> 0 </div>
+		                		    		</div>
+
+		                		    	</div>
+
+		                		    </div>
+  	                		    </div>
+ 	                		</div>  
 
 			            </div>
-			            <div class="swiper-custom">
+			            <div class="swiper-custom" style="border-top: 1px solid rgba(100,100,100,0.1);border-bottom: 1px solid rgba(100,100,100,0.1);">
 			               <div class="swiper-container">
 			                 <div class="swiper-pagination"></div>
 			                 <div class="swiper-wrapper">
-								<!--<div class="swiper-slide">
+								<!-- <div class="swiper-slide">
 				                   	<span class="slide-title">订单编号01</span>
 				                   	<span class="slide-content">地址01</span>
-			                   </div>
-
-			                   <div class="swiper-slide">
-				                   	<span class="slide-title">订单编号02</span>
-				                   	<span class="slide-content">地址02</span>
-			                   </div>
-
-			                   <div class="swiper-slide">
-				                   	<span class="slide-title">订单编号03</span>
-				                   	<span class="slide-content">地址03</span>
+				                   	<span class="slide-content">地址01</span>
 			                   </div> -->
+
+			                    
 			                 </div>
 			               </div>
 			               <div class="swiper-button-prev"></div>
 			               <div class="swiper-button-next"></div>
 			             </div>
-<!-- 		                    <p class="buttons-row">
-		                      <a href="#" class="button button-big button-fill button-raised color-pink">选择订单</a>
-		                      <a href="#" class="button button-big button-fill button-raised color-teal">开始配送</a>
-		                    </p> -->
 		                <div class=" login-btn-content">
 		                	<div class="row" style="margin-left: 20px; margin-right: 20px;">
 		                		<!-- <div class="col-5"></div> -->
@@ -185,17 +198,17 @@
 				            </div>
 				            <div class="content-block-inner" style="margin-top:0px;">
 				            	<div class="row no-gutter" style="margin-top:5px;">
-				            		<div class="col-50" style="text-align: right;padding-right: 3px;"> 排名 </div>
-				            		<div id="statisticRank" class="col-50" style="text-align: left;padding-left: 3px;"> 0</div>
+				            		<div class="col-50" style="text-align: left;padding-left: 70px;"> 排名 </div>
+				            		<div id="statisticRank" class="col-50" style="text-align: left;padding-left: 50px;"> 0</div>
 				            	</div>
 				            	<div class="row no-gutter" style="margin-top:5px;">
-				            		<div class="col-50" style="text-align: right;padding-right: 3px;"> 总得分 </div>
-				            		<div id = "statisticScoreTotal" class="col-50" style="text-align: left;padding-left: 3px;"> 0 </div>
+				            		<div class="col-50" style="text-align: left;padding-left: 70px;"> 总得分 </div>
+				            		<div id = "statisticScoreTotal" class="col-50" style="text-align: left;padding-left: 50px;"> 0 </div>
 				            	</div>
 				            	
 				            	<div class="row no-gutter" style="margin-top:5px;">
-				            		<div class="col-50" style="text-align: right;padding-right: 3px;"> 总耗时 </div>
-				            		<div id = "statisticTimeTotal" class="col-50" style="text-align: left;padding-left: 3px;"> 0 </div>
+				            		<div class="col-50" style="text-align: left;padding-left: 70px;"> 总耗时 </div>
+				            		<div id = "statisticTimeTotal" class="col-50" style="text-align: left;padding-left: 50px;"> 0 </div>
 				            	</div>
 
 				            </div>
@@ -573,10 +586,22 @@
 	    function pro_2c_order_distribution_proposal_handler(msg){
 	    	mySwiper.removeAllSlides();
 	    	var orders = msg.Data
+	    	var currentPostion = distributor.CurrentPos
+
 	    	_.each(orders, function(order){
-	    	    mySwiper.appendSlide(String.format('<div class="swiper-slide"> <span class="slide-title" style="background-color: rgba({0}, 0.6);margin-left: 10px; margin-right: 10px;">{1}</span> <span class="slide-content">{2}北京市物资学院</span> </div>',order.Region.Color, order.ID, order.GeoSrc.Address))
+	    		var pos = order.GeoSrc
+	    		var distance = CoolWPDistance(currentPostion.Lat, currentPostion.Lng, pos.Lat, pos.Lng).toFixed(0) + "米"
+	    		var dom =   '<div class="swiper-slide"> '+
+					    		'<span class="slide-title" style="margin-left: 10px; margin-right: 10px;">{0}</span> '+
+					    		'<span class="slide-content" style="margin-top:20px;font-size: 13px;">{1}</span> '+
+					    		'<div class="row no-gutter" style="margin-top:5px;"> <div class="col-50" style="text-align: right;padding-right: 10px;font-size: 13px;"> 分值 </div> <div  class="col-50" style="text-align: left;padding-left: 10px;font-size: 13px;"> {2} </div> </div>'+
+					    		'<div class="row no-gutter" style="margin-top:5px;"> <div class="col-50" style="text-align: right;padding-right: 10px;font-size: 13px;"> 距离 </div> <div  class="col-50" style="text-align: left;padding-left: 10px;font-size: 13px;"> {3} </div> </div>'+
+				    		'</div>'
+	    	    mySwiper.appendSlide(String.format(dom, order.ID, order.GeoSrc.Address+"北京市物资学院", 1, distance))
 	    	})
 	    }
+					    		// '<span class="slide-content" style="margin-top:8px;">分值：{2}</span> '+
+					    		// '<span class="slide-content" style="margin-top:8px;">距离：{3}</span> '+
 
 	    function pro_timer_count_down_handler(msg){
             console.log("-> "+ msg.Data)	    	
@@ -589,7 +614,8 @@
 	    	if(msg.Data != null){
 	    	    console.log("抢到了订单 ")
 	    		distributor = msg.Data
-	    		resetPie()
+	    		// resetPie()
+	    		refreshSeletedOrdersStatistics()
 				flagOrderNodeMarker()
 				refreshOrderView()
 				var lastOrder = distributor.AcceptedOrders[_.size(distributor.AcceptedOrders)-1]
@@ -613,7 +639,8 @@
 	    		break
 	    		case {{.checkpoint_flag_order_select}} :
 		        	viewRouteToPage(mainView, 'processSelectOrder')
-		        	resetPie()
+		        	// resetPie()
+		        	refreshSeletedOrdersStatistics()
 	    		break
 	    		case {{.checkpoint_flag_order_distribute}} :
 		        	viewRouteToPage(mainView, 'processDistribution')
@@ -822,15 +849,32 @@
 	    		_.each(data.Lines, addLineOverlayToMap)
 	    	}
 	    }
+	    function refreshSeletedOrdersStatistics(){
+	    	var orderCount = _.size(distributor.AcceptedOrders)
+	    	$$("#ordersSelectedCount").text(orderCount)
+	    	$$("#ordersTotalScore").text(orderCount)
+	    	var currentPostion = distributor.CurrentPos
+	    	var totalDistance = _.reduce(distributor.AcceptedOrders, function(total, order){
+	    		var pos = order.GeoSrc
+	    		var distance = CoolWPDistance(currentPostion.Lat, currentPostion.Lng, pos.Lat, pos.Lng)
+	    		return total + distance
+	    	}, 0)
+	    	if(orderCount > 0){
+		    	$$("#ordersAverageDistance").text((totalDistance/orderCount).toFixed(0)+"米")
+	    	}else{
+		    	$$("#ordersAverageDistance").text(0)
+
+	    	}
+	    }
 	    function resetPie(){
-        	if(_.size(distributor.AcceptedOrders) <= 0){
-        		pie()
-        	}else{
-        		//对接收的订单按照区域进行分类
-        		var groups = _.groupBy(distributor.AcceptedOrders,function(order){return order.Region.Color})
-        		var values = _.map(groups,function(v,key){return {value: _.size(v), color: "rgb("+key+")"}})
-        		pie(values)
-        	}	    	
+        	// if(_.size(distributor.AcceptedOrders) <= 0){
+        	// 	pie()
+        	// }else{
+        	// 	//对接收的订单按照区域进行分类
+        	// 	var groups = _.groupBy(distributor.AcceptedOrders,function(order){return order.Region.Color})
+        	// 	var values = _.map(groups,function(v,key){return {value: _.size(v), color: "rgb("+key+")"}})
+        	// 	pie(values)
+        	// }	    	
 	    }
 	    function addLineOverlayToMap(line){
 			var start = line.Start
@@ -933,11 +977,8 @@
 		            console.log("获取的订单ID为：%s", orderID)
 		            var msg = {MessageType: {{.pro_order_select_response}}, Data:{OrderID: orderID, DistributorID: distributorID}}
 		            send(msg)
-
-		            // mySwiper.removeSlide(index)
-		            // mySwiper.appendSlide('<div class="swiper-slide"> <span class="slide-title">订单编号04</span> <span class="slide-content">地址04</span> </div>')
 		        }	    		
-	    	}, 1000)
+	    	}, 500)
 	    	debunced()
 	    	$$("#btnSelectOrder").addClass("disabled")
 	    	setTimeout(function(){
@@ -1005,20 +1046,20 @@
 	    		$$("#btnSignOrder").addClass("disabled")
 	    	}
 	    }
-	    function pie(pieData){
-	        if(pieData == null){
-	            pieData = [
-	                        {
-	                            value: 1,
-	                            color:"#C8C8C8",
-	                            highlight: "#C8C8C8",
-	                            label: "无"
-	                        }
-	                    ];
-	        }
-	        var ctx = document.getElementById("chart-area").getContext("2d");
-	        var myPie = new Chart(ctx).Pie(pieData);    
-	    }
+	    // function pie(pieData){
+	    //     if(pieData == null){
+	    //         pieData = [
+	    //                     {
+	    //                         value: 1,
+	    //                         color:"#C8C8C8",
+	    //                         highlight: "#C8C8C8",
+	    //                         label: "无"
+	    //                     }
+	    //                 ];
+	    //     }
+	    //     var ctx = document.getElementById("chart-area").getContext("2d");
+	    //     var myPie = new Chart(ctx).Pie(pieData);    
+	    // }
 	    function send(msg){
 	        if (!conn) {
 	            return false;

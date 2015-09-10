@@ -45,7 +45,7 @@ require(['jquery', 'lodash', 'Framework7', 'Chart'], function ($, _, Framework7,
     resetMap2Initial()
 
     mySwiper = swiper()
-    pie()
+    // pie()
 
     function swiper(){
         return myApp.swiper('.swiper-container', {
@@ -114,10 +114,11 @@ require(['jquery', 'lodash', 'Framework7', 'Chart'], function ($, _, Framework7,
             conn = new WebSocket(wsUrl);
             conn.onclose = function(evt) {
                 console.log("与服务器连接连接关闭，刷新重试")
-                myApp.alert("您已掉线，5秒后重新连接")
+                myApp.alert("您已掉线，5秒后重新连接", "提示")
                 setTimeout(function () {
                         myApp.closeModal();
-                        prepareConn()
+                        // prepareConn()
+                        window.location.href = window.location.href
                     }, 5000);
             }
             conn.onopen = function(evt){
@@ -148,29 +149,42 @@ require(['jquery', 'lodash', 'Framework7', 'Chart'], function ($, _, Framework7,
 
 });
 
-function t(){
-    // Add view
-
-    console.log("正在初始化基础数据")
-    $$.get("/distributors?id={{.distributor.ID}}",function(data){
-        console.log(data)
-        if(_.isArray(data) == false){
-            data = JSON.parse(data)
-        }
-        if(_.size(data) > 0){
-            var distributor = data[0]
-            console.log(distributor)
-            console.log("游戏状态：%d", distributor.CheckPoint)
-            if(distributor.CheckPoint <= 0){//还在初始化阶段
-                viewRouteToPage(mainView, "process0")
-            }else{//已经初始化过，中间可能掉线
-                viewRouteToPage(mainView, "process1")
-            }
-        }
-    })
-}
-
-
+function getRad(d){   
+    var PI = Math.PI;    
+   return d*PI/180.0;    
+}     
+/** 
+     * approx distance between two points on earth ellipsoid ,return the distance  in float meter.
+     * @param {Object} lat1   
+     * @param {Object} lng1   
+     * @param {Object} lat2   
+     * @param {Object} lng2   
+     */     
+function CoolWPDistance(lat1,lng1,lat2,lng2){     
+    var f = getRad((lat1 + lat2)/2);     
+    var g = getRad((lat1 - lat2)/2);     
+    var l = getRad((lng1 - lng2)/2);     
+    var sg = Math.sin(g);     
+    var sl = Math.sin(l);     
+    var sf = Math.sin(f);     
+    var s,c,w,r,d,h1,h2;     
+    var a = 6378137.0;//The Radius of eath in meter.   
+    var fl = 1/298.257;     
+    sg = sg*sg;     
+    sl = sl*sl;     
+    sf = sf*sf;     
+    s = sg*(1-sl) + (1-sf)*sl;     
+    c = (1-sg)*(1-sl) + sf*sl;     
+    w = Math.atan(Math.sqrt(s/c));     
+    r = Math.sqrt(s*c)/w;     
+    d = 2*w*a;     
+    h1 = (3*r -1)/2/c;     
+    h2 = (3*r +1)/2/s;     
+    s = d*(1 + fl*(h1*sf*(1-sg) - h2*(1-sf)*sg));   
+    // s = s/1000;   
+    // s = s.toFixed(2);//指定小数点后的位数。   
+    return s;     
+}      
 //将地图设置为初始状态，目的是不突出任何信息
 function resetMap2Initial(){
 

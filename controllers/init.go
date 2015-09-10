@@ -54,7 +54,7 @@ func restartGame() {
 	// room.addEventSubscriber(distributorRoomEventHandler, WsRoomEventCode_Online, WsRoomEventCode_Offline, WsRoomEventCode_Other)
 
 	l := []string{"d01", "d02", "d03"}
-	filter := func(d *Distributor) bool { return stringInArray(d.ID, l[:2]) }
+	filter := func(d *Distributor) bool { return stringInArray(d.ID, l[:1]) }
 	g_UnitCenter = NewDistributorProcessUnitCenter(g_distributorStore.clone(filter), orders, mapData, default_time_of_one_loop).start()
 	// g_UnitCenter.start()
 

@@ -163,7 +163,7 @@ func pro_order_select_response_handlerGenerator(o interface{}) MessageWithClient
 		// }
 		if warehousePointlist.contains(func(pos *Position) bool { return distributor.CurrentPos.equals(pos) }) == false {
 			DebugInfoF("配送员 %s 所处位置无法选择订单", distributor.Name)
-			center.sendMsgToSpecialSubscriber(distributor, pro_2c_order_select_result, nil, 所处位置无法选择订单, strconv.Itoa(distributor.TimeElapse))
+			center.sendMsgToSpecialSubscriber(distributor, pro_2c_order_select_result, nil, "所处位置无法选择订单", strconv.Itoa(distributor.TimeElapse))
 			return
 		}
 
