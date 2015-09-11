@@ -218,7 +218,7 @@ function setMapMarker(lng,lat, bAddMarker){
 // initMap()
 // resetMap2Initial()
 function viewRouteToPage(view, page){
-
+    console.info("page => %s",page)
     // mainView.router.load({pageName:page})
     view.router.load({pageName:page})
 }

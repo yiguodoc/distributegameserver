@@ -50,7 +50,7 @@ func restartGame() {
 	DebugPrintList_Info(orders)
 
 	l := []string{"d01", "d02", "d03"}
-	filter := func(d *Distributor) bool { return stringInArray(d.ID, l[:]) }
+	filter := func(d *Distributor) bool { return stringInArray(d.ID, l[:1]) }
 	g_UnitCenter = NewDistributorProcessUnitCenter(g_distributorStore.clone(filter), orders, mapData, default_time_of_one_loop).start()
 }
 

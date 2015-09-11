@@ -108,38 +108,49 @@ func (m *MainController) UploadMapData() {
 		m.ServeJson()
 	}()
 	values := m.Input()
-	if value, ok := values["data"]; !ok {
-		m.Data["json"] = NewResponseMsg(1, "地图数据格式异常")
+	value, ok := values["data"]
+	if !ok {
+		response = NewResponseMsg(1, "地图数据格式异常")
 		DebugMust("地图数据格式异常")
-	} else {
-		if len(value) <= 0 {
-			DebugMust("没有地图数据上传")
-			m.Data["json"] = NewResponseMsg(1, "没有地图数据上传")
-		} else {
-			rawData := values["data"][0]
-			fmt.Println(rawData)
-			var mapData MapData
-			err := json.Unmarshal([]byte(rawData), &mapData)
-			if err != nil {
-				DebugMustF("解析上传地图数据时出错：%s", err)
-				m.Data["json"] = NewResponseMsg(1, "解析上传地图数据时出错")
-			} else {
-				// fmt.Println(mapData)
-				DebugInfoF("接收到上传的地图数据，统计：%d 个关键点  %d 条路径", len(mapData.Points), len(mapData.Lines))
-				DebugPrintList_Info(mapData.Points)
-				DebugPrintList_Info(mapData.Lines)
-				fileMapData, err := os.Create("./mapdata/data.toml")
-				if err != nil {
-					DebugMustF("创建地图文件出错：%s", err)
-				} else {
-					defer fileMapData.Close()
-					err = toml.NewEncoder(fileMapData).Encode(mapData)
-					if err != nil {
-						DebugMustF("保存地图数据到文件时出错：%s", err)
-					}
-				}
-			}
-		}
+		return
+	}
+	if len(value) <= 0 {
+		DebugMust("没有地图数据上传")
+		response = NewResponseMsg(1, "没有地图数据上传")
+		return
+	}
+	rawData := values["data"][0]
+	fmt.Println(rawData)
+	var mapData MapData
+	err := json.Unmarshal([]byte(rawData), &mapData)
+	if err != nil {
+		DebugMustF("解析上传地图数据时出错：%s", err)
+		response = NewResponseMsg(1, "解析上传地图数据时出错")
+		return
+	}
+	// fmt.Println(mapData)
+	DebugInfoF("接收到上传的地图数据，统计：%d 个关键点  %d 条路径", len(mapData.Points), len(mapData.Lines))
+	DebugPrintList_Info(mapData.Points)
+	DebugPrintList_Info(mapData.Lines)
+	filter := func(pos *Position) bool {
+		return pos.IsBornPoint
+	}
+	bornPoints := mapData.Points.filter(filter)
+	if len(bornPoints) <= 0 {
+		response = NewResponseMsg(1, "地图不符合要求，至少设置一个出生点")
+		return
+	}
+	fileMapData, err := os.Create("./mapdata/data.toml")
+	if err != nil {
+		DebugMustF("创建地图文件出错：%s", err)
+		response = NewResponseMsg(1, "系统异常")
+		return
+	}
+	defer fileMapData.Close()
+	err = toml.NewEncoder(fileMapData).Encode(mapData)
+	if err != nil {
+		DebugMustF("保存地图数据到文件时出错：%s", err)
+		response = NewResponseMsg(1, "系统异常")
 	}
 }
 

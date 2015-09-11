@@ -248,47 +248,15 @@ func pro_prepared_for_select_order_handlerGenerator(o interface{}) MessageWithCl
 	center := o.(*DistributorProcessUnitCenter)
 	// unit := o.(*DistributorProcessUnit)
 	f := func(msg *MessageWithClient) {
-		// m := msg.Data.(map[string]interface{})
-		// m := event.data.(map[string]interface{})
-		// distributorID, ok := m["DistributorID"]
-		// if !ok {
-		// 	DebugMustF("客户端数据格式错误，无法获取配送员编号")
-		// 	return
-		// }
-		// distributor := center.distributors.findOne(func(d *Distributor) bool { return d.ID == distributorID.(string) })
-		// if distributor == nil {
-		// 	DebugSysF("配送员 %s 不应该出现在该中心内，系统错误", distributorID.(string))
-		// 	return
-		// }
 		DebugInfoF("配送员[%s]准备好订单的分发了", msg.Target.Name)
-		// center.distributors.preparedForOrderSelect(distributorID.(string))
-		// setCheckPoint := func(d *Distributor) bool {
-		// 	if d.ID == distributorID.(string) {
-		// 		d.CheckPoint = checkpoint_flag_order_select
-		// 		return true
-		// 	}
-		// 	return false
-		// }
-		// center.distributors.forOne(setCheckPoint)
+
 		msg.Target.setCheckPoint(checkpoint_flag_order_select)
 
-		// distributorsPrepared := center.distributors.filter(func(d *Distributor) bool {
-		// 	return d.CheckPoint >= checkpoint_flag_order_select
-		// })
-		// if len(distributorsPrepared) >= len(center.distributors) {
-		// 	// if center.distributors.allPreparedForOrderSelect() == true {
-		// 	DebugInfoF("所有配送员准备完毕，可以开始订单分发了")
-		// 	center.Process(NewMessageWithClient(pro_game_start, "", nil))
-		// } else {
-		// 	DebugInfoF("还有 %d 个配送员未准备完毕", len(center.distributors)-len(distributorsPrepared))
-		// }
 		if center.distributors.every(func(d *Distributor) bool { return d.CheckPoint >= checkpoint_flag_order_select }) {
 			DebugInfoF("所有配送员准备完毕，可以开始订单分发了")
 			center.Process(NewMessageWithClient(pro_game_start, msg.Target, nil))
 		} else {
-			DebugInfoF("还有 %d 个配送员未准备完毕", len(center.distributors.filter(func(d *Distributor) bool {
-				return d.CheckPoint < checkpoint_flag_order_select
-			})))
+			DebugInfoF("还有 %d 个配送员未准备完毕", len(center.distributors.filter(func(d *Distributor) bool { return d.CheckPoint < checkpoint_flag_order_select })))
 
 		}
 	}
@@ -313,14 +281,15 @@ func pro_on_line_handlerGenerator(o interface{}) MessageWithClientHandler {
 			DebugTraceF("配送员上线，状态 %d 初始化", checkpoint_flag_origin)
 			//设置默认起始点
 			filter := func(pos *Position) bool {
-				return pos.PointType == POSITION_TYPE_WAREHOUSE
+				return pos.IsBornPoint
 			}
-			warehouses := center.mapData.Points.filter(filter)
-			if len(warehouses) > 0 {
-				msg.Target.StartPos = warehouses[0] //
+			bornPoints := center.mapData.Points.filter(filter)
+			if len(bornPoints) > 0 {
+				msg.Target.StartPos = bornPoints[0] //
 				msg.Target.CurrentPos = msg.Target.StartPos.copyTemp(true)
 			} else {
-				DebugSysF("无法设置出发点")
+				DebugMustF("没有出生点信息")
+				return
 			}
 			msg.Target.NormalSpeed = defaultSpeed
 			msg.Target.CurrentSpeed = defaultSpeed

@@ -30,6 +30,7 @@ const (
 	POSITION_TYPE_ORDER_ROUTE = 1  //路径节点
 	POSITION_TYPE_ROUTE_ONLY  = 2  //途经点
 	POSITION_TYPE_ROUTE_TEMP  = 3  //计算得出的临时点
+	// POSITION_TYPE_BORN        = 4  //出生点
 )
 
 // type positionTypeFilter func(*Position) bool
@@ -38,12 +39,13 @@ type positionPredictor func(*Position) bool
 
 //位置，订单的产生地
 type Position struct {
-	ID        int
-	Lng, Lat  float64
-	Address   string
-	PointType int
-	HasOrder  bool
-	mutable   bool
+	ID          int
+	Lng, Lat    float64
+	Address     string
+	PointType   int
+	HasOrder    bool
+	IsBornPoint bool
+	mutable     bool
 	// LinkedPoints PositionList //与该位置直接连接的点
 }
 type PositionList []*Position
