@@ -51,7 +51,10 @@ func restartGame() {
 
 	l := []string{"d01", "d02", "d03"}
 	filter := func(d *Distributor) bool { return stringInArray(d.ID, l[:]) }
-	g_UnitCenter = NewDistributorProcessUnitCenter(g_distributorStore.clone(filter), orders, mapData, default_time_of_one_loop).start()
+	g_UnitCenter = NewDistributorProcessUnitCenter(g_distributorStore.clone(filter), orders, mapData, default_time_of_one_loop)
+	if g_UnitCenter != nil {
+		g_UnitCenter.start()
+	}
 }
 
 //字符串数组中是否含有指定字符串

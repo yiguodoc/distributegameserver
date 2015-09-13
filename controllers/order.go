@@ -112,13 +112,6 @@ func (l OrderList) findOne(f predictor) *Order {
 	} else {
 		return l[1:].findOne(f)
 	}
-
-	// for _, o := range l {
-	// 	if f(o) {
-	// 		return o
-	// 	}
-	// }
-	// return nil
 }
 
 func (l OrderList) all(f predictor) bool {
@@ -130,12 +123,6 @@ func (l OrderList) all(f predictor) bool {
 	} else {
 		return l[1:].all(f)
 	}
-	// for _, o := range l {
-	// 	if f(o) == false {
-	// 		return false
-	// 	}
-	// }
-	// return true
 }
 func (l OrderList) contains(f predictor) bool {
 	return l.findOne(f) != nil
@@ -157,12 +144,6 @@ func (ll OrderList) remove(f func(*Order) bool, list ...OrderList) (l OrderList)
 	} else {
 		return ll[1:].remove(f, ol)
 	}
-	// for _, o := range ll {
-	// 	if o.ID != order.ID {
-	// 		l = append(l, o)
-	// 	}
-	// }
-	// return
 }
 func (ol OrderList) ListName() string {
 	return "订单"

@@ -5,6 +5,7 @@ import (
 	// "errors"
 	"fmt"
 	// "time"
+	"math/rand"
 	// "reflect"
 )
 
@@ -139,14 +140,14 @@ func (pl PositionList) contains(f positionPredictor) bool {
 	return pl.findOne(f) != nil
 }
 
-// func (pl PositionList) findOne(f predictor) *Position {
-// 	for _, p := range pl {
-// 		if f(p) {
-// 			return p
-// 		}
-// 	}
-// 	return nil
-// }
+func (l PositionList) random(rander *rand.Rand, list PositionList) PositionList {
+	if len(l) <= 1 {
+		return append(list, l...)
+	}
+	r := rander.Intn(len(l))
+	last := append(append(PositionList{}, l[:r]...), l[r+1:]...)
+	return last.random(rander, append(list, l[r]))
+}
 
 func (pl PositionList) Map(list interface{}, f func(*Position, interface{}) interface{}) interface{} {
 	if len(pl) > 0 {
@@ -164,26 +165,6 @@ func (pl PositionList) reduce(list interface{}, f func(*Position, interface{}) i
 	}
 }
 
-// func (pl PositionList) findByID1(id int) *Position {
-// 	for _, p := range pl {
-// 		if p.ID == id {
-// 			return p
-// 		}
-// 	}
-// 	return nil
-// }
-// func (this PositionList) findLngLat1(lng, lat float64) *Position {
-// 	for _, p := range this {
-// 		if p.Lat == lat && p.Lng == lng {
-// 			return p
-// 		}
-// 	}
-// 	return nil
-// }
-
-// func (this PositionList) contains(pos *Position) bool {
-// 	return this.findLngLat(pos.Lng, pos.Lat) != nil
-// }
 func (pl PositionList) ListName() string {
 	return "关键点"
 }

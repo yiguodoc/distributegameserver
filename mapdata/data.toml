@@ -4,7 +4,7 @@
   Lat = 39.93314
   Address = ""
   PointType = 0
-  IsBornPoint = false
+  IsBornPoint = true
 
 [[Points]]
   ID = 2

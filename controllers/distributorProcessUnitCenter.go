@@ -2,10 +2,11 @@ package controllers
 
 import (
 	// "errors"
-	// "fmt"
 	"encoding/json"
+	// "fmt"
 	// "math"
 	"github.com/gorilla/websocket"
+	"math/rand"
 	"time"
 )
 
@@ -26,6 +27,10 @@ type DistributorProcessUnitCenter struct {
 }
 
 func NewDistributorProcessUnitCenter(distributors DistributorList, orders OrderList, mapData *MapData, timeMaxLength int) *DistributorProcessUnitCenter {
+	if len(mapData.Points.filter(func(p *Position) bool { return p.IsBornPoint == true })) <= 0 {
+		DebugSysF("地图中没有出生点信息")
+		return nil
+	}
 	center := &DistributorProcessUnitCenter{
 		units:        DistributorProcessUnitList{},
 		chanEvent:    make(chan *MessageWithClient, 128),
@@ -139,8 +144,24 @@ func (dpc *DistributorProcessUnitCenter) stop() {
 	}
 }
 func (dpc *DistributorProcessUnitCenter) start() *DistributorProcessUnitCenter {
+	bornPoints := dpc.mapData.Points.filter(func(p *Position) bool { return p.IsBornPoint }).random(rand.New(rand.NewSource(time.Now().UnixNano())), PositionList{})
+	i := len(bornPoints)
+	DebugInfoF("出生点数量 => %d", len(bornPoints))
+	positionGenerator := func() *Position {
+		i--
+		if i < 0 {
+			i = len(bornPoints) - 1
+		}
+		// fmt.Println("index => ", i)
+		return bornPoints[i]
+	}
 	dpc.distributors.forEach(func(distributor *Distributor) {
 		distributor.GameTimeMaxLength = dpc.GameTimeMaxLength
+		distributor.StartPos = positionGenerator()
+		distributor.CurrentPos = distributor.StartPos.copyTemp(true)
+		distributor.NormalSpeed = defaultSpeed
+		distributor.CurrentSpeed = defaultSpeed
+
 		newUnit(dpc, distributor)
 	})
 	if dpc.mapDataLoader != nil {

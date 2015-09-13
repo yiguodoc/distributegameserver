@@ -275,29 +275,27 @@ func pro_on_line_handlerGenerator(o interface{}) MessageWithClientHandler {
 	center := o.(*DistributorProcessUnitCenter)
 	f := func(msg *MessageWithClient) {
 		DebugTraceF("处理消息 %s", msg)
-		// distributor := center.distributors.findOne(func(d *Distributor) bool { return d.ID == msg.TargetID })
-		// if distributor != nil {
-		if msg.Target.IsOriginal() { //掉线后重新上线自动启动
-			DebugTraceF("配送员上线，状态 %d 初始化", checkpoint_flag_origin)
-			//设置默认起始点
-			filter := func(pos *Position) bool {
-				return pos.IsBornPoint
-			}
-			// filter := func(pos *Position) bool {
-			// 	return pos.PointType == POSITION_TYPE_WAREHOUSE
-			// }
+		// if msg.Target.IsOriginal() { //掉线后重新上线自动启动
+		// 	DebugTraceF("配送员上线，状态 %d 初始化", checkpoint_flag_origin)
+		// 	//设置默认起始点
+		// 	filter := func(pos *Position) bool {
+		// 		return pos.IsBornPoint
+		// 	}
+		// 	// filter := func(pos *Position) bool {
+		// 	// 	return pos.PointType == POSITION_TYPE_WAREHOUSE
+		// 	// }
 
-			bornPoints := center.mapData.Points.filter(filter)
-			if len(bornPoints) > 0 {
-				msg.Target.StartPos = bornPoints[0] //
-				msg.Target.CurrentPos = msg.Target.StartPos.copyTemp(true)
-			} else {
-				DebugMustF("没有出生点信息")
-				return
-			}
-			msg.Target.NormalSpeed = defaultSpeed
-			msg.Target.CurrentSpeed = defaultSpeed
-		}
+		// 	bornPoints := center.mapData.Points.filter(filter)
+		// 	if len(bornPoints) > 0 {
+		// 		msg.Target.StartPos = bornPoints[0] //
+		// 		msg.Target.CurrentPos = msg.Target.StartPos.copyTemp(true)
+		// 	} else {
+		// 		DebugMustF("没有出生点信息")
+		// 		return
+		// 	}
+		// 	msg.Target.NormalSpeed = defaultSpeed
+		// 	msg.Target.CurrentSpeed = defaultSpeed
+		// }
 		center.sendMsgToSpecialSubscriber(msg.Target, pro_2c_map_data, center.mapData)
 		center.sendMsgToSpecialSubscriber(msg.Target, pro_2c_distributor_info, msg.Target)
 		onReconnect(center, msg.Target)
