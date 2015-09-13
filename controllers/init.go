@@ -11,7 +11,7 @@ import (
 	"math/rand"
 )
 
-var default_time_of_one_loop = 3 * 60
+var default_time_of_one_loop = 5 * 60
 
 var (
 	g_UnitCenter       *DistributorProcessUnitCenter
@@ -20,11 +20,11 @@ var (
 		NewDistributor("d02", "刘晓莉", color_red),
 		NewDistributor("d03", "桑鸿庆", color_purple),
 	}
-	g_regions = RegionList{
-		NewRegion("1", "255,128,128", 39.928935, 39.944789, 116.614041, 116.618676),
-		NewRegion("2", "255,179,128", 39.928935, 39.944789, 116.618676, 116.625898),
-		NewRegion("3", "255,255,128", 39.928935, 39.944789, 116.625898, 116.639373),
-	}
+	// g_regions = RegionList{
+	// 	NewRegion("1", "255,128,128", 39.928935, 39.944789, 116.614041, 116.618676),
+	// 	NewRegion("2", "255,179,128", 39.928935, 39.944789, 116.618676, 116.625898),
+	// 	NewRegion("3", "255,255,128", 39.928935, 39.944789, 116.625898, 116.639373),
+	// }
 	// g_room_viewer      *WsRoom            //= NewRoom(eventReceiver)
 )
 
@@ -42,7 +42,7 @@ func restartGame() {
 	mapData := loadMapData()
 
 	orders := mapData.Points.filter(func(pos *Position) bool {
-		return pos.HasOrder
+		return pos.PointType == POSITION_TYPE_ORDER
 	}).Map(OrderList{}, func(pos *Position, list interface{}) interface{} {
 		o := NewOrder(generateOrderID(), pos)
 		return append(list.(OrderList), o)
@@ -50,7 +50,7 @@ func restartGame() {
 	DebugPrintList_Info(orders)
 
 	l := []string{"d01", "d02", "d03"}
-	filter := func(d *Distributor) bool { return stringInArray(d.ID, l[:1]) }
+	filter := func(d *Distributor) bool { return stringInArray(d.ID, l[:]) }
 	g_UnitCenter = NewDistributorProcessUnitCenter(g_distributorStore.clone(filter), orders, mapData, default_time_of_one_loop).start()
 }
 

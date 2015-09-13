@@ -237,7 +237,7 @@ func pro_sign_order_request_handlerGenerator(o interface{}) MessageWithClientHan
 			DebugInfoF("签收订单 %s , 时间 %d", order.ID, order.SignTime)
 			unit.center.sendMsgToSpecialSubscriber(distributor, pro_2c_sign_order, distributor)
 			DebugInfoF("配送员 %s 签收了订单 %s", unit.distributor.Name, orderID)
-			distributor.Score++
+			distributor.Score += order.Score
 			// DebugPrintList_Info(g_orders)
 			if unit.distributor.AcceptedOrders.all(func(o interface{}) bool { return o.(*Order).Signed == true }) {
 				// unit.distributor.setCheckPoint(checkpoint_flag_order_distribute_over)

@@ -103,7 +103,7 @@ func (d *Distributor) PosString() string {
 
 func (d *Distributor) caculateScore() {
 	unSignedOrders := d.AcceptedOrders.Filter(func(o *Order) bool { return o.Signed == false })
-	d.Score -= len(unSignedOrders)
+	d.Score -= unSignedOrders.totalScore(0)
 }
 
 //接收配送订单

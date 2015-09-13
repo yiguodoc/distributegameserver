@@ -847,7 +847,9 @@
 	    function refreshSeletedOrdersStatistics(){
 	    	var orderCount = _.size(distributor.AcceptedOrders)
 	    	$$("#ordersSelectedCount").text(orderCount)
-	    	$$("#ordersTotalScore").text(orderCount)
+	    	$$("#ordersTotalScore").text(_.reduce(distributor.AcceptedOrders, function(total, order){
+	    		return total + order.Score
+	    	}, 0))
 	    	var currentPostion = distributor.CurrentPos
 	    	var totalDistance = _.reduce(distributor.AcceptedOrders, function(total, order){
 	    		var pos = order.GeoSrc

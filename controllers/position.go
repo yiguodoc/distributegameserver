@@ -28,8 +28,9 @@ const (
 	POSITION_TYPE_TEMP        = -1 //临时点的标志
 	POSITION_TYPE_WAREHOUSE   = 0  //仓库
 	POSITION_TYPE_ORDER_ROUTE = 1  //路径节点
-	POSITION_TYPE_ROUTE_ONLY  = 2  //途经点
-	POSITION_TYPE_ROUTE_TEMP  = 3  //计算得出的临时点
+	POSITION_TYPE_ORDER       = 2  //放置订单
+	// POSITION_TYPE_ROUTE_ONLY  = 2  //途经点
+	// POSITION_TYPE_ROUTE_TEMP  = 3  //计算得出的临时点
 	// POSITION_TYPE_BORN        = 4  //出生点
 )
 
@@ -43,15 +44,16 @@ type Position struct {
 	Lng, Lat    float64
 	Address     string
 	PointType   int
-	HasOrder    bool
 	IsBornPoint bool
+	Score       int //如果有订单的话，订单的分值
 	mutable     bool
+	// HasOrder    bool
 	// LinkedPoints PositionList //与该位置直接连接的点
 }
 type PositionList []*Position
 
 func (p *Position) String() string {
-	return fmt.Sprintf("ID: %3d  类型：%d  订单：%t  位置: (%f, %f)  %s", p.ID, p.PointType, p.HasOrder, p.Lng, p.Lat, p.Address)
+	return fmt.Sprintf("ID: %3d  出生点：%t 类型：%d  分值：%d 位置: (%f, %f)  %s", p.ID, p.IsBornPoint, p.PointType, p.Score, p.Lng, p.Lat, p.Address)
 }
 func (p *Position) SimpleString() string {
 	return fmt.Sprintf("(%f, %f)", p.Lng, p.Lat)
@@ -76,8 +78,8 @@ func (p *Position) copyAll(mutable bool) *Position {
 		Lat:       p.Lat,
 		Address:   p.Address,
 		PointType: p.PointType,
-		HasOrder:  p.HasOrder,
 		mutable:   mutable,
+		// HasOrder:  p.HasOrder,
 	}
 }
 func (p *Position) equals(pos *Position) bool {
@@ -192,14 +194,14 @@ func (pl PositionList) InfoList() (l []string) {
 	return
 }
 
-func NewPosition(id int, address string, lng, lat float64, ptype int, hasOrder bool) *Position {
+func NewPosition(id int, address string, lng, lat float64, ptype int) *Position {
 	return &Position{
 		ID:        id,
 		Address:   address,
 		Lng:       lng,
 		Lat:       lat,
 		PointType: ptype,
-		HasOrder:  hasOrder,
+		// HasOrder:  hasOrder,
 	}
 }
 

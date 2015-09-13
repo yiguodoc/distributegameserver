@@ -283,6 +283,10 @@ func pro_on_line_handlerGenerator(o interface{}) MessageWithClientHandler {
 			filter := func(pos *Position) bool {
 				return pos.IsBornPoint
 			}
+			// filter := func(pos *Position) bool {
+			// 	return pos.PointType == POSITION_TYPE_WAREHOUSE
+			// }
+
 			bornPoints := center.mapData.Points.filter(filter)
 			if len(bornPoints) > 0 {
 				msg.Target.StartPos = bornPoints[0] //

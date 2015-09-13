@@ -93,7 +93,11 @@ func loadMapData() *MapData {
 		DebugMustF("载入地图数据时出错：%s", err)
 		return nil
 	} else {
-		DebugInfoF("载入地图数据成功，统计：%d 个关键点  %d 条路径", len(mapData.Points), len(mapData.Lines))
+		bornPoints := mapData.Points.filter(func(pos *Position) bool { return pos.IsBornPoint })
+		if len(bornPoints) <= 0 {
+			DebugSysF("地图不符合要求，至少设置一个出生点")
+		}
+		DebugInfoF("接收到上传的地图数据，统计：%d 个出生点 %d 个路径节点  %d 条路径", len(bornPoints), len(mapData.Points), len(mapData.Lines))
 		DebugPrintList_Info(mapData.Points)
 		DebugPrintList_Info(mapData.Lines)
 	}
@@ -129,17 +133,16 @@ func (m *MainController) UploadMapData() {
 		return
 	}
 	// fmt.Println(mapData)
-	DebugInfoF("接收到上传的地图数据，统计：%d 个关键点  %d 条路径", len(mapData.Points), len(mapData.Lines))
-	DebugPrintList_Info(mapData.Points)
-	DebugPrintList_Info(mapData.Lines)
-	filter := func(pos *Position) bool {
-		return pos.IsBornPoint
-	}
-	bornPoints := mapData.Points.filter(filter)
+	// filter := func(pos *Position) bool { return pos.IsBornPoint }
+	bornPoints := mapData.Points.filter(func(pos *Position) bool { return pos.IsBornPoint })
 	if len(bornPoints) <= 0 {
 		response = NewResponseMsg(1, "地图不符合要求，至少设置一个出生点")
 		return
 	}
+	DebugInfoF("接收到上传的地图数据，统计：%d 个出生点 %d 个路径节点  %d 条路径", len(bornPoints), len(mapData.Points), len(mapData.Lines))
+	DebugPrintList_Info(mapData.Points)
+	DebugPrintList_Info(mapData.Lines)
+
 	fileMapData, err := os.Create("./mapdata/data.toml")
 	if err != nil {
 		DebugMustF("创建地图文件出错：%s", err)

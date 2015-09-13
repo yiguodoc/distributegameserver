@@ -8,39 +8,39 @@ import (
 	// "time"
 )
 
-type Region struct {
-	LatMin, LatMax float64
-	LngMin, LngMax float64
-	Color          string
-	Code           string
-}
+// type Region struct {
+// 	LatMin, LatMax float64
+// 	LngMin, LngMax float64
+// 	Color          string
+// 	Code           string
+// }
 
-func NewRegion(code, color string, latMin, latMax, lngMin, lngMax float64) *Region {
-	return &Region{
-		Code:   code,
-		Color:  color,
-		LatMin: latMin,
-		LatMax: latMax,
-		LngMin: lngMin,
-		LngMax: lngMax,
-	}
-}
-func (r *Region) in(pos *Position) bool {
-	return pos != nil &&
-		pos.Lat >= r.LatMin && pos.Lat < r.LatMax &&
-		pos.Lng >= r.LngMin && pos.Lng < r.LngMax
-}
+// func NewRegion(code, color string, latMin, latMax, lngMin, lngMax float64) *Region {
+// 	return &Region{
+// 		Code:   code,
+// 		Color:  color,
+// 		LatMin: latMin,
+// 		LatMax: latMax,
+// 		LngMin: lngMin,
+// 		LngMax: lngMax,
+// 	}
+// }
+// func (r *Region) in(pos *Position) bool {
+// 	return pos != nil &&
+// 		pos.Lat >= r.LatMin && pos.Lat < r.LatMax &&
+// 		pos.Lng >= r.LngMin && pos.Lng < r.LngMax
+// }
 
-type RegionList []*Region
+// type RegionList []*Region
 
-func (rl RegionList) findRegion(pos *Position) *Region {
-	for _, r := range rl {
-		if r.in(pos) {
-			return r
-		}
-	}
-	return nil
-}
+// func (rl RegionList) findRegion(pos *Position) *Region {
+// 	for _, r := range rl {
+// 		if r.in(pos) {
+// 			return r
+// 		}
+// 	}
+// 	return nil
+// }
 
 var orderCount = 0
 
@@ -55,25 +55,27 @@ type Order struct {
 	GeoSrc       *Position
 	Distributed  bool //分配状态
 	Signed       bool //签收状态
-	Region       *Region
-	SignTime     int //签收时间
-	SelectedTime int //被选择的时间
+	SignTime     int  //签收时间
+	SelectedTime int  //被选择的时间
+	Score        int  //分值
+	// Region       *Region
 }
 
 func NewOrder(id string, pos *Position) *Order {
-	region := g_regions.findRegion(pos)
-	if region == nil {
-		panic(fmt.Sprintf("没有定义点所属的区域：%s", pos))
-	}
+	// region := g_regions.findRegion(pos)
+	// if region == nil {
+	// 	panic(fmt.Sprintf("没有定义点所属的区域：%s", pos))
+	// }
 	return &Order{
 		ID:     id,
 		GeoSrc: pos,
-		Region: region,
+		Score:  pos.Score,
+		// Region: region,
 	}
 }
 
 func (o *Order) String() string {
-	return fmt.Sprintf("ID: %s Signed: %t  Distributed: %t Address: %s Region: %s", o.ID, o.Signed, o.Distributed, o.GeoSrc.Address, o.Region.Code)
+	return fmt.Sprintf("ID: %s Signed: %t  Distributed: %t Address: %s ", o.ID, o.Signed, o.Distributed, o.GeoSrc.Address)
 }
 func (o *Order) isDistributed() bool {
 	return o.Distributed
@@ -178,4 +180,10 @@ func (ol OrderList) Filter(f func(*Order) bool) (l OrderList) {
 		}
 	}
 	return
+}
+func (ol OrderList) totalScore(score int) int {
+	if len(ol) <= 0 {
+		return score
+	}
+	return ol[1:].totalScore(score + ol[0].Score)
 }
