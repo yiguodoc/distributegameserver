@@ -134,18 +134,10 @@
 		    mapInit()
 		    markers = _.reduce(data.Points, function(markerList, p){
     	    	var m =addMapMarker(new BMap.Point(p.Lng,p.Lat), {Address: p.Address, PointType: p.PointType})
-    	    	// if(m != null){
-    	    	// 	// m.address = p.Address
-    	    	// 	// m.hasOrder = p.HasOrder
-    	    	// 	// m.pointType = p.PointType
-    	    	// 	// if(m.hasOrder == true){
-    		    // 	// 	resetMarkerIcon(m, 3)
-    	    	// 	// }else{
-    		    // 	// 	resetMarkerIcon(m, m.pointType)
-    	    	// 	// }
-    	    	// 	resetMarkerIcon(m)
-    	    	// }
     	    	markerList.push(m)
+    	    	if(p.IsBornPoint){
+	    	    	setMarkerBornPoint(m)
+    	    	}
     	    	return markerList
 		    }, [])
 		    // _.forEach(data.Points, function(p){
@@ -195,6 +187,7 @@
 		}
 	}
 	function setMarkerBornPoint(marker){
+
 		var pos = marker.getPosition()
 		marker.bornPoint = new BMap.Marker(pos);
 		resetMarkerIcon(marker.bornPoint, {isBornPoint: true})
