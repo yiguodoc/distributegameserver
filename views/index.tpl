@@ -47,7 +47,7 @@
 		    <div class="pages navbar-through">
 		        <!-- Page, "data-page" contains page name -->
 		        <!-- 订单选择页面 -->
-		        <div data-page="processSelectOrder" class="page" id="1">
+		        <div data-page="processSelectOrder" class="page  no-swipeback" id="1">
 		              <div class="page-content "> 
 				        <div class="content-block" style="margin-top: 20px;  margin-bottom: 15px;">
 			                <!-- <div id="canvas-holder" style="text-align: center;">
@@ -134,7 +134,7 @@
 		              </div>
 		        </div>
 		        <!-- 等待其他参与者进入的页面 -->
-                <div data-page="waiting" class="page" id="2">
+                <div data-page="waiting" class="page  no-swipeback" id="2">
                       <!-- Scrollable page content -->
                       <div class="page-content "> 
         		        <div class="content-block" style="margin-top: 100px;">
@@ -149,7 +149,7 @@
                       </div>
                 </div>
                 <!-- 订单选择完毕，转入配送状态页面之前的页面 -->
-                <div data-page="processGo2Distribution" class="page" id="4">
+                <div data-page="processGo2Distribution" class="page  no-swipeback" id="4">
 					<div class="page-content "> 
 					    <div class="content-block" style="margin-top: 100px;">
 					            <!-- <p style="text-align: center;">我是{{.distributor.Name}}</p> -->
@@ -162,7 +162,7 @@
 					</div>
                 </div>
                 <!-- 配送状态页面 -->
-                <div data-page="processDistribution" class="page" id="5"><!-- Scrollable page content -->
+                <div data-page="processDistribution" class="page  no-swipeback" id="5"><!-- Scrollable page content -->
                        
 					<div class="page-content "> 
 					    <div class="content-block" style="margin-top: 0px;">
@@ -187,7 +187,7 @@
 					</div>
                 </div>
                 <!-- 配送完成统计页面 -->
-                <div data-page="processStatistic" class="page" id="6"><!-- Scrollable page content -->
+                <div data-page="processStatistic" class="page  no-swipeback" id="6"><!-- Scrollable page content -->
                        
 					<div class="page-content "> 
 					    <div class="content-block" style="margin-top: 0px;">
@@ -217,7 +217,7 @@
                 </div>
 
                 <!-- 登录进入游戏之后的页面 -->
-		        <div data-page="index" class="page" id="3">
+		        <div data-page="index" class="page  no-swipeback" id="3">
 		              <!-- Scrollable page content -->
 		              <div class="page-content "> 
 				        <div class="content-block" style="margin-top: 100px;">
@@ -597,7 +597,7 @@
 					    		'<div class="row no-gutter" style="margin-top:5px;"> <div class="col-50" style="text-align: right;padding-right: 10px;font-size: 13px;"> 分值 </div> <div  class="col-50" style="text-align: left;padding-left: 10px;font-size: 13px;"> {2} </div> </div>'+
 					    		'<div class="row no-gutter" style="margin-top:5px;"> <div class="col-50" style="text-align: right;padding-right: 10px;font-size: 13px;"> 距离 </div> <div  class="col-50" style="text-align: left;padding-left: 10px;font-size: 13px;"> {3} </div> </div>'+
 				    		'</div>'
-	    	    mySwiper.appendSlide(String.format(dom, order.ID, order.GeoSrc.Address+"北京市物资学院", 1, distance))
+	    	    mySwiper.appendSlide(String.format(dom, order.ID, order.GeoSrc.Address+"", order.Score, distance))
 	    	})
 	    }
 

@@ -209,7 +209,7 @@ func pro_game_start_handlerGenerator(o interface{}) MessageWithClientHandler {
 	center := o.(*DistributorProcessUnitCenter)
 	f := func(msg *MessageWithClient) {
 
-		msgList := []string{"配送员全部准备完毕进入订单选择环节", "一大波订单即将到来"}
+		msgList := []string{"配送员全部准备完毕", "请前往配送中心选择订单"}
 		for _, msg := range msgList {
 			center.broadcastMsgToSubscribers(pro_2c_message_broadcast_before_game_start, msg)
 			time.Sleep(2 * time.Second)
