@@ -159,7 +159,7 @@ func (m *MainController) UploadMapData() {
 
 //查询输出地图数据
 func (m *MainController) MapData() {
-	m.Data["json"] = g_UnitCenter.mapData
+	m.Data["json"] = loadMapData()
 	m.ServeJson()
 }
 

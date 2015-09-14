@@ -18,14 +18,14 @@
         <input id="btnSelectMarker" type="button" value="选择点" onclick="switchControl(6)" style="margin-bottom: 10px;">
         <input id="btnAddMarker" type="button" value="添加点" onclick="switchControl(0)" style="margin-bottom: 10px;">
         <input id="btnRemoveMarker" type="button" value="删除点" onclick="switchControl(1)" style="margin-bottom: 10px;">
+        <input id="btnAddRoute" type="button" value="添加路径" onclick="switchControl(2)" style="margin-bottom: 10px;">
+        <input id="btnRemoveRoute" type="button" value="移除路径" onclick="switchControl(3)" style="margin-bottom: 10px;">
         <input id="btnRemoveMarker" type="button" value="设为路径节点" onclick="switchControl(10)" style="margin-bottom: 10px;">
         <input id="btnRemoveMarker" type="button" value="设为配送中心" onclick="switchControl(7)" style="margin-bottom: 10px;">
         <input id="btnRemoveMarker" type="button" value="设为出生点" onclick="switchControl(8)" style="margin-bottom: 10px;">
         <input id="btnRemoveMarker" type="button" value="设为非出生点" onclick="switchControl(9)" style="margin-bottom: 10px;">
         <input id="btnAddOrder" type="button" value="添加订单" onclick="switchControl(4)" style="margin-bottom: 10px;">
         <input id="btnRemoveOrder" type="button" value="移除订单" onclick="switchControl(5)" style="margin-bottom: 10px;">
-        <input id="btnAddRoute" type="button" value="添加路径" onclick="switchControl(2)" style="margin-bottom: 10px;">
-        <input id="btnRemoveRoute" type="button" value="移除路径" onclick="switchControl(3)" style="margin-bottom: 10px;">
         <input id="btnClearMapData" type="button" value="清除地图数据" onclick="clearMapData()" style="margin-bottom: 10px;">
 
 	</div>
@@ -59,7 +59,7 @@
     //各种类型的点的图标设计
 	var bornPointIconDef = {isBornPoint: true, imageName: "aimRed.png", width: 100, height: 100, opt: {anchor: new BMap.Size(20, 20), imageSize: new BMap.Size(40,40)}}
 	var iconKinds = [
-		{pointType: POSITION_TYPE_WAREHOUSE, imageName: "warehouse.png", width: 64, height: 64, opt: {anchor: new BMap.Size(32, 48)}},
+		{pointType: POSITION_TYPE_WAREHOUSE, imageName: "warehouse.png", width: 64, height: 64, opt: {anchor: new BMap.Size(24, 24), imageSize: new BMap.Size(48,48)}},
 		{pointType: POSITION_TYPE_ORDER_ROUTE, imageName: "node.png", width: 52, height: 52, opt: {anchor: new BMap.Size(6, 6), imageSize: new BMap.Size(12,12)}},
 		{pointType: POSITION_TYPE_ORDER, imageName: "bagageClosed.png", width: 29, height: 29, opt: {anchor: new BMap.Size(15, 15)}},
 		bornPointIconDef
@@ -133,7 +133,7 @@
 			console.log(data)
 		    mapInit()
 		    markers = _.reduce(data.Points, function(markerList, p){
-    	    	var m =addMapMarker(new BMap.Point(p.Lng,p.Lat), {Address: p.Address, PointType: p.PointType})
+    	    	var m =addMapMarker(new BMap.Point(p.Lng,p.Lat), {Address: p.Address, PointType: p.PointType, Score: p.Score})
     	    	markerList.push(m)
     	    	if(p.IsBornPoint){
 	    	    	setMarkerBornPoint(m)
@@ -161,6 +161,7 @@
 		    })
 		})
 	})
+
 	function mapInit(){
 		map = new BMap.Map("allmap");
 		var point = new BMap.Point(116.644691, 39.934758);//北京物资学院
@@ -170,24 +171,14 @@
 		map.addControl(top_left_navigation);
  		map.addEventListener("click", optHandler);
 	}
-	// //点击地图时的处理函数，一般是添加新点
-	// function mapClickHandler(e){
-	// 	console.log("点击地图 %f,%f",e.point.lng, e.point.lat)
-	// 	if(optSelect == 0){
-	// 		if(markerExist(e.point) == false){//不能重复
-	//  			var marker = addMapMarker(e.point, {Address: "", PointType: POSITION_TYPE_ORDER_ROUTE})
-	//  			markers.push(marker)	
-	// 		}
-	// 	}		
-	// }
+
 	function unsetMarkerBornPoint(marker){
 		if(marker.bornPoint != null){
 			map.removeOverlay(marker.bornPoint)
-			map.bornPoint = null
+			marker.bornPoint = null
 		}
 	}
 	function setMarkerBornPoint(marker){
-
 		var pos = marker.getPosition()
 		marker.bornPoint = new BMap.Marker(pos);
 		resetMarkerIcon(marker.bornPoint, {isBornPoint: true})
@@ -226,33 +217,7 @@
 		// }
 		// marker.setIcon(myIcon)		
 	}
-	// //右键菜单的处理函数
-	// //每次根据点类型重置右键菜单
-	// function markerMenuHandler(markerMenu, pointType, e, ee){
-	// 	var marker = this
-	// 	marker.pointType = pointType
-	// 	resetMarkerIcon(marker)
-	// 	marker.removeContextMenu(markerMenu)
- //    	marker.addContextMenu(createContextMenu(marker, pointType));		
-	// }
-	// function createContextMenu(marker, pointType){
-	// 	var markerMenu = new BMap.ContextMenu();
- //    	switch(pointType){
- //    		case POSITION_TYPE_WAREHOUSE:
- //    		markerMenu.addItem(new BMap.MenuItem('<div style="font-size:16px;padding-top: 5px;">设为途经点</div>',markerMenuHandler.bind(marker, markerMenu, 2)));
- //    		markerMenu.addItem(new BMap.MenuItem('<div style="font-size:16px;padding-bottom: 5px;">设为路径节点</div>',markerMenuHandler.bind(marker, markerMenu, 1)));
- //    		break
- //    		case POSITION_TYPE_ORDER_ROUTE:
- //    		markerMenu.addItem(new BMap.MenuItem('<div style="font-size:16px;padding-top: 5px;">设为途经点</div>',markerMenuHandler.bind(marker, markerMenu, 2)));
- //    		markerMenu.addItem(new BMap.MenuItem('<div style="font-size:16px;padding-bottom: 5px;">设为仓库</div>',markerMenuHandler.bind(marker, markerMenu, 0)));
- //    		break
- //    		case POSITION_TYPE_ORDER:
- //    		markerMenu.addItem(new BMap.MenuItem('<div style="font-size:16px;padding-top: 5px;">设为仓库</div>',markerMenuHandler.bind(marker, markerMenu, 0)));
- //    		markerMenu.addItem(new BMap.MenuItem('<div style="font-size:16px;padding-bottom: 5px;">设为路径节点</div>',markerMenuHandler.bind(marker, markerMenu, 1)));
- //    		break
- //    	}
- //    	return markerMenu
-	// }
+
 
 	function optHandler(e){
     	// console.log(e)
@@ -288,6 +253,10 @@
 		    	
 		    	if(_.has(opt, "Address")){
 				    marker.address = opt.Address
+		    	}		    	
+		    	
+		    	if(_.has(opt, "Score")){
+				    marker.score = opt.Score
 		    	}		    	
 		    }
     		resetMarkerIcon(marker, {pointType: marker.pointType})
@@ -402,9 +371,13 @@
 	function onSaveData(){
 		console.log("保存地图数据")
 		//保存两类数据，点和线
-
+		var i = 0
 		// console.log(linesData)
 		var pointsData = _.map(markers, function(marker,index){
+			if(marker.bornPoint != null){
+				i++
+				console.info("发现 %d 个出生点", i)
+			}
 			var p = marker.getPosition()
 			return {ID: index+1, Lat: p.lat, Lng: p.lng, PointType: marker.pointType, Address: marker.address, IsBornPoint: marker.bornPoint != null, Score: marker.score}
 		})
@@ -462,7 +435,7 @@
 		var val = $("#address").val()
 		var score = $("#orderScore").val()
 		selectedMarker.address = val
-		selectedMarker.score = score
+		selectedMarker.score = parseInt(score)
 		alert("设置该点的地址为 "+ val + "  分值为 " + score)
 	}
 	//设置地址编辑区域的显示或者隐藏
