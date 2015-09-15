@@ -260,7 +260,7 @@ func pro_prepared_for_select_order_handlerGenerator(o interface{}) MessageWithCl
 		msg.Target.setCheckPoint(checkpoint_flag_prepared_for_game)
 
 		if center.distributors.every(func(d *Distributor) bool { return d.CheckPoint >= checkpoint_flag_prepared_for_game }) {
-			DebugInfoF("所有配送员准备完毕，可以开始订单分发了")
+			DebugInfoF("所有配送员准备完毕，游戏开始")
 			center.Process(NewMessageWithClient(pro_game_start, msg.Target, nil))
 		} else {
 			DebugInfoF("还有 %d 个配送员未准备完毕", len(center.distributors.filter(func(d *Distributor) bool { return d.CheckPoint < checkpoint_flag_prepared_for_game })))
@@ -282,27 +282,6 @@ func pro_on_line_handlerGenerator(o interface{}) MessageWithClientHandler {
 	center := o.(*DistributorProcessUnitCenter)
 	f := func(msg *MessageWithClient) {
 		DebugTraceF("处理消息 %s", msg)
-		// if msg.Target.IsOriginal() { //掉线后重新上线自动启动
-		// 	DebugTraceF("配送员上线，状态 %d 初始化", checkpoint_flag_origin)
-		// 	//设置默认起始点
-		// 	filter := func(pos *Position) bool {
-		// 		return pos.IsBornPoint
-		// 	}
-		// 	// filter := func(pos *Position) bool {
-		// 	// 	return pos.PointType == POSITION_TYPE_WAREHOUSE
-		// 	// }
-
-		// 	bornPoints := center.mapData.Points.filter(filter)
-		// 	if len(bornPoints) > 0 {
-		// 		msg.Target.StartPos = bornPoints[0] //
-		// 		msg.Target.CurrentPos = msg.Target.StartPos.copyTemp(true)
-		// 	} else {
-		// 		DebugMustF("没有出生点信息")
-		// 		return
-		// 	}
-		// 	msg.Target.NormalSpeed = defaultSpeed
-		// 	msg.Target.CurrentSpeed = defaultSpeed
-		// }
 		center.sendMsgToSpecialSubscriber(msg.Target, pro_2c_map_data, center.mapData)
 		center.sendMsgToSpecialSubscriber(msg.Target, pro_2c_distributor_info, msg.Target)
 		onReconnect(center, msg.Target)
@@ -320,6 +299,7 @@ func onReconnect(center *DistributorProcessUnitCenter, distributor *Distributor)
 		DebugTraceF("配送员 %s 上线，状态 %d 初始化", distributor.Name, checkpoint_flag_origin)
 	case checkpoint_flag_prepared_for_game:
 		DebugTraceF("配送员 %s 上线，状态 %d 准备好游戏了", distributor.Name, checkpoint_flag_prepared_for_game)
+		//如果之前配送员已经提交准备好的请求，现在是掉线重连状态，那么客户端方面就不会重新请求，因此如果是最后一个
 	case checkpoint_flag_game_started:
 		DebugTraceF("配送员 %s 上线，状态 %d 游戏进行中", distributor.Name, checkpoint_flag_game_started)
 		// broadOrderSelectProposal(center.distributors, center.orders)
@@ -374,29 +354,3 @@ func disposeOrderSelectResponse(orderID string, distributor *Distributor, distri
 	DebugTraceF("未分配订单减少到 %d 个", len(orders.Filter(func(o *Order) bool { return o.Distributed == false })))
 	return nil
 }
-
-//只是生成一个分配建议，不是最终的分配结果
-//分配原则：开始分配相同的N（N=配送员的数量）个，每当有订单被选定时，补充一个新的订单
-// func createDistributionProposal(ordersUndistributed OrderList, distributors DistributorList) (list OrderList, err error) {
-// 	if len(ordersUndistributed) <= 0 {
-// 		err = ERR_no_enough_order_to_distribute
-// 		return
-// 	}
-// 	if len(ordersUndistributed) <= 0 {
-// 		err = ERR_no_enough_order
-// 		return
-// 	}
-// 	// distributorsNotFull := distributors.notFull()
-// 	// if len(ordersUndistributed) < len(distributorsNotFull) { //每次分配的订单数等于待接受订单的配送员的数量
-// 	// 	DebugMustF("There is %d orders and %d distributors", len(ordersUndistributed), len(distributorsNotFull))
-// 	// 	err = ERR_NO_ENOUGH_ORDER
-// 	// 	return
-// 	// }
-// 	// var list OrderList
-// 	if len(ordersUndistributed) >= len(distributors) {
-// 		list = ordersUndistributed[0:len(distributors)]
-// 	} else {
-// 		list = ordersUndistributed
-// 	}
-// 	return
-// }

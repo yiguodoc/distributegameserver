@@ -32,23 +32,27 @@
 
 		<!-- Your main view, should have "view-main" class -->
 		<!-- 信息页面 -->
-		<div class="view view-main tab active" id="view-main">
-			<div class="navbar">
-			    <div class="navbar-inner">
-			      <div class="center sliding">配送大师</div>
-			      <div class="right">
-			          <a href="#" class="link icon-only open-panel">
-			              <i class="icon icon-bars"></i>
-			          </a>
-			      </div>
+		<div class="view view-main tab active " id="view-main">
+			<!-- <div class="navbar">
+			    <div class="navbar-inner" id= "statusNavbar">
+			        <div class="center sliding">配送大师</div>
+			        <div class="right"> <a href="#" class="link icon-only open-panel"> <i class="icon icon-bars"></i> </a> </div>
 			    </div>
-			</div>
+			</div> -->
 		      <!-- Pages container, because we use fixed-through navbar and toolbar, it has additional appropriate classes-->
-		    <div class="pages navbar-through">
+		    <div class="pages navbar-fixed">
 		        <!-- Page, "data-page" contains page name -->
 		        <!-- 订单选择页面 -->
-		        <div data-page="processSelectOrder" class="page  no-swipeback" id="1">
-		              <div class="page-content "> 
+		        <div data-page="processSelectOrder" class="page no-swipeback navbar-fixed" id="1">
+		        	<div class="navbar">
+		        	    <div class="navbar-inner" >
+		        	    	<div class="left" > <a href="#" class="link icon-only back"> <i class="icon icon-back"></i> </a> </div>
+		        	        <div class="center sliding">配送大师</div>
+		        	        <div class="right"> <a href="#" class="link icon-only open-panel"> <i class="icon icon-bars"></i> </a> </div>
+		        	    </div>
+		        	</div>		
+		            <div class="page-content "> 
+
 				        <div class="content-block" style="margin-top: 20px;  margin-bottom: 15px;">
 			                <!-- <div id="canvas-holder" style="text-align: center;">
 	                			<canvas id="chart-area" width="130" height="130"/>
@@ -98,18 +102,18 @@
 			               <div class="swiper-button-next"></div>
 			             </div>
 		                <div class=" login-btn-content">
-		                	<div class="row" style="margin-left: 20px; margin-right: 20px;">
+<!-- 		                	<div class="row" style="margin-left: 20px; margin-right: 20px;">
 		                		<div class="col-50">
-				                     <a href="#" class="button button-raised " id="" onclick="onStartDistribution()">开始配送</a>
+				                     <a href="#" class="button button-raised " id="" onclick="onStartDistribution()">返回配送状态</a>
 		                		</div>
 
 		                		<div class="col-50">
-				                     <a href="#" class="button button-raised " id="btnSelectOrder" onclick="selectOrder()">选择订单</a>
+				                     <a href="#" class="button button-raised " id="btnSelectOrder" onclick="selectOrder()">选择当前订单</a>
 		                		</div>
-		                    </div>
+		                    </div> -->
 
 
-		                	<!-- <div class="row">
+		                	 <div class="row">
 		                		<div class="col-10"></div>
 		                		<div class="col-80">
 				                     <a href="#" class="button button-big button-fill" id="" onclick="selectOrder()">选择订单</a>
@@ -117,7 +121,7 @@
 		                		<div class="col-10"></div>
 		                    </div>
 
-		                	<div class="row">
+		                	<!--<div class="row">
 		                		<div class="col-20"></div>
 		                		<div class="col-60">
 				                     <a href="#" class="button " id="" onclick="selectOrder()">开始配送</a>
@@ -128,10 +132,15 @@
 
 		                </div>
 
-		              </div>
+		            </div>
 		        </div>
 		        <!-- 等待其他参与者进入的页面 -->
                 <div data-page="waiting" class="page  no-swipeback" id="2">
+                	<div class="navbar">
+                	    <div class="navbar-inner">
+                	        <div class="center sliding">配送大师</div>
+                	    </div>
+                	</div>	
                       <!-- Scrollable page content -->
                       <div class="page-content "> 
         		        <div class="content-block" style="margin-top: 100px;">
@@ -160,7 +169,12 @@
                 </div>
                 <!-- 配送状态页面 -->
                 <div data-page="processDistribution" class="page  no-swipeback" id="5"><!-- Scrollable page content -->
-                       
+                    <div class="navbar">
+                        <div class="navbar-inner" >
+                            <div class="center sliding">配送大师</div>
+                            <div class="right"> <a href="#" class="link icon-only open-panel"> <i class="icon icon-bars"></i> </a> </div>
+                        </div>
+                    </div>	   
 					<div class="page-content "> 
 					    <div class="content-block" style="margin-top: 0px;">
 					            <!-- <p style="text-align: center;">00:10</p> -->
@@ -993,11 +1007,16 @@
 	    }
 	    function onRouteToSelectOrderView(){
         	viewRouteToPage(mainView, 'processSelectOrder')
+	    	// $$("#statusNavbar").prepend('<div id="statusNavbarLeft" class="left"> <a href="#" class="link icon-only"> <i class="icon icon-back"></i> </a> </div>')
+        	$$("#statusNavbarLeft").show()
 	    	
 	    }
-	    function onStartDistribution(){
-        	viewRouteToPage(mainView, 'processDistribution')
 
+	    function onStartDistribution(){
+
+	    	mainView.router.back()
+        	// viewRouteToPage(mainView, 'processDistribution')
+        	$$("#statusNavbarLeft").hide()
 	    }
 	    function onSignOrder(){
 	    	//如果有订单，提醒签收
