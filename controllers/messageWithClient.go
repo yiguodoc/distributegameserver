@@ -104,7 +104,7 @@ var (
 	pro_2c_reach_route_node                    ClientMessageTypeCode = 408 //到达一个路径节点
 	pro_2c_sign_order                          ClientMessageTypeCode = 409 //订单签收完成
 	pro_2c_distributor_info                    ClientMessageTypeCode = 410 //
-	pro_2c_all_prepared_4_select_order         ClientMessageTypeCode = 411
+	pro_2c_game_start                          ClientMessageTypeCode = 411
 	pro_2c_message_broadcast_before_game_start ClientMessageTypeCode = 412
 	pro_2c_move_from_node                      ClientMessageTypeCode = 413
 	pro_2c_all_order_signed                    ClientMessageTypeCode = 414
@@ -113,12 +113,15 @@ var (
 	pro_2c_end_game                            ClientMessageTypeCode = 417
 	pro_2c_rank_change                         ClientMessageTypeCode = 418
 	pro_2c_check_point_change                  ClientMessageTypeCode = 419
-	pro_2c_max                                 ClientMessageTypeCode = 420
+	pro_2c_restart_game                        ClientMessageTypeCode = 420
+	pro_2c_max                                 ClientMessageTypeCode = 421
 	// pro_2c_order_full                          ClientMessageTypeCode = 411 //订单满载
 )
 
 func (c ClientMessageTypeCode) name() (s string) {
 	switch c {
+	case pro_2c_restart_game:
+		s = "pro_2c_restart_game"
 	case pro_start_distribution_request:
 		s = "pro_start_distribution_request"
 	case pro_game_timeout:
@@ -139,8 +142,8 @@ func (c ClientMessageTypeCode) name() (s string) {
 		s = "pro_2c_move_from_node"
 	case pro_2c_message_broadcast_before_game_start:
 		s = "pro_2c_message_broadcast_before_game_start"
-	case pro_2c_all_prepared_4_select_order:
-		s = "pro_2c_all_prepared_4_select_order"
+	case pro_2c_game_start:
+		s = "pro_2c_game_start"
 	case pro_2c_check_point_change:
 		s = "pro_2c_check_point_change"
 	case pro_2c_distributor_info:

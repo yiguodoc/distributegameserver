@@ -99,16 +99,13 @@
 			             </div>
 		                <div class=" login-btn-content">
 		                	<div class="row" style="margin-left: 20px; margin-right: 20px;">
-		                		<!-- <div class="col-5"></div> -->
-		                		<div class="col-50">
-				                     <a href="#" class="button button-raised " id="btnSelectOrder" onclick="selectOrder()">选择订单</a>
-		                		</div>
-
 		                		<div class="col-50">
 				                     <a href="#" class="button button-raised " id="" onclick="onStartDistribution()">开始配送</a>
 		                		</div>
 
-		                		<!-- <div class="col-5"></div> -->
+		                		<div class="col-50">
+				                     <a href="#" class="button button-raised " id="btnSelectOrder" onclick="selectOrder()">选择订单</a>
+		                		</div>
 		                    </div>
 
 
@@ -179,7 +176,17 @@
 					            </div>
 					            <div style="text-align: center;margin-bottom: 20px; color: rgba(100,100,100,0.7);"> <span id="speed">0km/h</span> </div>
 					            <div class=" login-btn-content">
-					                  <a href="#" class="button button-big button-fill disabled" id="btnSignOrder" onclick="onSignOrder()">订单签收</a>
+					                  <!-- <a href="#" class="button button-big button-fill disabled" id="btnSignOrder" onclick="onSignOrder()">订单签收</a> -->
+
+                                  	<div class="row" style="margin-left: 20px; margin-right: 20px;">
+                                  		<div class="col-50">
+                  		                     <a href="#" class="button button-raised disabled" id="btnSignOrder" onclick="onSignOrder()">订单签收</a>
+                                  		</div>
+                                  		<div class="col-50">
+                  		                     <a href="#" class="button button-raised " onclick="onRouteToSelectOrderView()">订单选择</a>
+                                  		</div>
+
+                                    </div>
 					            </div>
 					            <div style = "text-align:center;margin-top: 25px; text-decoration: underline;"> <span onclick="onEndDistribution()">结束配送 </span> </div>
 					    </div>
@@ -356,7 +363,6 @@
 
 		              </div>
 		         
-
 		          </div>
 		    </div>
 		</div>
@@ -415,21 +421,21 @@
 		<div class="toolbar tabbar tabbar-labels">
 		  <div class="toolbar-inner">
 		      <a href="#view-main" class="tab-link active">
-		          <i class="icon tabbar-demo-icon-1"></i>
+		          <i class="icon tabbar-icon-status"></i>
 		          <span class="tabbar-label">状态</span>
 		      </a>
 		      <a href="#view-map" class="tab-link ">
-		          <i class="icon tabbar-demo-icon-2">
-		              <span class="badge bg-red">5</span>
+		          <i class="icon tabbar-icon-map">
+		              <!-- <span class="badge bg-red">5</span> -->
 		          </i>
 		          <span class="tabbar-label">地图</span>
 		      </a>
 		      <a href="#view-orders" class="tab-link">
-		          <i class="icon tabbar-demo-icon-3"></i>
+		          <i class="icon tabbar-icon-order"></i>
 		          <span class="tabbar-label">订单</span>
 		      </a>
 		      <a href="#view-cards" class="tab-link">
-		          <i class="icon tabbar-demo-icon-4"></i>
+		          <i class="icon tabbar-icon-msg"></i>
 		          <span class="tabbar-label">消息</span>
 		      </a>
 		  </div>
@@ -459,16 +465,12 @@
     		{}
 		]
 	    var MessageHandlers = [
-	    	{MessageType: {{.pro_2c_all_prepared_4_select_order}}, handler: function(msg){
-	    		console.log("route to %s", 'processSelectOrder')
-	        	viewRouteToPage(mainView, 'processSelectOrder')
-	    	}},
+	    	{MessageType: {{.pro_2c_game_start}}, handler: pro_2c_game_start_handler},
 	    	{MessageType: {{.pro_2c_message_broadcast_before_game_start}}, handler: pro_2c_message_broadcast_before_game_start_handler},
 	    	{MessageType: {{.pro_2c_order_distribution_proposal}}, handler: pro_2c_order_distribution_proposal_handler},
 	    	{MessageType: {{.pro_timer_count_down}}, handler: pro_timer_count_down_handler},
 	    	{MessageType: {{.pro_2c_message_broadcast}}, handler: pro_2c_message_broadcast_handler},
 	    	{MessageType: {{.pro_2c_order_select_result}}, handler: pro_2c_order_select_result_handler},
-	    	// {MessageType: {{.pro_2c_order_full}}, handler: pro_2c_order_full_handler},
 	    	{MessageType: {{.pro_2c_reach_route_node}}, handler: pro_2c_reach_route_node_handler},
 	    	{MessageType: {{.pro_2c_move_to_new_position}}, handler: pro_2c_move_to_new_position_handler},
 	    	{MessageType: {{.pro_2c_move_from_node}}, handler: pro_2c_move_from_node_handler},
@@ -480,9 +482,20 @@
 	    	{MessageType: {{.pro_2c_speed_change}}, handler: pro_2c_speed_change_handler},
 	    	{MessageType: {{.pro_2c_end_game}}, handler: pro_2c_end_game_handler},
 	    	{MessageType: {{.pro_2c_rank_change}}, handler: pro_2c_rank_change_handler},
+	    	{MessageType: {{.pro_2c_restart_game}}, handler: pro_2c_restart_game_handler},
 	    	{MessageType: {{.pro_2c_sys_time_elapse}}, handler: pro_2c_sys_time_elapse_handler, print: false},
 	    	{}
 	    ]
+	    function pro_2c_game_start_handler(msg){
+	    	distributor = msg.Data
+	    	refreshDistributionStateView()//数据
+        	viewRouteToPage(mainView, 'processDistribution')
+
+	    }
+	    function pro_2c_restart_game_handler(msg){
+            // window.location.href = window.location.href
+            window.location.reload();
+	    }
 	    function pro_2c_rank_change_handler(msg){
 	    	distributor = msg.Data
 	    	refreshStatisticPage()
@@ -497,7 +510,8 @@
 	    //速度发生变化
 	    function pro_2c_speed_change_handler(msg){
 			distributor = msg.Data
-	    	refreshSpeed()
+	    	// refreshSpeed()
+	    	refreshDistributionStateView()
 	    }
     	//更新系统时间
 	    function pro_2c_sys_time_elapse_handler(msg){
@@ -547,7 +561,8 @@
 		    	})
 		    	remindOrderSigning()
 				refreshOrderView()
-				refreshOrderSignProcess()
+				// refreshOrderSignProcess()
+				refreshDistributionStateView()
 	    	}
 	    }
 	    function pro_2c_reset_destination_handler(msg){
@@ -563,7 +578,8 @@
 			refreshNodeToSelect()
 	    	setDestinationMarker()
 	    	remindOrderSigning()
-	    	refreshRunningState(2)
+	    	// refreshRunningState(2)
+	    	refreshDistributionStateView()
 	    }
 
 	    function pro_2c_move_to_new_position_handler(msg){
@@ -578,7 +594,8 @@
 			refreshNodeToSelect()
 	    	resetOrderSignButtonState(false)	    	
 	    	// setDestinationMarker()
-	    	refreshRunningState(1)
+	    	// refreshRunningState(1)
+	    	refreshDistributionStateView()
 	    }
 	    function pro_2c_message_broadcast_before_game_start_handler(msg){
 	    	$$("#waitingInfo").text(msg.Data)
@@ -614,51 +631,55 @@
 	    		distributor = msg.Data
 	    		// resetPie()
 	    		refreshSeletedOrdersStatistics()
-				flagOrderNodeMarker()
+				setAcceptedOrderMarkerOnMap()
 				refreshOrderView()
 				var lastOrder = distributor.AcceptedOrders[_.size(distributor.AcceptedOrders)-1]
 				addMsgToView({timeStamp: transformTimeElapseToStandardFormat(lastOrder.SelectedTime), content: "选择配送订单 "+ lastOrder.ID})
-				refreshOrderSignProcess()
+				// refreshOrderSignProcess()
+				refreshDistributionStateView()
 	    	}else{
 	    	    console.log("没有抢到订单 ")	    		
 	    	}
 	    }
-
+	    //初始化配送员数据页面
 	    function pro_2c_distributor_info_handler(msg){
 	    	var data = msg.Data
 	    	console.log(data)
 	    	distributor = data
-	    	switch(distributor.CheckPoint){
-	    		case {{.checkpoint_flag_origin}}:
-		        	viewRouteToPage(mainView, 'index')
-	    		break
-	    		case {{.checkpoint_flag_order_select}} :
-		        	viewRouteToPage(mainView, 'processSelectOrder')
-		        	// resetPie()
-		        	refreshSeletedOrdersStatistics()
-	    		break
-	    		case {{.checkpoint_flag_order_distribute}} :
-		        	viewRouteToPage(mainView, 'processDistribution')
-		        	// viewRouteToPage(mainView, 'processGo2Distribution')
-	    		break
-	    		case {{.checkpoint_flag_order_distribute_over}}:
-		        	viewRouteToPage(mainView, 'processStatistic')
-		        	refreshStatisticPage()
-	    		break
-	    	}
 			refreshMyLocation()
-			flagOrderNodeMarker()
+			setAcceptedOrderMarkerOnMap()
 			refreshNodeToSelect()
 			remindOrderSigning()
 			refreshOrderView()
 			addMsgToView({timeStamp: transformTimeElapseToStandardFormat(distributor.TimeElapse), content: "上线"})
-			refreshOrderSignProcess()
-			if(isDistributorOnNode(distributor) == true){
-				refreshRunningState(2)
-			}else{
-				refreshRunningState(1)
+			// refreshOrderSignProcess()
+			// refreshRunningState()
+			// refreshSpeed()
+			refreshDistributionStateView()
+			if(distributor.CurrentPos != null){
+				var pos = distributor.CurrentPos
+				// map.setCenter(new BMap.Point(pos.Lng, pos.Lat))
+			    setMapMarker(pos.Lng, pos.Lat, false)
 			}
-			refreshSpeed()
+
+	    	switch(distributor.CheckPoint){
+	    		case {{.checkpoint_flag_origin}}:
+		        	viewRouteToPage(mainView, 'index')
+	    		break
+	    		case {{.checkpoint_flag_prepared_for_game}}:
+		        	viewRouteToPage(mainView, 'waiting')//倒计时页面
+
+	    		case {{.checkpoint_flag_game_started}} :
+		        	// viewRouteToPage(mainView, 'processSelectOrder')
+		        	// refreshSeletedOrdersStatistics()
+		        	viewRouteToPage(mainView, 'processDistribution')		        	
+	    		break
+	    		case {{.checkpoint_flag_game_over}}:
+		        	viewRouteToPage(mainView, 'processStatistic')
+		        	refreshStatisticPage()
+	    		break
+	    	}
+
 	    }
 	    function pro_2c_map_data_handler(msg){
 	    	if(mapData != null){
@@ -675,6 +696,7 @@
 	    	drawRouteNodeOnMap(mapData)
 	    }
 	    //---------------------------------------------------------
+	    //配送结果统计页面刷新
 	    function refreshStatisticPage(){
 	    	$$("#statisticRank").text(distributor.Rank)
 	    	$$("#statisticScoreTotal").text(distributor.Score)
@@ -705,24 +727,19 @@
 	    	  ]
 	    	})
 	    }
-	    function refreshSpeed(){
+		//刷新配送状态页面
+	    function refreshDistributionStateView(){
 	    	var speed = distributor.CurrentSpeed
-	    	$$("#speed").text(speed+"km/h")
-	    }
-	    function refreshRunningState(state){
-	    	switch(state){
-	    		case 1://跑动
-		    		$$("#imgStateGif").attr("src", "/images/marker/running.gif")
-		    		break
-	    		case 2://原地跑动
-		    		$$("#imgStateGif").attr("src", "/images/marker/stayRunning.gif")
-		    		break
-	    	}
-	    }
-	    function refreshOrderSignProcess(){
+	    	$$("#speed").text(speed+"km/h")	
+	    	if(isDistributorOnNode(distributor) == true){
+	    		$$("#imgStateGif").attr("src", "/images/marker/stayRunning.gif")//原地跑动
+	    	}else{
+	    		$$("#imgStateGif").attr("src", "/images/marker/running.gif")//跑动
+	    	}	 
 	    	var orderSigned = _.filter(distributor.AcceptedOrders, function(order){return order.Signed == true})
-	    	$$("#orderSignProcess").text(String.format("{0}/{1}", _.size(orderSigned), _.size(distributor.AcceptedOrders)))
+	    	$$("#orderSignProcess").text(String.format("{0}/{1}", _.size(orderSigned), _.size(distributor.AcceptedOrders)))	    	   	    	
 	    }
+
 	    //添加消息到消息页面
 	    function addMsgToView(msg){
 	    	var dom = $$("#msgList")
@@ -736,7 +753,7 @@
 
 		    	$$("#"+domID+"Label").text(String.format("（{0}）", _.size(orders)))
 	    		_.each(orders, function(order){
-	    			dom.append(String.format('<li> <a href="#" class="item-link item-content"> <div class="item-inner"> <div class="item-title-row"> <div class="item-title">{0}</div> <div class="item-after"><span class="badge  bg-lightblue">+1</span></div> </div> <div class="item-text">{1}</div> </div> </a> </li>', order.ID, order.Address || ""))
+	    			dom.append(String.format('<li> <a href="#" class="item-link item-content"> <div class="item-inner"> <div class="item-title-row"> <div class="item-title">{0}</div> <div class="item-after"><span class="badge  bg-lightblue" style="padding-top:3px; border-radius: 5px;">+{1}</span></div> </div> <div class="item-text">{2}</div> </div> </a> </li>', order.ID,order.Score, order.Address || ""))
 	    		})
 	    	}
 	    	refresher("orderListUnsigned", _.filter(distributor.AcceptedOrders, function(order){return order.Signed == false}))
@@ -827,7 +844,8 @@
     	    	setMyLocationMark(pos.Lng, pos.Lat)
         	}	    	
         }
-        function flagOrderNodeMarker(){
+        //将配送员选择的订单标识在地图上
+        function setAcceptedOrderMarkerOnMap(){
         	_.each(distributor.AcceptedOrders, function(order){
         		var pos = order.GeoSrc
         		var point = _.findWhere(mapData.Points, {Lng: pos.Lng, Lat:pos.Lat})
@@ -863,16 +881,7 @@
 
 	    	}
 	    }
-	    function resetPie(){
-        	// if(_.size(distributor.AcceptedOrders) <= 0){
-        	// 	pie()
-        	// }else{
-        	// 	//对接收的订单按照区域进行分类
-        	// 	var groups = _.groupBy(distributor.AcceptedOrders,function(order){return order.Region.Color})
-        	// 	var values = _.map(groups,function(v,key){return {value: _.size(v), color: "rgb("+key+")"}})
-        	// 	pie(values)
-        	// }	    	
-	    }
+
 	    function addLineOverlayToMap(line){
 			var start = line.Start
 			var end = line.End
@@ -982,7 +991,10 @@
 	    		$$("#btnSelectOrder").removeClass("disabled")
 	    	}, 2000)
 	    }
-
+	    function onRouteToSelectOrderView(){
+        	viewRouteToPage(mainView, 'processSelectOrder')
+	    	
+	    }
 	    function onStartDistribution(){
         	viewRouteToPage(mainView, 'processDistribution')
 
@@ -1043,20 +1055,6 @@
 	    		$$("#btnSignOrder").addClass("disabled")
 	    	}
 	    }
-	    // function pie(pieData){
-	    //     if(pieData == null){
-	    //         pieData = [
-	    //                     {
-	    //                         value: 1,
-	    //                         color:"#C8C8C8",
-	    //                         highlight: "#C8C8C8",
-	    //                         label: "无"
-	    //                     }
-	    //                 ];
-	    //     }
-	    //     var ctx = document.getElementById("chart-area").getContext("2d");
-	    //     var myPie = new Chart(ctx).Pie(pieData);    
-	    // }
 	    function send(msg){
 	        if (!conn) {
 	            return false;

@@ -26,18 +26,20 @@ type CheckPoint int
 func getCheckPointMap() map[string]CheckPoint {
 	m := make(map[string]CheckPoint)
 	m["checkpoint_flag_origin"] = checkpoint_flag_origin
-	m["checkpoint_flag_order_select"] = checkpoint_flag_order_select
-	m["checkpoint_flag_order_distribute"] = checkpoint_flag_order_distribute
-	m["checkpoint_flag_order_distribute_over"] = checkpoint_flag_order_distribute_over
+	m["checkpoint_flag_prepared_for_game"] = checkpoint_flag_prepared_for_game
+	m["checkpoint_flag_game_started"] = checkpoint_flag_game_started
+	m["checkpoint_flag_game_over"] = checkpoint_flag_game_over
+	// m["checkpoint_flag_order_distribute_over"] = checkpoint_flag_order_distribute_over
 	return m
 }
 
 var (
-	checkpoint_flag_origin                CheckPoint = 0
-	checkpoint_flag_order_select          CheckPoint = 1
-	checkpoint_flag_order_distribute      CheckPoint = 2
-	checkpoint_flag_order_distribute_over CheckPoint = 3
-	checkpoint_max                        CheckPoint = 4
+	checkpoint_flag_origin            CheckPoint = 0 //只是刚登录系统
+	checkpoint_flag_prepared_for_game CheckPoint = 1 //进入游戏房间等待
+	checkpoint_flag_game_started      CheckPoint = 2 //游戏已经开始
+	checkpoint_flag_game_over         CheckPoint = 3 //游戏结束
+	// checkpoint_flag_order_distribute_over CheckPoint = 3
+	// checkpoint_max                        CheckPoint = 4
 )
 
 // 配送员
@@ -62,16 +64,6 @@ type Distributor struct {
 	// MaxAcceptedOrdersCount int             `json:"-"` //配送员可以接收的最大订单数量
 }
 
-// func NewDistributorFromJson(bytes []byte) *Distributor {
-// 	var Distributor Distributor
-// 	err := json.Unmarshal(bytes, &Distributor)
-// 	if err != nil {
-// 		DebugSysF("解析JSON生成 Distributor 时出错：%s", err)
-// 		return nil
-// 	} else {
-// 		return &Distributor
-// 	}
-// }
 func NewDistributor(id, name string, color string) *Distributor {
 	return &Distributor{
 		ID:             id,
@@ -100,6 +92,10 @@ func (d *Distributor) PosString() string {
 // func (this *Distributor) fullyLoaded() bool {
 // 	return len(this.AcceptedOrders) >= this.MaxAcceptedOrdersCount
 // }
+
+func (d *Distributor) whetherHasEndTheGame() bool {
+	return d.CheckPoint == checkpoint_flag_game_over
+}
 
 func (d *Distributor) caculateScore() {
 	unSignedOrders := d.AcceptedOrders.Filter(func(o *Order) bool { return o.Signed == false })

@@ -36,25 +36,28 @@ func init() {
 }
 func restartGame() {
 	if g_UnitCenter != nil {
-		g_UnitCenter.stop()
-	}
-	//加载地图数据
-	mapData := loadMapData()
+		// g_UnitCenter.stop()
+		g_UnitCenter.restart()
+	} else {
+		//加载地图数据
+		mapData := loadMapData()
 
-	orders := mapData.Points.filter(func(pos *Position) bool {
-		return pos.PointType == POSITION_TYPE_ORDER
-	}).Map(OrderList{}, func(pos *Position, list interface{}) interface{} {
-		o := NewOrder(generateOrderID(), pos)
-		return append(list.(OrderList), o)
-	}).(OrderList).random(rand.New(rand.NewSource(time.Now().UnixNano())), OrderList{})
-	DebugPrintList_Info(orders)
+		orders := mapData.Points.filter(func(pos *Position) bool {
+			return pos.PointType == POSITION_TYPE_ORDER
+		}).Map(OrderList{}, func(pos *Position, list interface{}) interface{} {
+			o := NewOrder(generateOrderID(), pos)
+			return append(list.(OrderList), o)
+		}).(OrderList).random(rand.New(rand.NewSource(time.Now().UnixNano())), OrderList{})
+		DebugPrintList_Info(orders)
 
-	l := []string{"d01", "d02", "d03"}
-	filter := func(d *Distributor) bool { return stringInArray(d.ID, l[:]) }
-	g_UnitCenter = NewDistributorProcessUnitCenter(g_distributorStore.clone(filter), orders, mapData, default_time_of_one_loop)
-	if g_UnitCenter != nil {
-		g_UnitCenter.start()
+		l := []string{"d01", "d02", "d03"}
+		filter := func(d *Distributor) bool { return stringInArray(d.ID, l[:]) }
+		g_UnitCenter = NewDistributorProcessUnitCenter(g_distributorStore.clone(filter), orders, mapData, default_time_of_one_loop)
+		if g_UnitCenter != nil {
+			g_UnitCenter.start()
+		}
 	}
+
 }
 
 //字符串数组中是否含有指定字符串

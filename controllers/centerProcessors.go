@@ -45,7 +45,7 @@ func pro_game_timeout_handlerGenerator(o interface{}) MessageWithClientHandler {
 			center.sendMsgToSpecialSubscriber(d, pro_2c_rank_change, d)
 		})
 		DebugPrintList_Info(center.distributors)
-		center.distributors.filter(func(d *Distributor) bool { return d.CheckPoint < checkpoint_flag_order_distribute_over }).
+		center.distributors.filter(func(d *Distributor) bool { return d.whetherHasEndTheGame() == false }).
 			forEach(func(d *Distributor) {
 			center.sendMsgToSpecialSubscriber(d, pro_2c_end_game, d)
 		})
@@ -82,7 +82,7 @@ func pro_end_game_request_handlerGenerator(o interface{}) MessageWithClientHandl
 		//计算排名
 		center.distributors.Rank()
 		DebugPrintList_Info(center.distributors)
-		msg.Target.setCheckPoint(checkpoint_flag_order_distribute_over)
+		msg.Target.setCheckPoint(checkpoint_flag_game_over)
 		center.stopUnit(msg.Target.ID)
 		center.sendMsgToSpecialSubscriber(msg.Target, pro_2c_end_game, msg.Target)
 		center.distributors.forEach(func(d *Distributor) {
@@ -227,7 +227,14 @@ func pro_game_start_handlerGenerator(o interface{}) MessageWithClientHandler {
 			center.broadcastMsgToSubscribers(pro_2c_message_broadcast_before_game_start, count)
 			count--
 		}
-		center.broadcastMsgToSubscribers(pro_2c_all_prepared_4_select_order, nil)
+		center.distributors.forEach(func(d *Distributor) {
+			d.setCheckPoint(checkpoint_flag_game_started)
+			center.sendMsgToSpecialSubscriber(d, pro_2c_game_start, d)
+		})
+		// center.broadcastMsgToSubscribers(pro_2c_game_start, nil)
+		// center.distributors.forEach(func(d *Distributor) {
+		// 	center.sendMsgToSpecialSubscriber(d, pro_2c_game_start, d)
+		// })
 		sendOrderProposal(center)
 		center.startAlltUnit()
 		center.startGameTiming()
@@ -250,13 +257,13 @@ func pro_prepared_for_select_order_handlerGenerator(o interface{}) MessageWithCl
 	f := func(msg *MessageWithClient) {
 		DebugInfoF("配送员[%s]准备好订单的分发了", msg.Target.Name)
 
-		msg.Target.setCheckPoint(checkpoint_flag_order_select)
+		msg.Target.setCheckPoint(checkpoint_flag_prepared_for_game)
 
-		if center.distributors.every(func(d *Distributor) bool { return d.CheckPoint >= checkpoint_flag_order_select }) {
+		if center.distributors.every(func(d *Distributor) bool { return d.CheckPoint >= checkpoint_flag_prepared_for_game }) {
 			DebugInfoF("所有配送员准备完毕，可以开始订单分发了")
 			center.Process(NewMessageWithClient(pro_game_start, msg.Target, nil))
 		} else {
-			DebugInfoF("还有 %d 个配送员未准备完毕", len(center.distributors.filter(func(d *Distributor) bool { return d.CheckPoint < checkpoint_flag_order_select })))
+			DebugInfoF("还有 %d 个配送员未准备完毕", len(center.distributors.filter(func(d *Distributor) bool { return d.CheckPoint < checkpoint_flag_prepared_for_game })))
 
 		}
 	}
@@ -310,9 +317,11 @@ func onReconnect(center *DistributorProcessUnitCenter, distributor *Distributor)
 	//如果在分配订单中，应该推送给其正在选择的订单
 	switch distributor.CheckPoint {
 	case checkpoint_flag_origin:
-		DebugTraceF("配送员上线，状态 %d 初始化", checkpoint_flag_origin)
-	case checkpoint_flag_order_select:
-		DebugTraceF("配送员上线，状态 %d 订单选择中", checkpoint_flag_order_select)
+		DebugTraceF("配送员 %s 上线，状态 %d 初始化", distributor.Name, checkpoint_flag_origin)
+	case checkpoint_flag_prepared_for_game:
+		DebugTraceF("配送员 %s 上线，状态 %d 准备好游戏了", distributor.Name, checkpoint_flag_prepared_for_game)
+	case checkpoint_flag_game_started:
+		DebugTraceF("配送员 %s 上线，状态 %d 游戏进行中", distributor.Name, checkpoint_flag_game_started)
 		// broadOrderSelectProposal(center.distributors, center.orders)
 		proposals := getOrderSelectProposal(center.distributors, center.orders)
 		// if proposals, err := getOrderSelectProposal(center.distributors, center.orders); err == nil {
@@ -321,10 +330,10 @@ func onReconnect(center *DistributorProcessUnitCenter, distributor *Distributor)
 		// } else {
 		// 	DebugInfoF("%s", err)
 		// }
-	case checkpoint_flag_order_distribute:
-		DebugTraceF("配送员上线，状态 %d 配送中", checkpoint_flag_order_distribute)
-	case checkpoint_flag_order_distribute_over:
-		DebugTraceF("配送员上线，状态 %d 配送完成", checkpoint_flag_order_distribute_over)
+	// case checkpoint_flag_order_distribute:
+	// 	DebugTraceF("配送员上线，状态 %d 配送中", checkpoint_flag_order_distribute)
+	case checkpoint_flag_game_over:
+		DebugTraceF("配送员 %s 上线，状态 %d 配送完成", distributor.Name, checkpoint_flag_game_over)
 	}
 }
 

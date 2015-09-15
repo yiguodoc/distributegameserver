@@ -42,7 +42,7 @@ require(['jquery', 'lodash', 'Framework7', 'Chart'], function ($, _, Framework7,
 
     
     initMap()
-    resetMap2Initial()
+    // resetMap2Initial()
 
     mySwiper = swiper()
     // pie()
@@ -130,6 +130,14 @@ require(['jquery', 'lodash', 'Framework7', 'Chart'], function ($, _, Framework7,
                 if(msg.ErrorMsg != null && msg.ErrorMsg.length > 0){//系统对操作的错误提示信息
                     console.warn(msg.ErrorMsg)
                     addMsgToView(msg.SysTime, msg.ErrorMsg)
+                    var notify = myApp.addNotification({
+                            title: '提示',
+                            message: msg.ErrorMsg
+                    });
+                    setTimeout(function(){
+                        myApp.closeNotification(notify)
+                    }, 2000)
+
                 }
                 var handler = _.find(MessageHandlers, {MessageType: msg.MessageType})
                 if(handler == null){

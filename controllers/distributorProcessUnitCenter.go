@@ -19,10 +19,10 @@ type DistributorProcessUnitCenter struct {
 	distributors      DistributorList
 	orders            OrderList
 	mapData           *MapData
-	mapDataLoader     func() *MapData
 	GameTimeMaxLength int //游戏最大时长
 	TimeElapse        int //运行时间
 	gameStarted       bool
+	// mapDataLoader     func() *MapData
 	// wsRoom            *WsRoom
 }
 
@@ -138,10 +138,13 @@ func (dpc *DistributorProcessUnitCenter) stop() {
 	// if dpc.wsRoom != nil {
 	// 	dpc.wsRoom.stop()
 	// }
+
 	if dpc.chanStop != nil {
 		dpc.chanStop <- true
 		dpc.chanStop = nil
 	}
+	dpc.TimeElapse = 0
+	dpc.gameStarted = false
 }
 func (dpc *DistributorProcessUnitCenter) start() *DistributorProcessUnitCenter {
 	bornPoints := dpc.mapData.Points.filter(func(p *Position) bool { return p.IsBornPoint }).random(rand.New(rand.NewSource(time.Now().UnixNano())), PositionList{})
@@ -156,18 +159,16 @@ func (dpc *DistributorProcessUnitCenter) start() *DistributorProcessUnitCenter {
 		return bornPoints[i]
 	}
 	dpc.distributors.forEach(func(distributor *Distributor) {
+		distributor.setCheckPoint(checkpoint_flag_origin)
 		distributor.GameTimeMaxLength = dpc.GameTimeMaxLength
 		distributor.StartPos = positionGenerator()
 		distributor.CurrentPos = distributor.StartPos.copyTemp(true)
 		distributor.NormalSpeed = defaultSpeed
 		distributor.CurrentSpeed = defaultSpeed
-
+		distributor.AcceptedOrders = OrderList{}
 		newUnit(dpc, distributor)
 	})
-	if dpc.mapDataLoader != nil {
-		dpc.mapData = dpc.mapDataLoader()
-	}
-	// dpc.wsRoom.start()
+
 	go func() {
 		timer := time.Tick(1 * time.Second) //计时器功能
 		for {
@@ -204,6 +205,14 @@ func (dpc *DistributorProcessUnitCenter) start() *DistributorProcessUnitCenter {
 	}()
 	DebugInfoF("配送系统处理中心开始运行...")
 	return dpc
+}
+
+//重置游戏
+//参与者状态清零，通知客户端游戏重置，客户端采取相应的措施
+func (dpc *DistributorProcessUnitCenter) restart() {
+	dpc.stop()
+	dpc.start()
+	dpc.broadcastMsgToSubscribers(pro_2c_restart_game, nil)
 }
 func (dpc *DistributorProcessUnitCenter) startGameTiming() {
 	dpc.gameStarted = true

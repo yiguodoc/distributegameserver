@@ -102,7 +102,13 @@ func (l OrderList) random(rander *rand.Rand, list OrderList) OrderList {
 	last := append(append(OrderList{}, l[:r]...), l[r+1:]...)
 	return last.random(rander, append(list, l[r]))
 }
-
+func (l OrderList) forEach(f func(*Order)) {
+	if f == nil || len(l) <= 0 {
+		return
+	}
+	f(l[0])
+	l[1:].forEach(f)
+}
 func (l OrderList) findOne(f predictor) *Order {
 	if len(l) <= 0 || f == nil {
 		return nil

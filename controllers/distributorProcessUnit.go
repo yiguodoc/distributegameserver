@@ -24,7 +24,7 @@ func (l DistributorProcessUnitList) forEach(f func(*DistributorProcessUnit)) {
 
 func newUnit(dpc *DistributorProcessUnitCenter, distributor *Distributor) *DistributorProcessUnit {
 	if u, ok := dpc.units[distributor.ID]; ok {
-		DebugInfoF("配送处理单元 %s 重复添加", distributor.ID)
+		DebugInfoF("配送处理单元 %s 已存在", distributor.ID)
 		return u
 	} else {
 		unit := &DistributorProcessUnit{

@@ -1,10 +1,60 @@
 /* Your app custom files in this file */
 /* Tab bar icons */
+
+i.tabbar-icon-status {
+  width: 30px;
+  height: 30px;
+  background-image: url("../images/tab_status_unactive.png");
+}
+.active i.tabbar-icon-status {
+  width: 30px;
+  height: 30px;
+  background-image: url("../images/tab_status_active.png");
+}
+
+i.tabbar-icon-map {
+  width: 30px;
+  height: 30px;
+  background-image: url("../images/tab_map_unactive.png");
+}
+.active i.tabbar-icon-map {
+  width: 30px;
+  height: 30px;
+  background-image: url("../images/tab_map_active.png");
+}
+
+i.tabbar-icon-order {
+  width: 30px;
+  height: 30px;
+  background-image: url("../images/tab_order_unactive.png");
+}
+.active i.tabbar-icon-order {
+  width: 30px;
+  height: 30px;
+  background-image: url("../images/tab_order_active.png");
+}
+
+i.tabbar-icon-msg {
+  width: 30px;
+  height: 30px;
+  background-image: url("../images/tab_msg_unactive.png");
+}
+.active i.tabbar-icon-msg {
+  width: 30px;
+  height: 30px;
+  background-image: url("../images/tab_msg_active.png");
+}
+
+
+
+
+
 i.tabbar-demo-icon-1 {
   width: 30px;
   height: 30px;
   background-image: url("data:image/svg+xml;charset=utf-8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30' fill='%23929292'><g><circle cx='15.2' cy='8.8' r='1.5'/><polygon points='16.7,12.3 16.7,11.7 16.7,11.3 13.7,11.3 13.7,12.3 14.7,12.3 14.7,20.3 13.7,20.3 13.7,21.3 17.7,21.3 17.7,20.3 16.7,20.3'/><path d='M15.2,2.3C8.3,2.3,2.7,7.9,2.7,14.8s5.6,12.5,12.5,12.5c6.9,0,12.5-5.6,12.5-12.5S22.1,2.3,15.2,2.3z M15.2,26.3 c-6.3,0-11.5-5.2-11.5-11.5S8.8,3.3,15.2,3.3s11.5,5.2,11.5,11.5S21.5,26.3,15.2,26.3z'/></g></svg>");
 }
+
 .active i.tabbar-demo-icon-1 {
   background-image: url("data:image/svg+xml;charset=utf-8,<svg xmlns='http://www.w3.org/2000/svg' x='0px' y='0px' viewBox='0 0 30 30' fill='%23007aff'><path d='M15,2.6C8.1,2.6,2.5,8.2,2.5,15.1C2.5,22,8.1,27.6,15,27.6S27.5,22,27.5,15.1C27.5,8.2,21.9,2.6,15,2.6z M15,7.6 c0.8,0,1.5,0.7,1.5,1.5c0,0.8-0.7,1.5-1.5,1.5c-0.8,0-1.5-0.7-1.5-1.5C13.5,8.3,14.2,7.6,15,7.6z M17.5,21.6h-4v-1h1v-8h-1v-1h3V12 v0.6v8h1V21.6z'/></svg>");
 }
