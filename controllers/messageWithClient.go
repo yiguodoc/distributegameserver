@@ -114,12 +114,15 @@ var (
 	pro_2c_rank_change                         ClientMessageTypeCode = 418
 	pro_2c_check_point_change                  ClientMessageTypeCode = 419
 	pro_2c_restart_game                        ClientMessageTypeCode = 420
-	pro_2c_max                                 ClientMessageTypeCode = 421
+	pro_2c_on_line_user_change                 ClientMessageTypeCode = 421 //在线用户发生变化
+	pro_2c_max                                 ClientMessageTypeCode = 422
 	// pro_2c_order_full                          ClientMessageTypeCode = 411 //订单满载
 )
 
 func (c ClientMessageTypeCode) name() (s string) {
 	switch c {
+	case pro_2c_on_line_user_change:
+		s = "pro_2c_on_line_user_change"
 	case pro_2c_restart_game:
 		s = "pro_2c_restart_game"
 	case pro_start_distribution_request:

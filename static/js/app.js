@@ -118,7 +118,7 @@ require(['jquery', 'lodash', 'Framework7', 'Chart'], function ($, _, Framework7,
                 setTimeout(function () {
                         myApp.closeModal();
                         // prepareConn()
-                        window.location.href = window.location.href
+                        window.location.reload();
                     }, 5000);
             }
             conn.onopen = function(evt){

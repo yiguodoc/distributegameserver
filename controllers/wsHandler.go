@@ -28,6 +28,7 @@ func (this *MainController) ServerWSOrderDistribution() {
 		DebugMustF("Cannot setup WebSocket connection: %s", err)
 		return
 	}
+	// DebugInfoF("websocket => %s", userID)
 	// beego.Debug(requestURI)
 	// beego.Trace(ws.LocalAddr())
 	// Join chat room.

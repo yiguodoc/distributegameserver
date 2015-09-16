@@ -258,6 +258,8 @@ func pro_prepared_for_select_order_handlerGenerator(o interface{}) MessageWithCl
 		DebugInfoF("配送员[%s]准备好订单的分发了", msg.Target.Name)
 
 		msg.Target.setCheckPoint(checkpoint_flag_prepared_for_game)
+		//提醒尚未准备好进入游戏者
+		center.broadcastMsgToSubscribers(pro_2c_on_line_user_change, center.distributors.filter(func(d *Distributor) bool { return d.CheckPoint < checkpoint_flag_prepared_for_game }))
 
 		if center.distributors.every(func(d *Distributor) bool { return d.CheckPoint >= checkpoint_flag_prepared_for_game }) {
 			DebugInfoF("所有配送员准备完毕，游戏开始")
@@ -274,13 +276,20 @@ func pro_off_line_handlerGenerator(o interface{}) MessageWithClientHandler {
 	f := func(msg *MessageWithClient) {
 		DebugTraceF("%s", msg)
 		center.stopUnit(msg.Target.ID)
-		DebugInfoF("配送员 %s 离线", msg.Target.ID)
+		DebugInfoF("配送员 %s 离线", msg.Target.Name)
+
+		//提醒尚未准备好进入游戏者
+		distributorsOfflineAndNotprepared := center.distributors.filter(func(d *Distributor) bool {
+			return d.CheckPoint < checkpoint_flag_prepared_for_game
+		})
+		center.broadcastMsgToSubscribers(pro_2c_on_line_user_change, distributorsOfflineAndNotprepared)
 	}
 	return f
 }
 func pro_on_line_handlerGenerator(o interface{}) MessageWithClientHandler {
 	center := o.(*DistributorProcessUnitCenter)
 	f := func(msg *MessageWithClient) {
+		// DebugInfo("1111111")
 		DebugTraceF("处理消息 %s", msg)
 		center.sendMsgToSpecialSubscriber(msg.Target, pro_2c_map_data, center.mapData)
 		center.sendMsgToSpecialSubscriber(msg.Target, pro_2c_distributor_info, msg.Target)

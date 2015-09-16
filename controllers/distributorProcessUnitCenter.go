@@ -106,7 +106,7 @@ func (dpc *DistributorProcessUnitCenter) broadcastMsgToSubscribers(protocal Clie
 	dpc.distributors.forEach(func(d *Distributor) {
 		if d.SendBinaryMessage(data) != nil {
 			// User disconnected.
-			dpc.distributorOffLine(d)
+			// dpc.distributorOffLine(d)
 		}
 	})
 }
@@ -124,7 +124,7 @@ func (dpc *DistributorProcessUnitCenter) sendMsgToSpecialSubscriber(distributor 
 	// if distributor != nil {
 	if distributor.SendBinaryMessage(data) != nil {
 		// User disconnected.
-		dpc.distributorOffLine(distributor)
+		// dpc.distributorOffLine(distributor)
 	}
 	// } else {
 	// 	DebugSysF("系统异常，无法向 %d 发送消息", id)
@@ -219,7 +219,10 @@ func (dpc *DistributorProcessUnitCenter) startGameTiming() {
 }
 func (dpc *DistributorProcessUnitCenter) Process(msg *MessageWithClient) {
 	// DebugInfoF("<- %s", msg)
-	dpc.chanEvent <- msg
+	if dpc.chanEvent != nil {
+
+		dpc.chanEvent <- msg
+	}
 }
 
 func (dpc *DistributorProcessUnitCenter) stopAllUnits() {

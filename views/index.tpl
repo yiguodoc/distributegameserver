@@ -144,8 +144,17 @@
                       <!-- Scrollable page content -->
                       <div class="page-content "> 
         		        <div class="content-block" style="margin-top: 100px;">
-        		                <!-- <p style="text-align: center;">我是{{.distributor.Name}}</p> -->
-        		                <p id="waitingInfo" style="text-align: center;">等待其他人进入...</p>
+        		                <div id="waitingInfoList">
+	        		                <!-- <p id="waitingInfo" style="text-align: center;">等待其他人进入...</p> -->
+	        		                <!-- <p id="waitingInfo" style="text-align: center;">等待其他人进入...</p> -->
+        		                </div>
+        		                <div class="content-block-title" style="font-size: 13px; color: rgba(100,100,100,0.5); text-align: center;">等待配送员进入</div>
+    		                    <div class="list-block">
+        		                    <ul id="waitingListBox">
+        		                      <!-- <li class="item-content" > <div class="item-inner" style="text-align: center;"> <div class="item-title" style="width:100%;">Item title</div> </div> </li> -->
+
+        		                    </ul>
+    		                    </div>
         		                <!-- <div class=" login-btn-content">
         		                      <a href="#processSelectOrder" class="button button-big button-fill" id="" onclick="viewRouteToPage(mainView, 'processSelectOrder')">进入游戏</a>
         		                </div> -->
@@ -497,9 +506,23 @@
 	    	{MessageType: {{.pro_2c_end_game}}, handler: pro_2c_end_game_handler},
 	    	{MessageType: {{.pro_2c_rank_change}}, handler: pro_2c_rank_change_handler},
 	    	{MessageType: {{.pro_2c_restart_game}}, handler: pro_2c_restart_game_handler},
+	    	{MessageType: {{.pro_2c_on_line_user_change}}, handler: pro_2c_on_line_user_change_handler},
 	    	{MessageType: {{.pro_2c_sys_time_elapse}}, handler: pro_2c_sys_time_elapse_handler, print: false},
 	    	{}
 	    ]
+	    function pro_2c_on_line_user_change_handler(msg){
+	    	var distributorsOffline = msg.Data
+	    	console.info("配送员上线情况发生变化")
+	    	var waitingListBox = $$("#waitingListBox")
+	    	waitingListBox.children().each(function(index, item){
+	    		item.remove()
+	    	})
+	    	var dom = '<li class="item-content" > <div class="item-inner" style="text-align: center;"> <div class="item-title" style="width:100%;">{0}</div> </div> </li>'
+	    	_.each(distributorsOffline, function(d){
+		    	waitingListBox.append(String.format(dom, d.Name))
+		    	console.log(d.Name + " 不在线")
+	    	})
+	    }
 	    function pro_2c_game_start_handler(msg){
 	    	distributor = msg.Data
 	    	refreshDistributionStateView()//数据
@@ -612,7 +635,8 @@
 	    	refreshDistributionStateView()
 	    }
 	    function pro_2c_message_broadcast_before_game_start_handler(msg){
-	    	$$("#waitingInfo").text(msg.Data)
+	    	var html = '<p id="waitingInfo" style="text-align: center;">'+msg.Data+'</p>'
+	    	$$("#waitingInfoList").prepend(html)
 	    }
 	    function pro_2c_order_distribution_proposal_handler(msg){
 	    	mySwiper.removeAllSlides();
