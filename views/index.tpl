@@ -24,7 +24,17 @@
     <div class="panel-overlay"></div>
     <!-- Left panel, let it be with reveal effect -->
     <div class="panel panel-left panel-reveal">
-        左侧栏
+        <!-- 左侧栏 -->
+        <div class="content-block">
+        	<div id = "distributorName" style="  color: rgba(200,200,200,1); font-size: 20px; border-bottom: 1px solid rgba(200,200,200,0.7); padding-bottom: 10px;">{{.distributor.Name}}</div>
+              <!-- Click on link with "close-panel" class will close panel -->
+              <p><a href="#" class="">历史排名</a></p>
+              <p><a href="#" class="">设置</a></p>
+              <p><a href="#" class="">关于</a></p>
+              <!-- <p><a href="#" class="close-panel">关于</a></p> -->
+              <!-- Click on link with "open-panel" and data-panel="right" attribute will open Right panel -->
+              <!-- <p><a href="#" data-panel="right" class="open-panel">Open Right Panel</a></p> -->
+        </div>
     </div>
     <!-- Views -->
     <!-- <div class="views"> -->
@@ -102,7 +112,7 @@
 			               <div class="swiper-button-next"></div>
 			             </div>
 		                <div class=" login-btn-content">
-<!-- 		                	<div class="row" style="margin-left: 20px; margin-right: 20px;">
+						<!-- 		                	<div class="row" style="margin-left: 20px; margin-right: 20px;">
 		                		<div class="col-50">
 				                     <a href="#" class="button button-raised " id="" onclick="onStartDistribution()">返回配送状态</a>
 		                		</div>
