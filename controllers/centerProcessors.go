@@ -328,8 +328,8 @@ func onReconnect(center *DistributorProcessUnitCenter, distributor *Distributor)
 
 func getOrderSelectProposal(distributors DistributorList, orders OrderList) (list OrderList) {
 	ordersUndistributed := orders.Filter(func(o *Order) bool { return o.Distributed == false })
-	if len(ordersUndistributed) >= len(distributors) {
-		list = ordersUndistributed[0:len(distributors)]
+	if len(ordersUndistributed) >= 5 {
+		list = ordersUndistributed[0:5]
 	} else {
 		list = ordersUndistributed
 	}
