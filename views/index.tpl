@@ -17,7 +17,7 @@
 
 
   </head>
-  <body class="theme-lightblue" distributorID = "{{.distributor.ID}}">
+  <body class="theme-lightblue"  distributorID = "{{.distributor.ID}}">
     <!-- Status bar overlay for full screen mode (PhoneGap) -->
     <div class="statusbar-overlay"></div>
     <!-- Panels overlay-->
@@ -479,6 +479,7 @@
     <script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=kU4NWwyP5SwguC2W2WAfO1bO"></script>
 
     <script type="text/javascript">
+    	var restartingGame = false
 	    var mainView, map, mapData, $$, myApp, mySwiper, conn;
 	    var distributorID = "{{.distributor.ID}}"
 	    // var orders = []
@@ -541,7 +542,8 @@
 	    }
 	    function pro_2c_restart_game_handler(msg){
             // window.location.href = window.location.href
-            window.location.reload();
+            // window.location.reload();
+            restartingGame = true
 	    }
 	    function pro_2c_rank_change_handler(msg){
 	    	distributor = msg.Data
@@ -1037,7 +1039,7 @@
 	    	$$("#btnSelectOrder").addClass("disabled")
 	    	setTimeout(function(){
 	    		$$("#btnSelectOrder").removeClass("disabled")
-	    	}, 2000)
+	    	}, 5000)
 	    }
 	    function onRouteToSelectOrderView(){
         	viewRouteToPage(mainView, 'processSelectOrder')

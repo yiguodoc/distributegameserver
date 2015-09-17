@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html style="height:100%;">
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
@@ -18,9 +18,8 @@
 	<script type="text/javascript" src="http://api.map.baidu.com/library/CurveLine/1.5/src/CurveLine.min.js"></script>
 	<title>系统地图编辑器</title>
 </head>
-<body>
+<body style="height:100%;">
 	<div class='container'>
-
 		<div class="sui-navbar navbar-inverse">
 		  <div class="navbar-inner"  style="height:60px;">
 		    <div class="sui-container" style = "margin-top: 10px; font-size: 14px;margin-left: 32px;"><a href="#" class="sui-brand">配送大师</a>
@@ -40,7 +39,7 @@
 		</div>
 	</div>
 
-	<div class="sui-layout" style="height:100%;margin-top:0px;">
+	<div class="sui-layout" style="height:85%;margin-top:0px;">
  		<div class="sidebar" style="position: static;">
  			<div style="text-align:center;border-top: 1px solid rgba(100,100,100,0.3);"> 
  				<div style="  margin-bottom: 20px; margin-top: 10px; font-size: 16px; border-bottom: solid 1px rgba(100,100,100,0.2); padding-bottom: 10px; color: rgba(100,100,100,0.7);">功能区</div>
@@ -61,7 +60,7 @@
  			</div>
 		</div> 
 		<div class="content"  style="height:100%;margin-left: 195px; margin-right: 5px;border-left: 3px solid rgba(100,100,100,0.3); padding-left: 2px;">
-<!-- 			<div style="margin-top:20px;margin-bottom:5px;">
+			<!-- 			<div style="margin-top:20px;margin-bottom:5px;">
 			    <input id="btnSelectMarker" type="button" value="选择点" onclick="switchControl(6)" style="margin-bottom: 10px;">
 			    <input id="btnAddMarker" type="button" value="添加点" onclick="switchControl(0)" style="margin-bottom: 10px;">
 			    <input id="btnRemoveMarker" type="button" value="删除点" onclick="switchControl(1)" style="margin-bottom: 10px;">
@@ -76,26 +75,27 @@
 			    <input id="btnClearMapData" type="button" value="清除地图数据" onclick="clearMapData()" style="margin-bottom: 10px;">
 
 			</div> -->
-			<div id="allmap"  style="height:700px;border-top: 1px solid rgba(100,100,100,0.3); border-bottom: 1px solid rgba(100,100,100,0.3);"></div>
+			<div id="allmap"  style="height:80%;border-top: 1px solid rgba(100,100,100,0.3); border-bottom: 1px solid rgba(100,100,100,0.3);"></div>
 			<div id ="addressEditBox" style="margin-top: 10px;">
 				<div style="margin-bottom:10px;">
-					<span>当前地址：</span><input id="address" type="text" value="" style="width:90%;">
+					<span>当前地址：</span><input id="address" type="text" value="" style="width:98%;">
 				</div>
 				
 				<div style="margin-bottom:10px;">
-					<span>订单分值：</span><input id="orderScore" type="number" value="" style="width:90%;"></br>
+					<span>订单分值：</span><input id="orderScore" type="number" value="" style="width:98%;"></br>
 				</div>
 				
 				<!-- <span>地址坐标：</span><span id="lnglat"></span></br> -->
 			    <!-- <input id="btnSetAddress" type="button" value="保存" onclick="saveMarkerAddress()" style=""> -->
-			    <a href="javascript:void(0);"  onclick="saveMarkerAddress()" class="sui-btn  btn-info" style="margin-left:60px;">保存</a>
+			    <a href="javascript:void(0);"  onclick="saveMarkerAddress()" class="sui-btn  btn-info" style="margin-left:5px; width:100px;">保存</a>
 			</div>
 <!-- 			<div style="margin-top:10px;margin-bottom:5px;">
 			    <input id="btnSaveData" type="button" value="保存地图设置" onclick="onSaveData()" style="margin-bottom: 10px;">
 			</div>
- -->	</div>
+ -->	
+		</div>
 	</div>
-	<div style="width: 100%; text-align: center; font-size: 13px; padding-top: 20px; border-top: 1px solid rgba(100,100,100,0.3); color: rgba(100,100,100,0.8); margin-top: 5px;">配送大师团队技术支持</div>
+	<div style="width: 100%; text-align: center; font-size: 13px; padding-top: 10px; border-top: 1px solid rgba(100,100,100,0.3); color: rgba(100,100,100,0.8); margin-top: 5px;">配送大师团队技术支持</div>
 
 <script type="text/javascript">
 
@@ -196,19 +196,7 @@
     	    	}
     	    	return markerList
 		    }, [])
-		    // _.forEach(data.Points, function(p){
-		    // 	var m =addMapMarker(new BMap.Point(p.Lng,p.Lat))
-		    // 	if(m != null){
-		    // 		m.address = p.Address
-		    // 		m.hasOrder = p.HasOrder
-		    // 		m.pointType = p.PointType
-		    // 		if(m.hasOrder == true){
-			   //  		resetMarkerIcon(m, 3)
-		    // 		}else{
-			   //  		resetMarkerIcon(m, m.pointType)
-		    // 		}
-		    // 	}
-		    // })
+
 		    _.forEach(data.Lines, function(line, index){
 		    	var l = addLine(new BMap.Point(line.Start.Lng,line.Start.Lat), new BMap.Point(line.End.Lng,line.End.Lat))
 		    	if(l != null){
@@ -251,33 +239,10 @@
 		}else{
 			console.error("cannot find icon type",selectOpt)
 		}
-
-		// var myIcon
-		// switch(pointType){
-		// 	case 0:
-		//     	console.log("设置marker 为 仓库")
-		// 		myIcon = createIcon("warehouse")
-		// 	break
-		// 	case 1:
-		//     	console.log("设置marker 为 路径节点")
-		// 		myIcon = createIcon("keyPoint")
-		// 	break
-		// 	case 2:
-		//     	console.log("设置marker 为 途经点")
-		// 		myIcon = createIcon("passPoint")
-		// 	break
-		// 	case 3:
-		//     	console.log("设置marker 为 带有订单的途经点")
-		// 		myIcon = createIcon("order")				
-		// 	break
-		// }
-		// marker.setIcon(myIcon)		
 	}
 
 
 	function optHandler(e){
-    	// console.log(e)
-    	// console.log(this)
     	console.log("当前操作 %d 点击", optSelect)
     	if(e && e.stopPropagation){
 	    	e.stopPropagation()
@@ -319,65 +284,7 @@
 		    map.addOverlay(marker);                 // 将标注添加到地图中
 
 		    marker.addEventListener("click", optHandler)
-	    	//创建右键菜单
-	    	// marker.addContextMenu(createContextMenu(marker, 2));
-		    // marker.addEventListener("click", function(e){
-		    	// var thisMarker = this
-		    	// // console.log(e)
-		    	// // console.log(this)
-		    	// console.log("当前操作 %d 点击 marker", optSelect)
-		    	// if(e && e.stopPropagation){
-			    // 	e.stopPropagation()
-		    	// }else{
-			    // 	window.event.cancelBubble = true;//阻止事件冒泡，防止在点击marker时同时添加一个marker
-		    	// }
-		    	// optHandler(optSelect, thisMarker)
-		    	// switch(optSelect){
-		    	// 	case 1://删除点
-				   //  	if(markerExist(thisMarker.getPosition()) == true){
-				   //  		map.removeOverlay(thisMarker)
-				   //  		removeMarker(thisMarker.getPosition())
-				   //  	}	
-		    	// 	break
-		    	// 	case 2://添加路径
-		    	// 		if(lineStartMarker == null){//说明是起点
-		    	// 			lineStartMarker = thisMarker//那么将当前点击的marker的坐标作为线的起点
-		    	// 			// var label = new BMap.Label("我是文字标注哦",{offset:new BMap.Size(-5,-20)});
-		    	// 			thisMarker.setAnimation(BMAP_ANIMATION_BOUNCE); //跳动的动画
-		    	// 		}else{
-		    	// 			addLine(lineStartMarker.getPosition(),thisMarker.getPosition())
-		    	// 			lineStartMarker.setAnimation(null); //跳动的动画
-	    		// 			lineStartMarker = null
-		    	// 		}
-		    	// 	break
-		    	// 	case 4://添加订单
-		    	// 		if(thisMarker.pointType != 1){
-		    	// 			console.info("不是路径节点，无法添加订单")
-		    	// 			alert("订单只能添加到路径节点上，请先将该点转换为路径节点")
-		    	// 		}else{
-		    	// 			thisMarker.hasOrder = true
-		    	// 			resetMarkerIcon(thisMarker, 3)
-		    	// 		}
-		    	// 	break
-		    	// 	case 5://移除订单
-			    // 		if(thisMarker.pointType != 1){
-			    // 			console.warn("在非路径节点上移除订单，有异常")
-			    // 		}else{
-			    // 			thisMarker.hasOrder = false
-		    	// 			resetMarkerIcon(thisMarker, 1)
-			    // 		}
-		    	// 	break
-		    	// 	case 6://选择点
-		    	// 		if(selectedMarker != null){
-		    	// 			selectedMarker.setAnimation(null)
-		    	// 		}
-		    	// 		selectedMarker = thisMarker
-		    	// 		resetAddressEditBoxStatus(true)
-		    	// 		onClickEditMarkAddress()
-		    	// 	break
-		    	// }
-		    // })
-		    // markers.push(marker)	
+	
 		    return marker		
 		}
 		return null
@@ -397,13 +304,6 @@
 		map.addOverlay(line); //添加到地图中
 		lines.push(line)
 		line.addEventListener("click", optHandler)
-
-		// line.addEventListener("click", function(e){
-		// 	if(optSelect == 3){
-		// 		map.removeOverlay(this)
-		// 		removeLine(this.getPath())
-		// 	}
-		// })
 		return line
 	}
 	function switchControl(opt){
@@ -548,38 +448,7 @@
 			return m.getPosition().equals(bmapPoint)
 		})
 		return marker!=null
-	}
-	// // 创建地址解析器实例
-	// var myGeo = new BMap.Geocoder();
-
-	// map.addEventListener("click",function(e){
-	// 		// alert(e.point.lng + "," + e.point.lat);
-	// 		console.log("%f,%f",e.point.lng, e.point.lat)
-	// 		myGeo.getLocation(e.point, function(rs){
-	// 			var addComp = rs.addressComponents;
-	// 			console.log(rs)
-	// 			// appendLog(rs.address  +"  " + e.point.lng + ", "+ e.point.lat)
-	// 			// alert(addComp.province + ", " + addComp.city + ", " + addComp.district + ", " + addComp.street + ", " + addComp.streetNumber);
-	// 		}); 
-
-			
-	// });
-
-	// // 将地址解析结果显示在地图上,并调整地图视野
-	// myGeo.getPoint("北京市通州区北京物资学院", function(point){
-	// 	if (point) {
-	// 		console.log(point)
-	// 		map.centerAndZoom(point, 16);
-	// 		map.addOverlay(new BMap.Marker(point));
-	// 	}else{
-	// 		alert("您选择地址没有解析到结果!");
-	// 	}
-	// }, "北京市");
-
-	function appendLog(message) {
-	    // output.prepend(message+"</br>");
-	    console.log(message)
-	}    
+	}   
 </script>
 </body>
 </html>

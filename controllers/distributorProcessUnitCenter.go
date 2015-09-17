@@ -17,7 +17,9 @@ type DistributorProcessUnitCenter struct {
 	processors        map[ClientMessageTypeCode]MessageWithClientHandler
 	supportPro        []ClientMessageTypeCode
 	distributors      DistributorList
+	distributorIDList []string
 	orders            OrderList
+	mapName           string
 	mapData           *MapData
 	GameTimeMaxLength int //游戏最大时长
 	TimeElapse        int //运行时间
@@ -26,19 +28,19 @@ type DistributorProcessUnitCenter struct {
 	// wsRoom            *WsRoom
 }
 
-func NewDistributorProcessUnitCenter(distributors DistributorList, orders OrderList, mapData *MapData, timeMaxLength int) *DistributorProcessUnitCenter {
-	if len(mapData.Points.filter(func(p *Position) bool { return p.IsBornPoint == true })) <= 0 {
-		DebugSysF("地图中没有出生点信息")
-		return nil
-	}
+func NewDistributorProcessUnitCenter(distributorIDList []string, mapName string, timeMaxLength int) *DistributorProcessUnitCenter {
+	// func NewDistributorProcessUnitCenter(distributors DistributorList, orders OrderList, mapName string, timeMaxLength int) *DistributorProcessUnitCenter {
+	// if len(mapData.Points.filter(func(p *Position) bool { return p.IsBornPoint == true })) <= 0 {
+	// 	DebugSysF("地图中没有出生点信息")
+	// 	return nil
+	// }
 	center := &DistributorProcessUnitCenter{
-		units:        DistributorProcessUnitList{},
-		chanEvent:    make(chan *MessageWithClient, 128),
-		chanStop:     make(chan bool),
-		orders:       orders,
-		mapData:      mapData,
-		processors:   make(ProHandlerMap),
-		distributors: distributors,
+		units:             DistributorProcessUnitList{},
+		chanEvent:         make(chan *MessageWithClient, 128),
+		chanStop:          make(chan bool),
+		mapName:           mapName,
+		processors:        make(ProHandlerMap),
+		distributorIDList: distributorIDList,
 		supportPro: []ClientMessageTypeCode{
 			pro_game_start,
 			pro_order_select_response,
@@ -51,6 +53,9 @@ func NewDistributorProcessUnitCenter(distributors DistributorList, orders OrderL
 			pro_game_timeout,
 		},
 		GameTimeMaxLength: timeMaxLength,
+		// distributors: distributors,
+		// orders:       orders,
+		// mapData:      mapData,
 	}
 	center.processors = handler_map.generateHandlerMap(center.supportPro, center)
 	// center.wsRoom = NewRoom().addEventSubscriber(distributorRoomEventHandlerGenerator(center), WsRoomEventCode_Online, WsRoomEventCode_Offline, WsRoomEventCode_Other)
@@ -138,6 +143,7 @@ func (dpc *DistributorProcessUnitCenter) stop() {
 	// if dpc.wsRoom != nil {
 	// 	dpc.wsRoom.stop()
 	// }
+	dpc.stopAllUnits()
 
 	if dpc.chanStop != nil {
 		dpc.chanStop <- true
@@ -147,6 +153,17 @@ func (dpc *DistributorProcessUnitCenter) stop() {
 	dpc.gameStarted = false
 }
 func (dpc *DistributorProcessUnitCenter) start() *DistributorProcessUnitCenter {
+	dpc.mapData = loadMapData()
+
+	dpc.orders = dpc.mapData.Points.filter(func(pos *Position) bool {
+		return pos.PointType == POSITION_TYPE_ORDER
+	}).Map(OrderList{}, func(pos *Position, list interface{}) interface{} {
+		o := NewOrder(generateOrderID(), pos)
+		return append(list.(OrderList), o)
+	}).(OrderList).random(rand.New(rand.NewSource(time.Now().UnixNano())), OrderList{})
+
+	dpc.distributors = g_distributorStore.clone(func(d *Distributor) bool { return stringInArray(d.ID, dpc.distributorIDList) })
+
 	bornPoints := dpc.mapData.Points.filter(func(p *Position) bool { return p.IsBornPoint }).random(rand.New(rand.NewSource(time.Now().UnixNano())), PositionList{})
 	i := len(bornPoints)
 	DebugInfoF("出生点数量 => %d", len(bornPoints))
@@ -210,9 +227,9 @@ func (dpc *DistributorProcessUnitCenter) start() *DistributorProcessUnitCenter {
 //重置游戏
 //参与者状态清零，通知客户端游戏重置，客户端采取相应的措施
 func (dpc *DistributorProcessUnitCenter) restart() {
+	dpc.broadcastMsgToSubscribers(pro_2c_restart_game, nil)
 	dpc.stop()
 	dpc.start()
-	dpc.broadcastMsgToSubscribers(pro_2c_restart_game, nil)
 }
 func (dpc *DistributorProcessUnitCenter) startGameTiming() {
 	dpc.gameStarted = true

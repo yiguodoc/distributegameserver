@@ -114,7 +114,11 @@ require(['jquery', 'lodash', 'Framework7', 'Chart'], function ($, _, Framework7,
             conn = new WebSocket(wsUrl);
             conn.onclose = function(evt) {
                 console.log("与服务器连接连接关闭，刷新重试")
-                myApp.alert("您已掉线，5秒后重新连接", "提示")
+                if(restartingGame == true){
+                    myApp.alert("游戏正在重新启动", "提示")
+                }else{
+                    myApp.alert("您已掉线，5秒后重新连接", "提示")
+                }
                 setTimeout(function () {
                         myApp.closeModal();
                         // prepareConn()

@@ -99,7 +99,7 @@ func (d *Distributor) whetherHasEndTheGame() bool {
 
 func (d *Distributor) caculateScore() {
 	unSignedOrders := d.AcceptedOrders.Filter(func(o *Order) bool { return o.Signed == false })
-	d.Score -= unSignedOrders.totalScore(0)
+	d.Score -= unSignedOrders.totalScore(0) * 2
 }
 
 //接收配送订单

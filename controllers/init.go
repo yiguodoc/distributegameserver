@@ -1,14 +1,14 @@
 package controllers
 
 import (
-	// "github.com/ssor/fauxgaux"
-	// "github.com/gorilla/websocket"
-	// "encoding/json"
-	"time"
-	// "strings"
-	// "fmt"
-	// "reflect"
-	"math/rand"
+// "github.com/ssor/fauxgaux"
+// "github.com/gorilla/websocket"
+// "encoding/json"
+// "time"
+// "strings"
+// "fmt"
+// "reflect"
+// "math/rand"
 )
 
 var default_time_of_one_loop = 5 * 60
@@ -39,20 +39,21 @@ func restartGame() {
 		// g_UnitCenter.stop()
 		g_UnitCenter.restart()
 	} else {
-		//加载地图数据
-		mapData := loadMapData()
+		// //加载地图数据
+		// mapData := loadMapData()
 
-		orders := mapData.Points.filter(func(pos *Position) bool {
-			return pos.PointType == POSITION_TYPE_ORDER
-		}).Map(OrderList{}, func(pos *Position, list interface{}) interface{} {
-			o := NewOrder(generateOrderID(), pos)
-			return append(list.(OrderList), o)
-		}).(OrderList).random(rand.New(rand.NewSource(time.Now().UnixNano())), OrderList{})
-		DebugPrintList_Info(orders)
+		// orders := mapData.Points.filter(func(pos *Position) bool {
+		// 	return pos.PointType == POSITION_TYPE_ORDER
+		// }).Map(OrderList{}, func(pos *Position, list interface{}) interface{} {
+		// 	o := NewOrder(generateOrderID(), pos)
+		// 	return append(list.(OrderList), o)
+		// }).(OrderList).random(rand.New(rand.NewSource(time.Now().UnixNano())), OrderList{})
+		// DebugPrintList_Info(orders)
 
-		l := []string{"d01", "d02", "d03"}
-		filter := func(d *Distributor) bool { return stringInArray(d.ID, l[:]) }
-		g_UnitCenter = NewDistributorProcessUnitCenter(g_distributorStore.clone(filter), orders, mapData, default_time_of_one_loop)
+		// l := []string{"d01", "d02", "d03"}
+		// filter := func(d *Distributor) bool { return stringInArray(d.ID, l[:]) }
+		g_UnitCenter = NewDistributorProcessUnitCenter([]string{"d01", "d02", "d03"}[:], "", default_time_of_one_loop)
+		// g_UnitCenter = NewDistributorProcessUnitCenter(g_distributorStore.clone(filter), orders, mapData, default_time_of_one_loop)
 		if g_UnitCenter != nil {
 			g_UnitCenter.start()
 		}
