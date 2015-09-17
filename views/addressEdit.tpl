@@ -3,10 +3,15 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+	<link href="http://g.alicdn.com/sj/dpl/1.5.1/css/sui.min.css" rel="stylesheet">
+	<!-- <link href="stylesheets/docs.css" rel="stylesheet"> -->
 	<style type="text/css">
-		body, html,#allmap {width: 100%;height: 100%;overflow: hidden;margin:0;font-family:"微软雅黑";}
+		/*body, html,#allmap {width: 100%;height: 100%;overflow: hidden;margin:0;font-family:"微软雅黑";}*/
 	</style>
 	<script src="javascripts/jquery.js"></script>
+	  <!-- // <script type="text/javascript" src="http://g.alicdn.com/sj/lib/jquery/dist/jquery.min.js"></script> -->
+	  <script type="text/javascript" src="http://g.alicdn.com/sj/dpl/1.5.1/js/sui.min.js"></script>
+	<!-- // <script src="javascripts/application.js"></script> -->
 	<!-- // <script src="javascripts/underscore.js"></script> -->
 	<script src="javascripts/lodash.js"></script>
 	<script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=kU4NWwyP5SwguC2W2WAfO1bO"></script>
@@ -14,33 +19,84 @@
 	<title>系统地图编辑器</title>
 </head>
 <body>
-	<div style="margin-top:20px;margin-bottom:5px;">
-        <input id="btnSelectMarker" type="button" value="选择点" onclick="switchControl(6)" style="margin-bottom: 10px;">
-        <input id="btnAddMarker" type="button" value="添加点" onclick="switchControl(0)" style="margin-bottom: 10px;">
-        <input id="btnRemoveMarker" type="button" value="删除点" onclick="switchControl(1)" style="margin-bottom: 10px;">
-        <input id="btnAddRoute" type="button" value="添加路径" onclick="switchControl(2)" style="margin-bottom: 10px;">
-        <input id="btnRemoveRoute" type="button" value="移除路径" onclick="switchControl(3)" style="margin-bottom: 10px;">
-        <input id="btnRemoveMarker" type="button" value="设为路径节点" onclick="switchControl(10)" style="margin-bottom: 10px;">
-        <input id="btnRemoveMarker" type="button" value="设为配送中心" onclick="switchControl(7)" style="margin-bottom: 10px;">
-        <input id="btnRemoveMarker" type="button" value="设为出生点" onclick="switchControl(8)" style="margin-bottom: 10px;">
-        <input id="btnRemoveMarker" type="button" value="设为非出生点" onclick="switchControl(9)" style="margin-bottom: 10px;">
-        <input id="btnAddOrder" type="button" value="添加订单" onclick="switchControl(4)" style="margin-bottom: 10px;">
-        <input id="btnRemoveOrder" type="button" value="移除订单" onclick="switchControl(5)" style="margin-bottom: 10px;">
-        <input id="btnClearMapData" type="button" value="清除地图数据" onclick="clearMapData()" style="margin-bottom: 10px;">
+	<div class='container'>
 
+		<div class="sui-navbar navbar-inverse">
+		  <div class="navbar-inner"  style="height:60px;">
+		    <div class="sui-container" style = "margin-top: 10px; font-size: 14px;margin-left: 32px;"><a href="#" class="sui-brand">配送大师</a>
+		      <ul class="sui-nav" style="margin-left: 28px;">
+		        <li class="active"><a href="#">首页</a></li>
+		        <!-- <li><a href="#">组件</a></li> -->
+		        <li class="sui-dropdown"><a href="javascript:void(0);" data-toggle="dropdown" class="dropdown-toggle">其他 <i class="caret"></i></a>
+		          <ul role="menu" class="sui-dropdown-menu">
+		            <li role="presentation"><a role="menuitem" tabindex="-1" href="#">关于</a></li>
+		            <li role="presentation"><a role="menuitem" tabindex="-1" href="#">项目组成员</a></li>
+		            <li role="presentation"><a role="menuitem" tabindex="-1" href="#">版权</a></li>
+		          </ul>
+		        </li>
+		      </ul>
+		    </div>
+		  </div>
+		</div>
 	</div>
-	<div id="allmap"  style="height:60%;"></div>
-	<div id ="addressEditBox" style="margin-top: 20px;">
-		<span>当前地址：</span><input id="address" type="text" value="" style="width:90%;"></br>
-		<span>订单分值：</span><input id="orderScore" type="number" value="" style="width:90%;"></br>
-		<span>地址坐标：</span><span id="lnglat"></span></br>
-        <input id="btnSetAddress" type="button" value="保存" onclick="saveMarkerAddress()" style="">
+
+	<div class="sui-layout" style="height:100%;margin-top:0px;">
+ 		<div class="sidebar" style="position: static;">
+ 			<div style="text-align:center;border-top: 1px solid rgba(100,100,100,0.3);"> 
+ 				<div style="  margin-bottom: 20px; margin-top: 10px; font-size: 16px; border-bottom: solid 1px rgba(100,100,100,0.2); padding-bottom: 10px; color: rgba(100,100,100,0.7);">功能区</div>
+	 			<a href="javascript:void(0);"  onclick="switchControl(6)" class="sui-btn  btn-info" style="width:70%;margin-bottom:10px;">选择点</a></br>
+	 			<a href="javascript:void(0);"  onclick="switchControl(0)" class="sui-btn  btn-info" style="width:70%;margin-bottom:10px;">添加点</a></br>
+	 			<a href="javascript:void(0);"  onclick="switchControl(1)" class="sui-btn  btn-danger" style="width:70%;margin-bottom:10px;">删除点</a></br>
+	 			<a href="javascript:void(0);"  onclick="switchControl(2)" class="sui-btn  btn-info" style="width:70%;margin-bottom:10px;">添加路径</a></br>
+	 			<a href="javascript:void(0);"  onclick="switchControl(3)" class="sui-btn  btn-info" style="width:70%;margin-bottom:10px;">移除路径</a></br>
+	 			<a href="javascript:void(0);"  onclick="switchControl(10)" class="sui-btn  btn-info" style="width:70%;margin-bottom:10px;">设为路径节点</a></br>
+	 			<a href="javascript:void(0);"  onclick="switchControl(7)" class="sui-btn  btn-info" style="width:70%;margin-bottom:10px;">设为配送中心</a></br>
+	 			<a href="javascript:void(0);"  onclick="switchControl(8)" class="sui-btn  btn-info" style="width:70%;margin-bottom:10px;">设为出生点</a></br>
+	 			<a href="javascript:void(0);"  onclick="switchControl(9)" class="sui-btn  btn-info" style="width:70%;margin-bottom:10px;">设为非出生点</a></br>
+	 			<a href="javascript:void(0);"  onclick="switchControl(4)" class="sui-btn  btn-info" style="width:70%;margin-bottom:10px;">添加订单</a></br>
+	 			<a href="javascript:void(0);"  onclick="switchControl(5)" class="sui-btn  btn-danger" style="width:70%;margin-bottom:10px;">移除订单</a></br>
+	 			<a href="javascript:void(0);"  onclick="clearMapData()" class="sui-btn btn-danger" style="width:70%;margin-bottom:30px;">清除地图数据</a></br>
+	 			<a href="javascript:void(0);"  onclick="onSaveData()" class="sui-btn btn-xlarge btn-success" style="width:70%;margin-bottom:10px;">保存地图设置</a></br>
+
+ 			</div>
+		</div> 
+		<div class="content"  style="height:100%;margin-left: 195px; margin-right: 5px;border-left: 3px solid rgba(100,100,100,0.3); padding-left: 2px;">
+<!-- 			<div style="margin-top:20px;margin-bottom:5px;">
+			    <input id="btnSelectMarker" type="button" value="选择点" onclick="switchControl(6)" style="margin-bottom: 10px;">
+			    <input id="btnAddMarker" type="button" value="添加点" onclick="switchControl(0)" style="margin-bottom: 10px;">
+			    <input id="btnRemoveMarker" type="button" value="删除点" onclick="switchControl(1)" style="margin-bottom: 10px;">
+			    <input id="btnAddRoute" type="button" value="添加路径" onclick="switchControl(2)" style="margin-bottom: 10px;">
+			    <input id="btnRemoveRoute" type="button" value="移除路径" onclick="switchControl(3)" style="margin-bottom: 10px;">
+			    <input id="btnRemoveMarker" type="button" value="设为路径节点" onclick="switchControl(10)" style="margin-bottom: 10px;">
+			    <input id="btnRemoveMarker" type="button" value="设为配送中心" onclick="switchControl(7)" style="margin-bottom: 10px;">
+			    <input id="btnRemoveMarker" type="button" value="设为出生点" onclick="switchControl(8)" style="margin-bottom: 10px;">
+			    <input id="btnRemoveMarker" type="button" value="设为非出生点" onclick="switchControl(9)" style="margin-bottom: 10px;">
+			    <input id="btnAddOrder" type="button" value="添加订单" onclick="switchControl(4)" style="margin-bottom: 10px;">
+			    <input id="btnRemoveOrder" type="button" value="移除订单" onclick="switchControl(5)" style="margin-bottom: 10px;">
+			    <input id="btnClearMapData" type="button" value="清除地图数据" onclick="clearMapData()" style="margin-bottom: 10px;">
+
+			</div> -->
+			<div id="allmap"  style="height:700px;border-top: 1px solid rgba(100,100,100,0.3); border-bottom: 1px solid rgba(100,100,100,0.3);"></div>
+			<div id ="addressEditBox" style="margin-top: 10px;">
+				<div style="margin-bottom:10px;">
+					<span>当前地址：</span><input id="address" type="text" value="" style="width:90%;">
+				</div>
+				
+				<div style="margin-bottom:10px;">
+					<span>订单分值：</span><input id="orderScore" type="number" value="" style="width:90%;"></br>
+				</div>
+				
+				<!-- <span>地址坐标：</span><span id="lnglat"></span></br> -->
+			    <!-- <input id="btnSetAddress" type="button" value="保存" onclick="saveMarkerAddress()" style=""> -->
+			    <a href="javascript:void(0);"  onclick="saveMarkerAddress()" class="sui-btn  btn-info" style="margin-left:60px;">保存</a>
+			</div>
+<!-- 			<div style="margin-top:10px;margin-bottom:5px;">
+			    <input id="btnSaveData" type="button" value="保存地图设置" onclick="onSaveData()" style="margin-bottom: 10px;">
+			</div>
+ -->	</div>
 	</div>
-	<div style="margin-top:10px;margin-bottom:5px;">
-        <input id="btnSaveData" type="button" value="保存地图设置" onclick="onSaveData()" style="margin-bottom: 10px;">
-	</div>
-</body>
-</html>
+	<div style="width: 100%; text-align: center; font-size: 13px; padding-top: 20px; border-top: 1px solid rgba(100,100,100,0.3); color: rgba(100,100,100,0.8); margin-top: 5px;">配送大师团队技术支持</div>
+
 <script type="text/javascript">
 
 	var POSITION_TYPE_WAREHOUSE   = 0  //仓库
@@ -167,8 +223,8 @@
 		var point = new BMap.Point(116.644691, 39.934758);//北京物资学院
 		// var point = new BMap.Point(116.331398,39.897445);//天安门
 		map.centerAndZoom(point,16);
-		var top_left_navigation = new BMap.NavigationControl();  //左上角，添加默认缩放平移控件
-		map.addControl(top_left_navigation);
+		var top_right_navigation = new BMap.NavigationControl({anchor: BMAP_ANCHOR_TOP_RIGHT});  //左上角，添加默认缩放平移控件
+		map.addControl(top_right_navigation);
  		map.addEventListener("click", optHandler);
 	}
 
@@ -525,3 +581,5 @@
 	    console.log(message)
 	}    
 </script>
+</body>
+</html>
