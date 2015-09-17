@@ -126,7 +126,7 @@
 		                	 <div class="row">
 		                		<div class="col-10"></div>
 		                		<div class="col-80">
-				                     <a href="#" class="button button-big button-fill" id="" onclick="selectOrder()">选择订单</a>
+				                     <a href="#" class="button button-big button-fill" id="btnSelectOrder" onclick="selectOrder()">选择订单</a>
 		                		</div>
 		                		<div class="col-10"></div>
 		                    </div>
@@ -294,9 +294,7 @@
 
 
 
-				        <div id="allmap" style="height:99%;margin-top:1px;">
-
-				        </div>
+				        <div id="allmap" style="height:99%;margin-top:1px;width:100%"> </div>
 			        	<div class="row" style="top: 55px; position: absolute; height: 35px;left:43px;right:45px; opacity: 0.8; background-color: white;  border-left: 1px solid gray; border-right: 1px solid gray;">
 							<div style="width:100%; text-align: center; color: gray; margin-top: 10px;">北京物资学院</div>
 			        		<div class="col-10"> </div>
@@ -457,7 +455,7 @@
 		          <i class="icon tabbar-icon-status"></i>
 		          <span class="tabbar-label">状态</span>
 		      </a>
-		      <a href="#view-map" class="tab-link ">
+		      <a href="#view-map" class="tab-link" onclick="onMapActive()">
 		          <i class="icon tabbar-icon-map">
 		              <!-- <span class="badge bg-red">5</span> -->
 		          </i>
@@ -706,11 +704,7 @@
 			// refreshRunningState()
 			// refreshSpeed()
 			refreshDistributionStateView()
-			if(distributor.CurrentPos != null){
-				var pos = distributor.CurrentPos
-				// map.setCenter(new BMap.Point(pos.Lng, pos.Lat))
-			    setMapMarker(pos.Lng, pos.Lat, false)
-			}
+
 
 	    	switch(distributor.CheckPoint){
 	    		case {{.checkpoint_flag_origin}}:
@@ -730,6 +724,23 @@
 	    		break
 	    	}
 
+	    }
+	    function onMapActive(){
+	    	console.log("onMapActive...")
+
+
+	    	// if(distributor.CurrentPos != null){
+	    	// 	var pos = distributor.CurrentPos
+	    	// 	map.setCenter(new BMap.Point(pos.Lng, pos.Lat))
+	    	//     // map.setCenter(new BMap.Point(116.404212, 39.914888))
+	    	//     // setMapMarker(pos.Lng, pos.Lat, false)
+	    	// }
+	    	setTimeout(function(){
+		    	if(myLocationMarker != null){
+		    	    var pos = myLocationMarker.getPosition()
+		    	    map.setCenter(pos)
+		    	}	    		
+	    	}, 300)
 	    }
 	    function pro_2c_map_data_handler(msg){
 	    	if(mapData != null){

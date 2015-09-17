@@ -5,7 +5,6 @@ require.config({
 　　　　　　"jquery": "jquery.min",
 　　　　　　"lodash": "lodash.min",
 　　　　　　"Framework7": "../framework7/dist/js/framework7.min",
-            "Chart": "Chart.min"
     },
     shim: {
         'Framework7': {
@@ -16,7 +15,7 @@ require.config({
 });
 
 
-require(['jquery', 'lodash', 'Framework7', 'Chart'], function ($, _, Framework7, Chart){
+require(['jquery', 'lodash', 'Framework7'], function ($, _, Framework7){
 
     // distributorID = $("body").attr("distributorID")
     // host = $("body").attr("host")
@@ -26,6 +25,10 @@ require(['jquery', 'lodash', 'Framework7', 'Chart'], function ($, _, Framework7,
     // console.log(myApp.device.pixelRatio)
     // Export selectors engine
     $$ = Dom7;
+    $$(document).on('pageBeforeInit', function (e) {
+        var page = e.detail.page
+        console.log("%s init...", page.name)        
+    })
     $$(document).on('pageAfterAnimation', function (e) {
       // Do something here when page loaded and initialized
         var page = e.detail.page
@@ -198,15 +201,15 @@ function CoolWPDistance(lat1,lng1,lat2,lng2){
     return s;     
 }      
 //将地图设置为初始状态，目的是不突出任何信息
-function resetMap2Initial(){
+// function resetMap2Initial(){
 
-    // var point = new BMap.Point(116.644691, 39.934758);//北京物资学院
-    // var point = new BMap.Point(116.331398,39.897445);//天安门
-    setMapMarker(116.644691, 39.934758, false)
+//     // var point = new BMap.Point(116.644691, 39.934758);//北京物资学院
+//     // setMapMarker(116.644691, 39.934758, false)
 
-}
+// }
 function initMap(){
     map = new BMap.Map("allmap");
+    map.centerAndZoom(new BMap.Point(116.404212,39.914888), 15);//天安门
     // map.centerAndZoom(new BMap.Point(116.404, 39.915), 16);
     map.enableScrollWheelZoom(true);
     var top_right_navigation = new BMap.NavigationControl({anchor: BMAP_ANCHOR_TOP_RIGHT, type: BMAP_NAVIGATION_CONTROL_ZOOM});//, offset: new BMap.Size(0, 40)
@@ -214,12 +217,18 @@ function initMap(){
     // map.addControl(new BMap.ZoomControl());  //添加地图缩放控件
     /*缩放控件type有四种类型:
     BMAP_NAVIGATION_CONTROL_SMALL：仅包含平移和缩放按钮；BMAP_NAVIGATION_CONTROL_PAN:仅包含平移按钮；BMAP_NAVIGATION_CONTROL_ZOOM：仅包含缩放按钮*/
+    // map.addEventListener("touchstart", function(e){
+    //     console.log("开始触摸地图。。。")
+    //     // alert("开始触摸地图。。。")
+    // });
 
 }
 function setMapMarker(lng,lat, bAddMarker){
+    console.log(lng, lat)
     // map.removeOverlay(marker)
     if(lng > 0 || lat > 0){
-        map.centerAndZoom(new BMap.Point(lng, lat), 16);
+        map.setCenter(new BMap.Point(lng, lat));
+        // map.centerAndZoom(new BMap.Point(lng, lat), 16);
         // map.addControl(new BMap.ZoomControl());  //添加地图缩放控件
         if(bAddMarker == true){
             var marker = new BMap.Marker(new BMap.Point(lng, lat));  //创建标注
