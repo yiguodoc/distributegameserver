@@ -3,6 +3,9 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+	<link rel="icon" 
+	      type="image/png" 
+	      href="/images/logo.png">
 	<link href="http://g.alicdn.com/sj/dpl/1.5.1/css/sui.min.css" rel="stylesheet">
 	<!-- <link href="stylesheets/docs.css" rel="stylesheet"> -->
 	<style type="text/css">

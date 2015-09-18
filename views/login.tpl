@@ -17,7 +17,7 @@
 
 
   </head>
-  <body>
+  <body class="theme-lightblue">
 
     <div class="login-screen">
       <div class="view">
@@ -119,10 +119,20 @@
             <!-- Pages container, because we use fixed-through navbar and toolbar, it has additional appropriate classes-->
             <div class="pages navbar-through toolbar-through">
               <!-- Page, "data-page" contains page name -->
-              <div data-page="index" class="page">
+              <div data-page="index" class="page" style="background-color: rgba(9,9,26,1);">
                 <!-- Scrollable page content -->
-                <div class="page-content "> </div>
-                    <div class="toolbar">
+                <div class="page-content "> 
+                  <div style="color: rgba(220,220,220,0.7); text-align: center; font-size: 14px;">通向</div>
+                  <div style="color: white; font-size: 25px; text-align: center; margin-top: 10px;">配送大师</div>
+                  <div style="  color: rgba(220,220,220,0.7); text-align: center; font-size: 14px; margin-top: 10px;">之路</div>
+
+                  <div style="text-align: center; margin-top: 80px;"><img src="/images/wheelWhite.png" style="width: 80px;"></img> </div>
+                  <p><a href="#" class="button  open-login-screen " style="margin-top:150px;  margin-left: 5px; margin-right: 5px;">登录</a></p>
+
+                </div>
+
+
+                    <!-- <div class="toolbar">
                         <div class="row">
                           <div class="col-50">
                             <a href="#" class="button button-big open-login-screen ">登录</a>
@@ -133,8 +143,7 @@
                           </div>
                           
                         </div>
-                        <!-- <div class="toolbar-inner"> </div> -->
-                    </div>
+                    </div> -->
                 </div>
               </div>
           </div>
