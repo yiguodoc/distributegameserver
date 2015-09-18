@@ -118,15 +118,18 @@ require(['jquery', 'lodash', 'Framework7'], function ($, _, Framework7){
             conn.onclose = function(evt) {
                 console.log("与服务器连接连接关闭，刷新重试")
                 if(restartingGame == true){
-                    myApp.alert("游戏正在重新启动", "提示")
+                    // myApp.alert("游戏正在重新启动", "提示")
+                    myApp.showPreloader('游戏正在重新启动')
                 }else{
-                    myApp.alert("您已掉线，5秒后重新连接", "提示")
+                    myApp.showPreloader('您已掉线，5秒后重新连接')
+                    // myApp.alert("您已掉线，5秒后重新连接", "提示")
                 }
                 setTimeout(function () {
-                        myApp.closeModal();
+                        myApp.hidePreloader();
+                        // myApp.closeModal();
                         // prepareConn()
                         window.location.reload();
-                    }, 5000);
+                }, 5000);
             }
             conn.onopen = function(evt){
                 console.log("与服务器连接成功")

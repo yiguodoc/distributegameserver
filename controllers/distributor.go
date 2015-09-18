@@ -138,9 +138,10 @@ func (d *Distributor) SetOffline() error {
 	if d.Conn != nil {
 		if err := d.Conn.Close(); err == nil {
 			d.Conn = nil
+			DebugSysF("[%s] OffLine, close websocket ", d.Name)
 			// DebugInfoF("[%s] OffLine WebSocket closed", d.ID)
 		} else {
-			DebugMustF("[%s] OffLine,But close websocket err: %s", d.ID, err)
+			DebugMustF("[%s] OffLine,But close websocket err: %s", d.Name, err)
 			return err
 		}
 	}

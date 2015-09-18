@@ -28,35 +28,43 @@ var (
 	// g_room_viewer      *WsRoom            //= NewRoom(eventReceiver)
 )
 
+type game struct {
+	distributorIDList []string
+	mapName           string
+	game_time_loop    int
+}
+
+func NewGame(list []string, mapName string, loop int) *game {
+	return &game{
+		distributorIDList: list,
+		mapName:           mapName,
+		game_time_loop:    loop,
+	}
+}
 func init() {
 
-	clientMessageTypeCodeCheck()
+	if err := clientMessageTypeCodeCheck(); err != nil {
+		DebugSysF(err.Error())
+	}
 	restartGame()
 	//--------------------------------------------------------------------------
 }
 func restartGame() {
+	// dpc.stop()
+	// dpc.start()
+	game := NewGame([]string{"d01", "d02", "d03"}[:1], "", default_time_of_one_loop)
 	if g_UnitCenter != nil {
-		// g_UnitCenter.stop()
-		g_UnitCenter.restart()
-	} else {
-		// //加载地图数据
-		// mapData := loadMapData()
+		DebugInfoF("游戏重新启动...")
+		g_UnitCenter.broadcastMsgToSubscribers(pro_2c_restart_game, nil)
+		g_UnitCenter.stop()
+		// g_UnitCenter.restart()
+	}
 
-		// orders := mapData.Points.filter(func(pos *Position) bool {
-		// 	return pos.PointType == POSITION_TYPE_ORDER
-		// }).Map(OrderList{}, func(pos *Position, list interface{}) interface{} {
-		// 	o := NewOrder(generateOrderID(), pos)
-		// 	return append(list.(OrderList), o)
-		// }).(OrderList).random(rand.New(rand.NewSource(time.Now().UnixNano())), OrderList{})
-		// DebugPrintList_Info(orders)
-
-		// l := []string{"d01", "d02", "d03"}
-		// filter := func(d *Distributor) bool { return stringInArray(d.ID, l[:]) }
-		g_UnitCenter = NewDistributorProcessUnitCenter([]string{"d01", "d02", "d03"}[:1], "", default_time_of_one_loop)
-		// g_UnitCenter = NewDistributorProcessUnitCenter(g_distributorStore.clone(filter), orders, mapData, default_time_of_one_loop)
-		if g_UnitCenter != nil {
-			g_UnitCenter.start()
-		}
+	g_UnitCenter = NewDistributorProcessUnitCenter(game.distributorIDList, game.mapName, game.game_time_loop)
+	// g_UnitCenter = NewDistributorProcessUnitCenter(g_distributorStore.clone(filter), orders, mapData, default_time_of_one_loop)
+	if g_UnitCenter != nil {
+		g_UnitCenter.start()
+		DebugInfoF("游戏启动完成")
 	}
 
 }

@@ -38,14 +38,20 @@ func (this *MainController) ServerWSOrderDistribution() {
 		g_UnitCenter.distributorOnLine(distributor, ws)
 		// g_UnitCenter.distributorOnLine(userID, ws)
 		// g_room_distributor.join(userID, subscriber_type_distributor, ws)
-		defer g_UnitCenter.distributorOffLine(distributor)
+		defer func() {
+			DebugSysF("发布配送员 %s 离线信息", distributor.Name)
+			g_UnitCenter.distributorOffLine(distributor)
+		}()
 		// defer g_UnitCenter.distributorOffLine(userID)
 		// defer g_UnitCenter.wsRoom.leave(userID)
 		// Message receive loop.
 		for {
 			_, p, err := ws.ReadMessage()
+
 			if err != nil { //EOF
-				break
+				DebugSysF("%s break readMessage", distributor.Name)
+				this.ServeJson()
+				return
 			}
 			// chanPublish <- newEvent(EVENT_MESSAGE, requestURI, string(p))
 			// g_UnitCenter.wsRoom.newMessage(userID, (p))

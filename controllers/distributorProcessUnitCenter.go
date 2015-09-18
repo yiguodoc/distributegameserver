@@ -85,6 +85,7 @@ func (dpc *DistributorProcessUnitCenter) distributorOffLine(distributor *Distrib
 	// distributor := dpc.distributors.findOne(func(d *Distributor) bool { return d.ID == id })
 	// if distributor != nil {
 	distributor.SetOffline()
+	DebugInfoF("配送员 %s 离线", distributor.Name)
 	//处理下线事件
 	dpc.Process(NewMessageWithClient(pro_off_line, distributor, distributor))
 	// }
@@ -144,13 +145,14 @@ func (dpc *DistributorProcessUnitCenter) stop() {
 	// 	dpc.wsRoom.stop()
 	// }
 	dpc.stopAllUnits()
-
+	// dpc.units = DistributorProcessUnitList{}
 	if dpc.chanStop != nil {
 		dpc.chanStop <- true
 		dpc.chanStop = nil
 	}
-	dpc.TimeElapse = 0
-	dpc.gameStarted = false
+	// dpc.TimeElapse = 0
+	// dpc.gameStarted = false
+	time.Sleep(2 * time.Second)
 }
 func (dpc *DistributorProcessUnitCenter) start() *DistributorProcessUnitCenter {
 	dpc.mapData = loadMapData()
@@ -166,13 +168,12 @@ func (dpc *DistributorProcessUnitCenter) start() *DistributorProcessUnitCenter {
 
 	bornPoints := dpc.mapData.Points.filter(func(p *Position) bool { return p.IsBornPoint }).random(rand.New(rand.NewSource(time.Now().UnixNano())), PositionList{})
 	i := len(bornPoints)
-	DebugInfoF("出生点数量 => %d", len(bornPoints))
+	// DebugInfoF("出生点数量 => %d", len(bornPoints))
 	positionGenerator := func() *Position {
 		i--
 		if i < 0 {
 			i = len(bornPoints) - 1
 		}
-		// fmt.Println("index => ", i)
 		return bornPoints[i]
 	}
 	dpc.distributors.forEach(func(distributor *Distributor) {
@@ -188,6 +189,7 @@ func (dpc *DistributorProcessUnitCenter) start() *DistributorProcessUnitCenter {
 
 	go func() {
 		timer := time.Tick(1 * time.Second) //计时器功能
+		breakLoop := false
 		for {
 			select {
 			case msg := <-dpc.chanEvent:
@@ -216,9 +218,14 @@ func (dpc *DistributorProcessUnitCenter) start() *DistributorProcessUnitCenter {
 					// DebugSysF("没有逻辑处理")
 				}
 			case <-dpc.chanStop:
+				breakLoop = true
+			}
+			if breakLoop {
 				break
 			}
 		}
+		DebugSysF("跳出计时循环")
+
 	}()
 	DebugInfoF("配送系统处理中心开始运行...")
 	return dpc
@@ -227,15 +234,17 @@ func (dpc *DistributorProcessUnitCenter) start() *DistributorProcessUnitCenter {
 //重置游戏
 //参与者状态清零，通知客户端游戏重置，客户端采取相应的措施
 func (dpc *DistributorProcessUnitCenter) restart() {
+	DebugInfoF("游戏重新启动...")
 	dpc.broadcastMsgToSubscribers(pro_2c_restart_game, nil)
 	dpc.stop()
 	dpc.start()
+	DebugInfoF("游戏重新启动完成")
 }
 func (dpc *DistributorProcessUnitCenter) startGameTiming() {
 	dpc.gameStarted = true
 }
 func (dpc *DistributorProcessUnitCenter) Process(msg *MessageWithClient) {
-	// DebugInfoF("<- %s", msg)
+	DebugInfoF("<- %s", msg)
 	if dpc.chanEvent != nil {
 
 		dpc.chanEvent <- msg
@@ -243,13 +252,15 @@ func (dpc *DistributorProcessUnitCenter) Process(msg *MessageWithClient) {
 }
 
 func (dpc *DistributorProcessUnitCenter) stopAllUnits() {
-	for _, u := range dpc.units {
-		go u.stop()
+	for id, _ := range dpc.units {
+		dpc.stopUnit(id)
+		// go u.stop()
 	}
 }
 func (dpc *DistributorProcessUnitCenter) stopUnit(id string) {
 	if u, ok := dpc.units[id]; ok {
 		go u.stop()
+		// delete(dpc.units, id)
 	} else {
 		DebugSysF("配送处理单元 %s 不存在", id)
 	}

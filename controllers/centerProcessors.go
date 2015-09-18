@@ -23,14 +23,6 @@ var (
 	ERR_order_already_selected        = errors.New("订单已经被分配过")
 )
 
-// func pro_rank_changed_handlerGenerator(o interface{}) MessageWithClientHandler {
-// 	center := o.(*DistributorProcessUnitCenter)
-// 	f := func(msg *MessageWithClient) {
-// 		center.distributors.forEach(func(d *Distributor) { center.wsRoom.sendMsgToSpecialSubscriber(d.ID, pro_2c_end_game, d) })
-// 	}
-// 	return f
-// }
-
 //整个游戏结束
 func pro_game_timeout_handlerGenerator(o interface{}) MessageWithClientHandler {
 	center := o.(*DistributorProcessUnitCenter)
@@ -47,26 +39,9 @@ func pro_game_timeout_handlerGenerator(o interface{}) MessageWithClientHandler {
 		DebugPrintList_Info(center.distributors)
 		center.distributors.filter(func(d *Distributor) bool { return d.whetherHasEndTheGame() == false }).
 			forEach(func(d *Distributor) {
+			d.setCheckPoint(checkpoint_flag_game_over)
 			center.sendMsgToSpecialSubscriber(d, pro_2c_end_game, d)
 		})
-		// center.distributors.forEach(func(d *Distributor) {
-		// 	center.sendMsgToSpecialSubscriber(d, pro_2c_rank_change, d)
-		// })
-
-		// if distributor := center.distributors.findOne(func(d *Distributor) bool { return d.ID == msg.TargetID }); distributor != nil {
-		// 	//计算排名
-		// 	center.distributors.Rank()
-		// 	DebugPrintList_Info(center.distributors)
-		// 	distributor.setCheckPoint(checkpoint_flag_order_distribute_over)
-		// 	center.stopUnit(distributor.ID)
-		// 	center.wsRoom.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_end_game, distributor)
-		// 	center.distributors.forEach(func(d *Distributor) {
-		// 		if d.ID != distributor.ID {
-		// 			center.wsRoom.sendMsgToSpecialSubscriber(d.ID, pro_2c_rank_change, d)
-		// 		}
-		// 	})
-		// }
-
 	}
 	return f
 }
@@ -209,24 +184,24 @@ func pro_game_start_handlerGenerator(o interface{}) MessageWithClientHandler {
 	center := o.(*DistributorProcessUnitCenter)
 	f := func(msg *MessageWithClient) {
 
-		msgList := []string{"配送员全部准备完毕", "请前往配送中心选择订单"}
+		msgList := []string{"配送员全部准备完毕", "请前往配送中心选择订单", "3", "2", "1"}
 		for _, msg := range msgList {
 			center.broadcastMsgToSubscribers(pro_2c_message_broadcast_before_game_start, msg)
-			time.Sleep(2 * time.Second)
+			time.Sleep(1 * time.Second)
 		}
-		//倒计时
-		timer := time.Tick(1 * time.Second)
-		count := 3
-		// DebugInfo("start timer...")
-		for {
-			<-timer
-			DebugTraceF("timer count : %d", count)
-			if count <= 0 {
-				break
-			}
-			center.broadcastMsgToSubscribers(pro_2c_message_broadcast_before_game_start, count)
-			count--
-		}
+		// //倒计时
+		// timer := time.Tick(1 * time.Second)
+		// count := 3
+		// // DebugInfo("start timer...")
+		// for {
+		// 	<-timer
+		// 	DebugTraceF("timer count : %d", count)
+		// 	if count <= 0 {
+		// 		break
+		// 	}
+		// 	center.broadcastMsgToSubscribers(pro_2c_message_broadcast_before_game_start, count)
+		// 	count--
+		// }
 		center.distributors.forEach(func(d *Distributor) {
 			d.setCheckPoint(checkpoint_flag_game_started)
 			center.sendMsgToSpecialSubscriber(d, pro_2c_game_start, d)

@@ -4,15 +4,22 @@ import (
 	// "time"
 	// "encoding/json"
 	// "strings"
-	// "errors"
+	"errors"
 	"fmt"
 )
 
-func clientMessageTypeCodeCheck() {
+var messageUID int64 = 0
+
+func clientMessageTypeCodeCheck() error {
 	l := getClientMessageTypeCodeList()
 	for _, code := range l {
-		DebugTraceF("客户端事件定义：%3d : %s", code, code.name())
+		if len(code.name()) <= 0 {
+			return errors.New(fmt.Sprintf("客户端事件(%3d)定义描述不完全", int(code)))
+			// DebugSysF("客户端事件(%3d)定义描述不完全", int(c))
+		}
+		// DebugTraceF("客户端事件定义：%3d : %s", code, code.name())
 	}
+	return nil
 }
 func getClientMessageTypeCodeList() (l []ClientMessageTypeCode) {
 	f := func(start, stop int) (l []ClientMessageTypeCode) {
@@ -198,7 +205,8 @@ func (c ClientMessageTypeCode) name() (s string) {
 	case pro_move_from_route_to_node:
 		s = "pro_move_from_route_to_node"
 	default:
-		DebugSysF("客户端事件(%3d)定义描述不完全", int(c))
+		s = ""
+		// DebugSysF("客户端事件(%3d)定义描述不完全", int(c))
 		// if (c) < pro_max {
 		// 	panic(fmt.Sprintf("客户端事件(%3d)定义描述不完全", int(c)))
 		// }
@@ -210,8 +218,10 @@ func NewMessageWithClient(code ClientMessageTypeCode, distributor *Distributor, 
 		MessageType: code,
 		Data:        data,
 		Target:      distributor,
+		uid:         messageUID,
 		// TargetID:    targetID,
 	}
+	messageUID++
 	if len(err) > 0 {
 		if len(err) < 2 {
 			panic("系统消息参数错误，必须同时设置错误内容和系统时间")
@@ -226,15 +236,21 @@ func NewMessageWithClient(code ClientMessageTypeCode, distributor *Distributor, 
 type MessageWithClient struct {
 	MessageType ClientMessageTypeCode
 	Target      *Distributor `json:"-"`
+	Data        interface{}
+	ErrorMsg    string //错误信息
+	SysTime     string
+	uid         int64
 	// TargetID    string `json:"-"`
-	Data     interface{}
-	ErrorMsg string //错误信息
-	SysTime  string
 	// Data        string
 }
 
 func (m *MessageWithClient) String() string {
-	return fmt.Sprintf("type: %s(%d) TargetID: %s data: %s err: %s", m.MessageType.name(), m.MessageType, m.Target.ID, m.Data, m.ErrorMsg)
+	if len(m.ErrorMsg) > 0 {
+		return fmt.Sprintf("type: %s(%d) TargetID: %s data: %s uid: %d err: %s", m.MessageType.name(), m.MessageType, m.Target.ID, m.Data, m.uid, m.ErrorMsg)
+	} else {
+		return fmt.Sprintf("type: %s(%d) TargetID: %s data: %s uid: %d ", m.MessageType.name(), m.MessageType, m.Target.ID, m.Data, m.uid)
+	}
+
 }
 
 // type MessageFromClient struct {

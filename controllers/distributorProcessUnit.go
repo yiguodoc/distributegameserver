@@ -71,6 +71,7 @@ func (u *DistributorProcessUnit) stop() {
 		u.chanStop <- true
 	}
 	u.chanEvent = nil
+	u.distributor.SetOffline()
 }
 func (u *DistributorProcessUnit) start() {
 	DebugInfoF("处理单元 %s %s 启动", u.distributor.ID, u.distributor.Name)

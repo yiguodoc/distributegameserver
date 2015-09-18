@@ -97,9 +97,9 @@ func loadMapData() *MapData {
 		if len(bornPoints) <= 0 {
 			DebugSysF("地图不符合要求，至少设置一个出生点")
 		}
-		DebugInfoF("接收到上传的地图数据，统计：%d 个出生点 %d 个路径节点  %d 条路径", len(bornPoints), len(mapData.Points), len(mapData.Lines))
-		DebugPrintList_Info(mapData.Points)
-		DebugPrintList_Info(mapData.Lines)
+		DebugInfoF("地图数据载入统计：%d 个出生点 %d 个路径节点  %d 条路径", len(bornPoints), len(mapData.Points), len(mapData.Lines))
+		// DebugPrintList_Info(mapData.Points)
+		// DebugPrintList_Info(mapData.Lines)
 	}
 	return &mapData
 }
