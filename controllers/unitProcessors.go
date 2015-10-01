@@ -25,16 +25,12 @@ func pro_game_time_tick_handlerGenerator(o interface{}) MessageWithClientHandler
 	f := func(msg *MessageWithClient) {
 		distributor := unit.distributor
 		distributor.TimeElapse = unit.center.TimeElapse
-		// if distributor.TimeElapse < unit.center.GameTimeMaxLength { //如果时间超过了最长设定时间，此时，客户端应该发起结束游戏的提示
 
 		// 	//运行时间增加
 		// 	distributor.TimeElapse++
 		// 	// DebugInfoF("运行时间+1 => %d", distributor.TimeElapse)
 		unit.center.sendMsgToSpecialSubscriber(distributor, pro_2c_sys_time_elapse, distributor.TimeElapse)
-		// } else {
-		// 	unit.center.wsRoom.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_end_game, distributor)
-		// 	return
-		// }
+
 		//----------------------------------------------------------------------------
 		//计算行走的坐标位置
 		if distributor.NormalSpeed > 0 {

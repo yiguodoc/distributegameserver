@@ -20,12 +20,6 @@ var (
 		NewDistributor("d02", "刘晓莉", color_red),
 		NewDistributor("d03", "桑鸿庆", color_purple),
 	}
-	// g_regions = RegionList{
-	// 	NewRegion("1", "255,128,128", 39.928935, 39.944789, 116.614041, 116.618676),
-	// 	NewRegion("2", "255,179,128", 39.928935, 39.944789, 116.618676, 116.625898),
-	// 	NewRegion("3", "255,255,128", 39.928935, 39.944789, 116.625898, 116.639373),
-	// }
-	// g_room_viewer      *WsRoom            //= NewRoom(eventReceiver)
 )
 
 type game struct {

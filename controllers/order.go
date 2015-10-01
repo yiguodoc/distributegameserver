@@ -8,40 +8,6 @@ import (
 	// "time"
 )
 
-// type Region struct {
-// 	LatMin, LatMax float64
-// 	LngMin, LngMax float64
-// 	Color          string
-// 	Code           string
-// }
-
-// func NewRegion(code, color string, latMin, latMax, lngMin, lngMax float64) *Region {
-// 	return &Region{
-// 		Code:   code,
-// 		Color:  color,
-// 		LatMin: latMin,
-// 		LatMax: latMax,
-// 		LngMin: lngMin,
-// 		LngMax: lngMax,
-// 	}
-// }
-// func (r *Region) in(pos *Position) bool {
-// 	return pos != nil &&
-// 		pos.Lat >= r.LatMin && pos.Lat < r.LatMax &&
-// 		pos.Lng >= r.LngMin && pos.Lng < r.LngMax
-// }
-
-// type RegionList []*Region
-
-// func (rl RegionList) findRegion(pos *Position) *Region {
-// 	for _, r := range rl {
-// 		if r.in(pos) {
-// 			return r
-// 		}
-// 	}
-// 	return nil
-// }
-
 var orderCount = 0
 
 func generateOrderID() string {
@@ -62,15 +28,10 @@ type Order struct {
 }
 
 func NewOrder(id string, pos *Position) *Order {
-	// region := g_regions.findRegion(pos)
-	// if region == nil {
-	// 	panic(fmt.Sprintf("没有定义点所属的区域：%s", pos))
-	// }
 	return &Order{
 		ID:     id,
 		GeoSrc: pos,
 		Score:  pos.Score,
-		// Region: region,
 	}
 }
 

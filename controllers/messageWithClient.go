@@ -29,12 +29,6 @@ func getClientMessageTypeCodeList() (l []ClientMessageTypeCode) {
 		return
 	}
 	l = append(append(l, f(int(pro_min)+1, int(pro_max)-1)...), f(pro_2c_min+1, int(pro_2c_max)-1)...)
-	// for i := pro_min + 1; i < int(pro_max); i++ {
-	// 	l = append(l, ClientMessageTypeCode(i))
-	// }
-	// for i := pro_2c_min + 1; i < int(pro_2c_max); i++ {
-	// 	l = append(l, ClientMessageTypeCode(i))
-	// }
 	return
 }
 

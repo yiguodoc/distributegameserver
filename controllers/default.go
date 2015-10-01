@@ -14,7 +14,7 @@ var viewerCount = 1
 
 func getViewerID() string {
 	viewerCount++
-	return fmt.Sprintf("viewerndlfejqwrjlfjfww953957392%d", viewerCount)
+	return fmt.Sprintf("953957392%d", viewerCount)
 }
 
 type ResponseMsg struct {
