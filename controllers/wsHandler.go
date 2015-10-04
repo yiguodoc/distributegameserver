@@ -33,17 +33,12 @@ func (this *MainController) ServerWSOrderDistribution() {
 	// beego.Trace(ws.LocalAddr())
 	// Join chat room.
 	// distributor := g_UnitCenter.distributors.findOne(func(d *Distributor) bool { return d.ID == userID })
-	// g_UnitCenter.wsRoom.join(Subscriber(distributor), ws)
 	if distributor := g_UnitCenter.containsDistributor(userID); distributor != nil {
 		g_UnitCenter.distributorOnLine(distributor, ws)
-		// g_UnitCenter.distributorOnLine(userID, ws)
-		// g_room_distributor.join(userID, subscriber_type_distributor, ws)
 		defer func() {
 			DebugSysF("发布配送员 %s 离线信息", distributor.Name)
 			g_UnitCenter.distributorOffLine(distributor)
 		}()
-		// defer g_UnitCenter.distributorOffLine(userID)
-		// defer g_UnitCenter.wsRoom.leave(userID)
 		// Message receive loop.
 		for {
 			_, p, err := ws.ReadMessage()
@@ -53,14 +48,9 @@ func (this *MainController) ServerWSOrderDistribution() {
 				this.ServeJson()
 				return
 			}
-			// chanPublish <- newEvent(EVENT_MESSAGE, requestURI, string(p))
-			// g_UnitCenter.wsRoom.newMessage(userID, (p))
 			g_UnitCenter.distributorMessageIn(distributor, p)
-			// g_UnitCenter.distributorMessageIn(userID, p)
 		}
 	}
-
-	// this.TplNames = ""
 	this.ServeJson()
 }
 

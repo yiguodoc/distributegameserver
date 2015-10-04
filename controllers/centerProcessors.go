@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	// "math"
+	"github.com/gorilla/websocket"
 	"strconv"
 	"time"
 )
@@ -159,23 +160,7 @@ func pro_order_select_response_handlerGenerator(o interface{}) MessageWithClient
 		// center.wsRoom.broadcastMsgToSubscribers(pro_2c_message_broadcast, msg)
 		DebugInfoF(log)
 
-		// if distributor.fullyLoaded() == true { //配送员的订单满载了
-		// 	log = fmt.Sprintf("配送员 %s 订单满载", distributor.Name)
-		// 	center.wsRoom.broadcastMsgToSubscribers(pro_2c_message_broadcast, log)
-		// 	DebugInfoF(log)
-		// 	// distributor.setCheckPoint(checkpoint_flag_order_distribute)
-		// 	center.distributors.forOne(func(d *Distributor) bool {
-		// 		if d.ID == distributorID {
-		// 			d.CheckPoint = checkpoint_flag_order_distribute
-		// 			DebugInfoF("配送员 %s 状态变化 => 配送环节", d.Name)
-		// 			return true
-		// 		}
-		// 		return false
-		// 	})
-		// 	center.wsRoom.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_order_full, distributor)
-		// }
 		sendOrderProposal(center)
-
 	}
 	return f
 }
@@ -189,27 +174,10 @@ func pro_game_start_handlerGenerator(o interface{}) MessageWithClientHandler {
 			center.broadcastMsgToSubscribers(pro_2c_message_broadcast_before_game_start, msg)
 			time.Sleep(1 * time.Second)
 		}
-		// //倒计时
-		// timer := time.Tick(1 * time.Second)
-		// count := 3
-		// // DebugInfo("start timer...")
-		// for {
-		// 	<-timer
-		// 	DebugTraceF("timer count : %d", count)
-		// 	if count <= 0 {
-		// 		break
-		// 	}
-		// 	center.broadcastMsgToSubscribers(pro_2c_message_broadcast_before_game_start, count)
-		// 	count--
-		// }
 		center.distributors.forEach(func(d *Distributor) {
 			d.setCheckPoint(checkpoint_flag_game_started)
 			center.sendMsgToSpecialSubscriber(d, pro_2c_game_start, d)
 		})
-		// center.broadcastMsgToSubscribers(pro_2c_game_start, nil)
-		// center.distributors.forEach(func(d *Distributor) {
-		// 	center.sendMsgToSpecialSubscriber(d, pro_2c_game_start, d)
-		// })
 		sendOrderProposal(center)
 		center.startAlltUnit()
 		center.startGameTiming()
@@ -217,13 +185,8 @@ func pro_game_start_handlerGenerator(o interface{}) MessageWithClientHandler {
 	return f
 }
 func sendOrderProposal(center *DistributorProcessUnitCenter) {
-	// if len(center.distributors.filter(func(d *Distributor) bool { return d.fullyLoaded() == false })) > 0 {
-	// if len(center.distributors.notFull()) > 0 {
-	// broadOrderSelectProposal(center.distributors, center.orders)
 	proposals := getOrderSelectProposal(center.distributors, center.orders)
 	center.broadcastMsgToSubscribers(pro_2c_order_distribution_proposal, proposals)
-
-	// }
 }
 
 func pro_prepared_for_select_order_handlerGenerator(o interface{}) MessageWithClientHandler {
@@ -249,6 +212,7 @@ func pro_prepared_for_select_order_handlerGenerator(o interface{}) MessageWithCl
 func pro_off_line_handlerGenerator(o interface{}) MessageWithClientHandler {
 	center := o.(*DistributorProcessUnitCenter)
 	f := func(msg *MessageWithClient) {
+		msg.Target.SetOffline()
 		DebugTraceF("%s", msg)
 		center.stopUnit(msg.Target.ID)
 		DebugInfoF("配送员 %s 离线", msg.Target.Name)
@@ -264,8 +228,8 @@ func pro_off_line_handlerGenerator(o interface{}) MessageWithClientHandler {
 func pro_on_line_handlerGenerator(o interface{}) MessageWithClientHandler {
 	center := o.(*DistributorProcessUnitCenter)
 	f := func(msg *MessageWithClient) {
-		// DebugInfo("1111111")
 		DebugTraceF("处理消息 %s", msg)
+		msg.Target.SetConn(msg.Data.(*websocket.Conn))
 		center.sendMsgToSpecialSubscriber(msg.Target, pro_2c_map_data, center.mapData)
 		center.sendMsgToSpecialSubscriber(msg.Target, pro_2c_distributor_info, msg.Target)
 		onReconnect(center, msg.Target)
@@ -288,14 +252,7 @@ func onReconnect(center *DistributorProcessUnitCenter, distributor *Distributor)
 		DebugTraceF("配送员 %s 上线，状态 %d 游戏进行中", distributor.Name, checkpoint_flag_game_started)
 		// broadOrderSelectProposal(center.distributors, center.orders)
 		proposals := getOrderSelectProposal(center.distributors, center.orders)
-		// if proposals, err := getOrderSelectProposal(center.distributors, center.orders); err == nil {
-		// center.wsRoom.broadcastMsgToSubscribers(pro_2c_order_distribution_proposal, proposals)
 		center.sendMsgToSpecialSubscriber(distributor, pro_2c_order_distribution_proposal, proposals)
-		// } else {
-		// 	DebugInfoF("%s", err)
-		// }
-	// case checkpoint_flag_order_distribute:
-	// 	DebugTraceF("配送员上线，状态 %d 配送中", checkpoint_flag_order_distribute)
 	case checkpoint_flag_game_over:
 		DebugTraceF("配送员 %s 上线，状态 %d 配送完成", distributor.Name, checkpoint_flag_game_over)
 	}
@@ -309,12 +266,6 @@ func getOrderSelectProposal(distributors DistributorList, orders OrderList) (lis
 		list = ordersUndistributed
 	}
 	return
-	// proposals, err := createDistributionProposal(orders.Filter(func(o *Order) bool { return o.Distributed == false }), distributors)
-	// // proposals, err := createDistributionProposal(orders.Filter(newOrderDistributeFilter(false)), distributors)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// return proposals, nil
 }
 func disposeOrderSelectResponse(orderID string, distributor *Distributor, distributors DistributorList, orders OrderList) error {
 	order := orders.findOne(func(o interface{}) bool { return o.(*Order).ID == orderID })
@@ -326,11 +277,6 @@ func disposeOrderSelectResponse(orderID string, distributor *Distributor, distri
 		DebugInfoF("订单[%s]已经被分配", orderID)
 		return ERR_order_already_selected
 	}
-
-	// if distributor.fullyLoaded() {
-	// 	DebugInfoF("配送员[%s]已经满载", distributor.Name)
-	// 	return ERR_distributor_full
-	// }
 
 	//确定结果
 	order.distribute(distributor.TimeElapse)

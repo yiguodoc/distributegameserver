@@ -53,12 +53,8 @@ func NewDistributorProcessUnitCenter(distributorIDList []string, mapName string,
 			pro_game_timeout,
 		},
 		GameTimeMaxLength: timeMaxLength,
-		// distributors: distributors,
-		// orders:       orders,
-		// mapData:      mapData,
 	}
 	center.processors = handler_map.generateHandlerMap(center.supportPro, center)
-	// center.wsRoom = NewRoom().addEventSubscriber(distributorRoomEventHandlerGenerator(center), WsRoomEventCode_Online, WsRoomEventCode_Offline, WsRoomEventCode_Other)
 	return center
 }
 func (dpc *DistributorProcessUnitCenter) containsDistributor(id string) *Distributor {
@@ -67,28 +63,17 @@ func (dpc *DistributorProcessUnitCenter) containsDistributor(id string) *Distrib
 
 // 上线
 func (dpc *DistributorProcessUnitCenter) distributorOnLine(distributor *Distributor, conn *websocket.Conn) {
-	// func (dpc *DistributorProcessUnitCenter) distributorOnLine(id string, conn *websocket.Conn) {
-	// DebugTraceF("配送员 %s 连接服务", distributor.Name)
-	// distributor := dpc.distributors.findOne(func(d *Distributor) bool { return d.ID == id })
-	// if distributor != nil {
-	distributor.SetConn(conn)
+	// distributor.SetConn(conn)
 	//处理上线事件
 	DebugInfoF("配送员 %s 上线", distributor.Name)
-	dpc.Process(NewMessageWithClient(pro_on_line, distributor, distributor))
-	// } else {
-	// 	DebugInfoF("不存在配送员 %s", id)
-	// }
+	dpc.Process(NewMessageWithClient(pro_on_line, distributor, conn))
 }
 
 func (dpc *DistributorProcessUnitCenter) distributorOffLine(distributor *Distributor) {
-	// func (dpc *DistributorProcessUnitCenter) distributorOffLine(id string) {
-	// distributor := dpc.distributors.findOne(func(d *Distributor) bool { return d.ID == id })
-	// if distributor != nil {
-	distributor.SetOffline()
+	// distributor.SetOffline()
 	DebugInfoF("配送员 %s 离线", distributor.Name)
 	//处理下线事件
 	dpc.Process(NewMessageWithClient(pro_off_line, distributor, distributor))
-	// }
 }
 func (dpc *DistributorProcessUnitCenter) distributorMessageIn(distributor *Distributor, content []byte) {
 	var msg MessageWithClient
@@ -141,18 +126,12 @@ func (dpc *DistributorProcessUnitCenter) sendMsgToSpecialSubscriber(distributor 
 }
 
 func (dpc *DistributorProcessUnitCenter) stop() {
-	// if dpc.wsRoom != nil {
-	// 	dpc.wsRoom.stop()
-	// }
 	dpc.stopAllUnits()
-	// dpc.units = DistributorProcessUnitList{}
 	if dpc.chanStop != nil {
 		dpc.chanStop <- true
 		dpc.chanStop = nil
 	}
-	// dpc.TimeElapse = 0
-	// dpc.gameStarted = false
-	time.Sleep(2 * time.Second)
+	// time.Sleep(2 * time.Second)
 }
 func (dpc *DistributorProcessUnitCenter) start() *DistributorProcessUnitCenter {
 	dpc.mapData = loadMapData()
@@ -167,19 +146,29 @@ func (dpc *DistributorProcessUnitCenter) start() *DistributorProcessUnitCenter {
 	dpc.distributors = g_distributorStore.clone(func(d *Distributor) bool { return stringInArray(d.ID, dpc.distributorIDList) })
 
 	bornPoints := dpc.mapData.Points.filter(func(p *Position) bool { return p.IsBornPoint }).random(rand.New(rand.NewSource(time.Now().UnixNano())), PositionList{})
-	i := len(bornPoints)
+	// i := len(bornPoints)
 	// DebugInfoF("出生点数量 => %d", len(bornPoints))
-	positionGenerator := func() *Position {
-		i--
-		if i < 0 {
-			i = len(bornPoints) - 1
+	// positionGenerator := func() *Position {
+	// 	i--
+	// 	if i < 0 {
+	// 		i = len(bornPoints) - 1
+	// 	}
+	// 	return bornPoints[i]
+	// }
+	positionGenerator := func(bornPoints PositionList) func() *Position {
+		i := len(bornPoints)
+		return func() *Position {
+			i--
+			if i < 0 {
+				i = len(bornPoints) - 1
+			}
+			return bornPoints[i]
 		}
-		return bornPoints[i]
 	}
 	dpc.distributors.forEach(func(distributor *Distributor) {
 		distributor.setCheckPoint(checkpoint_flag_origin)
 		distributor.GameTimeMaxLength = dpc.GameTimeMaxLength
-		distributor.StartPos = positionGenerator()
+		distributor.StartPos = positionGenerator(bornPoints)()
 		distributor.CurrentPos = distributor.StartPos.copyTemp(true)
 		distributor.NormalSpeed = defaultSpeed
 		distributor.CurrentSpeed = defaultSpeed
