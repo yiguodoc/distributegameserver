@@ -1,0 +1,608 @@
+[[Points]]
+  ID = 1
+  Lng = 116.639373
+  Lat = 39.93314
+  Address = "草房C区"
+  PointType = 2
+  IsBornPoint = false
+  Score = 2
+
+[[Points]]
+  ID = 2
+  Lng = 116.632977
+  Lat = 39.932725
+  Address = ""
+  PointType = 1
+  IsBornPoint = false
+  Score = 0
+
+[[Points]]
+  ID = 3
+  Lng = 116.629204
+  Lat = 39.931923
+  Address = ""
+  PointType = 0
+  IsBornPoint = false
+  Score = 0
+
+[[Points]]
+  ID = 4
+  Lng = 116.628198
+  Lat = 39.933721
+  Address = "草房B区"
+  PointType = 2
+  IsBornPoint = false
+  Score = 1
+
+[[Points]]
+  ID = 5
+  Lng = 116.632007
+  Lat = 39.934689
+  Address = "草房C区"
+  PointType = 2
+  IsBornPoint = false
+  Score = 1
+
+[[Points]]
+  ID = 6
+  Lng = 116.624892
+  Lat = 39.933444
+  Address = "草房B区"
+  PointType = 2
+  IsBornPoint = false
+  Score = 2
+
+[[Points]]
+  ID = 7
+  Lng = 116.622593
+  Lat = 39.933112
+  Address = "草房B区"
+  PointType = 2
+  IsBornPoint = false
+  Score = 2
+
+[[Points]]
+  ID = 8
+  Lng = 116.625898
+  Lat = 39.931148
+  Address = ""
+  PointType = 1
+  IsBornPoint = false
+  Score = 0
+
+[[Points]]
+  ID = 9
+  Lng = 116.621802
+  Lat = 39.930346
+  Address = ""
+  PointType = 0
+  IsBornPoint = false
+  Score = 0
+
+[[Points]]
+  ID = 10
+  Lng = 116.619179
+  Lat = 39.929875
+  Address = ""
+  PointType = 1
+  IsBornPoint = false
+  Score = 0
+
+[[Points]]
+  ID = 11
+  Lng = 116.618209
+  Lat = 39.929848
+  Address = ""
+  PointType = 1
+  IsBornPoint = false
+  Score = 0
+
+[[Points]]
+  ID = 12
+  Lng = 116.615586
+  Lat = 39.930705
+  Address = "草房A区"
+  PointType = 2
+  IsBornPoint = false
+  Score = 1
+
+[[Points]]
+  ID = 13
+  Lng = 116.626401
+  Lat = 39.929212
+  Address = "草房B区"
+  PointType = 2
+  IsBornPoint = false
+  Score = 2
+
+[[Points]]
+  ID = 14
+  Lng = 116.622736
+  Lat = 39.928935
+  Address = ""
+  PointType = 1
+  IsBornPoint = false
+  Score = 0
+
+[[Points]]
+  ID = 15
+  Lng = 116.618676
+  Lat = 39.932531
+  Address = "草房A区"
+  PointType = 2
+  IsBornPoint = false
+  Score = 2
+
+[[Points]]
+  ID = 16
+  Lng = 116.617383
+  Lat = 39.93195
+  Address = "草房A区"
+  PointType = 2
+  IsBornPoint = false
+  Score = 2
+
+[[Points]]
+  ID = 17
+  Lng = 116.614041
+  Lat = 39.92982
+  Address = "草房A区"
+  PointType = 2
+  IsBornPoint = false
+  Score = 2
+
+[[Points]]
+  ID = 18
+  Lng = 116.63781
+  Lat = 39.939474
+  Address = "草房C区"
+  PointType = 2
+  IsBornPoint = false
+  Score = 3
+
+[[Points]]
+  ID = 19
+  Lng = 116.631809
+  Lat = 39.939059
+  Address = "草房C区"
+  PointType = 2
+  IsBornPoint = false
+  Score = 3
+
+[[Points]]
+  ID = 20
+  Lng = 116.626958
+  Lat = 39.92686
+  Address = ""
+  PointType = 1
+  IsBornPoint = true
+  Score = 0
+
+[[Points]]
+  ID = 21
+  Lng = 116.62288
+  Lat = 39.938479
+  Address = ""
+  PointType = 1
+  IsBornPoint = false
+  Score = 0
+
+[[Lines]]
+  Distance = 547.296276362438
+  Busy = false
+  [Lines.Start]
+    ID = 1
+    Lng = 116.639373
+    Lat = 39.93314
+    Address = "草房C区"
+    PointType = 2
+    IsBornPoint = false
+    Score = 2
+  [Lines.End]
+    ID = 2
+    Lng = 116.632977
+    Lat = 39.932725
+    Address = ""
+    PointType = 1
+    IsBornPoint = false
+    Score = 0
+
+[[Lines]]
+  Distance = 333.8349182969697
+  Busy = false
+  [Lines.Start]
+    ID = 2
+    Lng = 116.632977
+    Lat = 39.932725
+    Address = ""
+    PointType = 1
+    IsBornPoint = false
+    Score = 0
+  [Lines.End]
+    ID = 3
+    Lng = 116.629204
+    Lat = 39.931923
+    Address = ""
+    PointType = 0
+    IsBornPoint = false
+    Score = 0
+
+[[Lines]]
+  Distance = 233.52273171221356
+  Busy = false
+  [Lines.Start]
+    ID = 2
+    Lng = 116.632977
+    Lat = 39.932725
+    Address = ""
+    PointType = 1
+    IsBornPoint = false
+    Score = 0
+  [Lines.End]
+    ID = 5
+    Lng = 116.632007
+    Lat = 39.934689
+    Address = "草房C区"
+    PointType = 2
+    IsBornPoint = false
+    Score = 1
+
+[[Lines]]
+  Distance = 217.5518269095082
+  Busy = false
+  [Lines.Start]
+    ID = 3
+    Lng = 116.629204
+    Lat = 39.931923
+    Address = ""
+    PointType = 0
+    IsBornPoint = false
+    Score = 0
+  [Lines.End]
+    ID = 4
+    Lng = 116.628198
+    Lat = 39.933721
+    Address = "草房B区"
+    PointType = 2
+    IsBornPoint = false
+    Score = 1
+
+[[Lines]]
+  Distance = 404.6939181356864
+  Busy = false
+  [Lines.Start]
+    ID = 3
+    Lng = 116.629204
+    Lat = 39.931923
+    Address = ""
+    PointType = 0
+    IsBornPoint = false
+    Score = 0
+  [Lines.End]
+    ID = 6
+    Lng = 116.624892
+    Lat = 39.933444
+    Address = "草房B区"
+    PointType = 2
+    IsBornPoint = false
+    Score = 2
+
+[[Lines]]
+  Distance = 578.9798476199995
+  Busy = false
+  [Lines.Start]
+    ID = 3
+    Lng = 116.629204
+    Lat = 39.931923
+    Address = ""
+    PointType = 0
+    IsBornPoint = false
+    Score = 0
+  [Lines.End]
+    ID = 7
+    Lng = 116.622593
+    Lat = 39.933112
+    Address = "草房B区"
+    PointType = 2
+    IsBornPoint = false
+    Score = 2
+
+[[Lines]]
+  Distance = 294.76620176124374
+  Busy = false
+  [Lines.Start]
+    ID = 3
+    Lng = 116.629204
+    Lat = 39.931923
+    Address = ""
+    PointType = 0
+    IsBornPoint = false
+    Score = 0
+  [Lines.End]
+    ID = 8
+    Lng = 116.625898
+    Lat = 39.931148
+    Address = ""
+    PointType = 1
+    IsBornPoint = false
+    Score = 0
+
+[[Lines]]
+  Distance = 360.45741947886404
+  Busy = false
+  [Lines.Start]
+    ID = 8
+    Lng = 116.625898
+    Lat = 39.931148
+    Address = ""
+    PointType = 1
+    IsBornPoint = false
+    Score = 0
+  [Lines.End]
+    ID = 9
+    Lng = 116.621802
+    Lat = 39.930346
+    Address = ""
+    PointType = 0
+    IsBornPoint = false
+    Score = 0
+
+[[Lines]]
+  Distance = 229.70634894900584
+  Busy = false
+  [Lines.Start]
+    ID = 9
+    Lng = 116.621802
+    Lat = 39.930346
+    Address = ""
+    PointType = 0
+    IsBornPoint = false
+    Score = 0
+  [Lines.End]
+    ID = 10
+    Lng = 116.619179
+    Lat = 39.929875
+    Address = ""
+    PointType = 1
+    IsBornPoint = false
+    Score = 0
+
+[[Lines]]
+  Distance = 82.76410267518702
+  Busy = false
+  [Lines.Start]
+    ID = 10
+    Lng = 116.619179
+    Lat = 39.929875
+    Address = ""
+    PointType = 1
+    IsBornPoint = false
+    Score = 0
+  [Lines.End]
+    ID = 11
+    Lng = 116.618209
+    Lat = 39.929848
+    Address = ""
+    PointType = 1
+    IsBornPoint = false
+    Score = 0
+
+[[Lines]]
+  Distance = 243.1106964704514
+  Busy = false
+  [Lines.Start]
+    ID = 11
+    Lng = 116.618209
+    Lat = 39.929848
+    Address = ""
+    PointType = 1
+    IsBornPoint = false
+    Score = 0
+  [Lines.End]
+    ID = 12
+    Lng = 116.615586
+    Lat = 39.930705
+    Address = "草房A区"
+    PointType = 2
+    IsBornPoint = false
+    Score = 1
+
+[[Lines]]
+  Distance = 219.50417751156837
+  Busy = false
+  [Lines.Start]
+    ID = 8
+    Lng = 116.625898
+    Lat = 39.931148
+    Address = ""
+    PointType = 1
+    IsBornPoint = false
+    Score = 0
+  [Lines.End]
+    ID = 13
+    Lng = 116.626401
+    Lat = 39.929212
+    Address = "草房B区"
+    PointType = 2
+    IsBornPoint = false
+    Score = 2
+
+[[Lines]]
+  Distance = 175.9514165281677
+  Busy = false
+  [Lines.Start]
+    ID = 9
+    Lng = 116.621802
+    Lat = 39.930346
+    Address = ""
+    PointType = 0
+    IsBornPoint = false
+    Score = 0
+  [Lines.End]
+    ID = 14
+    Lng = 116.622736
+    Lat = 39.928935
+    Address = ""
+    PointType = 1
+    IsBornPoint = false
+    Score = 0
+
+[[Lines]]
+  Distance = 206.49977340732363
+  Busy = false
+  [Lines.Start]
+    ID = 12
+    Lng = 116.615586
+    Lat = 39.930705
+    Address = "草房A区"
+    PointType = 2
+    IsBornPoint = false
+    Score = 1
+  [Lines.End]
+    ID = 16
+    Lng = 116.617383
+    Lat = 39.93195
+    Address = "草房A区"
+    PointType = 2
+    IsBornPoint = false
+    Score = 2
+
+[[Lines]]
+  Distance = 127.78171857545341
+  Busy = false
+  [Lines.Start]
+    ID = 16
+    Lng = 116.617383
+    Lat = 39.93195
+    Address = "草房A区"
+    PointType = 2
+    IsBornPoint = false
+    Score = 2
+  [Lines.End]
+    ID = 15
+    Lng = 116.618676
+    Lat = 39.932531
+    Address = "草房A区"
+    PointType = 2
+    IsBornPoint = false
+    Score = 2
+
+[[Lines]]
+  Distance = 164.4349792222158
+  Busy = false
+  [Lines.Start]
+    ID = 12
+    Lng = 116.615586
+    Lat = 39.930705
+    Address = "草房A区"
+    PointType = 2
+    IsBornPoint = false
+    Score = 1
+  [Lines.End]
+    ID = 17
+    Lng = 116.614041
+    Lat = 39.92982
+    Address = "草房A区"
+    PointType = 2
+    IsBornPoint = false
+    Score = 2
+
+[[Lines]]
+  Distance = 513.6976754751419
+  Busy = false
+  [Lines.Start]
+    ID = 19
+    Lng = 116.631809
+    Lat = 39.939059
+    Address = "草房C区"
+    PointType = 2
+    IsBornPoint = false
+    Score = 3
+  [Lines.End]
+    ID = 18
+    Lng = 116.63781
+    Lat = 39.939474
+    Address = "草房C区"
+    PointType = 2
+    IsBornPoint = false
+    Score = 3
+
+[[Lines]]
+  Distance = 716.8044579629236
+  Busy = false
+  [Lines.Start]
+    ID = 18
+    Lng = 116.63781
+    Lat = 39.939474
+    Address = "草房C区"
+    PointType = 2
+    IsBornPoint = false
+    Score = 3
+  [Lines.End]
+    ID = 1
+    Lng = 116.639373
+    Lat = 39.93314
+    Address = "草房C区"
+    PointType = 2
+    IsBornPoint = false
+    Score = 2
+
+[[Lines]]
+  Distance = 427.6020052625173
+  Busy = false
+  [Lines.Start]
+    ID = 14
+    Lng = 116.622736
+    Lat = 39.928935
+    Address = ""
+    PointType = 1
+    IsBornPoint = false
+    Score = 0
+  [Lines.End]
+    ID = 20
+    Lng = 116.626958
+    Lat = 39.92686
+    Address = ""
+    PointType = 1
+    IsBornPoint = true
+    Score = 0
+
+[[Lines]]
+  Distance = 594.6621629928496
+  Busy = false
+  [Lines.Start]
+    ID = 20
+    Lng = 116.626958
+    Lat = 39.92686
+    Address = ""
+    PointType = 1
+    IsBornPoint = true
+    Score = 0
+  [Lines.End]
+    ID = 3
+    Lng = 116.629204
+    Lat = 39.931923
+    Address = ""
+    PointType = 0
+    IsBornPoint = false
+    Score = 0
+
+[[Lines]]
+  Distance = 763.9827324919171
+  Busy = false
+  [Lines.Start]
+    ID = 19
+    Lng = 116.631809
+    Lat = 39.939059
+    Address = "草房C区"
+    PointType = 2
+    IsBornPoint = false
+    Score = 3
+  [Lines.End]
+    ID = 21
+    Lng = 116.62288
+    Lat = 39.938479
+    Address = ""
+    PointType = 1
+    IsBornPoint = false
+    Score = 0

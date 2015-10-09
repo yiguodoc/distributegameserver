@@ -33,11 +33,11 @@ func (this *MainController) ServerWSOrderDistribution() {
 	// beego.Trace(ws.LocalAddr())
 	// Join chat room.
 	// distributor := g_UnitCenter.distributors.findOne(func(d *Distributor) bool { return d.ID == userID })
-	if distributor := g_UnitCenter.containsDistributor(userID); distributor != nil {
-		g_UnitCenter.distributorOnLine(distributor, ws)
+	if unit, distributor := g_gameUnits.containsDistributor(userID); unit != nil {
+		unit.distributorOnLine(distributor, ws)
 		defer func() {
 			DebugSysF("发布配送员 %s 离线信息", distributor.Name)
-			g_UnitCenter.distributorOffLine(distributor)
+			unit.distributorOffLine(distributor)
 		}()
 		// Message receive loop.
 		for {
@@ -48,7 +48,7 @@ func (this *MainController) ServerWSOrderDistribution() {
 				this.ServeJson()
 				return
 			}
-			g_UnitCenter.distributorMessageIn(distributor, p)
+			unit.distributorMessageIn(distributor, p)
 		}
 	}
 	this.ServeJson()

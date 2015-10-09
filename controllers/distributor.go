@@ -49,18 +49,20 @@ type Distributor struct {
 	AcceptedOrders    OrderList
 	CheckPoint        CheckPoint //所处的关卡
 	Online            bool
-	Color             string          //地图上marker颜色
-	StartPos, DestPos *Position       //配送时设置的出发和目的路径点
-	CurrentPos        *Position       //配送时实时所在的路径
-	Conn              *websocket.Conn `json:"-"` // Only for WebSocket users; otherwise nil.
-	NormalSpeed       float64         //运行速度 km/h
-	CurrentSpeed      float64         //当前运行速度，0表示停止
-	Distance          float64         //所在或者将要行驶的路径长度
+	Color             string    //地图上marker颜色
+	StartPos, DestPos *Position //配送时设置的出发和目的路径点
+	CurrentPos        *Position //配送时实时所在的路径
+	NormalSpeed       float64   //运行速度 km/h
+	CurrentSpeed      float64   //当前运行速度，0表示停止
+	Distance          float64   //所在或者将要行驶的路径长度
 	line              *Line
 	GameTimeMaxLength int //游戏最大时长
 	TimeElapse        int //运行时间
 	Score             int //得分
 	Rank              int //排名
+	GameID            string
+	Conn              *websocket.Conn `json:"-"` // Only for WebSocket users; otherwise nil.
+	// AtGame            bool
 	// MaxAcceptedOrdersCount int             `json:"-"` //配送员可以接收的最大订单数量
 }
 

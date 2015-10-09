@@ -1,16 +1,25 @@
 package controllers
 
 import (
-	// "errors"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/BurntSushi/toml"
 	"github.com/astaxie/beego"
 	"github.com/ungerik/go-dry"
 	"os"
+	"path"
+	"strings"
 )
 
+/*
+
+
+
+ */
+
 var viewerCount = 1
+var default_map_data_dir = "./mapdata/"
 
 func getViewerID() string {
 	viewerCount++
@@ -20,6 +29,7 @@ func getViewerID() string {
 type ResponseMsg struct {
 	Code    int
 	Message string
+	Data    interface{}
 }
 
 func NewResponseMsg(code int, msg ...string) *ResponseMsg {
@@ -33,8 +43,39 @@ func NewResponseMsg(code int, msg ...string) *ResponseMsg {
 	}
 }
 
+type logicHandler func(m *MainController) (interface{}, error)
+
+func responseHandler(m *MainController, handler logicHandler) {
+	response := NewResponseMsg(0)
+	defer func() {
+		m.Data["json"] = response
+		m.ServeJson()
+	}()
+
+	if value, err := handler(m); err != nil {
+		DebugMustF("controller error: %s", err.Error())
+		response = NewResponseMsg(1, err.Error())
+	} else {
+		response.Data = value
+	}
+}
+
 type MainController struct {
 	beego.Controller
+}
+
+//by walking through the data file dir
+func getMapList() []string {
+	files, err := dry.ListDirFiles(default_map_data_dir)
+	if err != nil {
+		return []string{}
+	} else {
+		fmt.Println(files)
+		return dry.StringMap(func(s string) string {
+			return strings.Replace(s, path.Ext(s), "", 1)
+		}, files)
+		// return files
+	}
 }
 
 type MapData struct {
@@ -42,17 +83,63 @@ type MapData struct {
 	Lines  LineList
 }
 
+func (m *MainController) MapNameList() {
+	responseHandler(m, func(m *MainController) (interface{}, error) {
+		return getMapList(), nil
+	})
+}
+func (m *MainController) GameList() {
+	responseHandler(m, func(m *MainController) (interface{}, error) {
+		id := m.GetString("gameID")
+		if len(id) > 0 {
+			return g_gameUnits.find(func(u *GameUnit) bool { return u.ID == id }), nil
+		} else {
+			return g_gameUnits, nil
+		}
+	})
+	// m.Data["json"] = g_gameUnits
+	// m.ServeJson()
+}
+func (m *MainController) NewGame() {
+	responseHandler(m, func(m *MainController) (interface{}, error) {
+		contentType := m.Ctx.Input.Header("Content-Type")
+		fmt.Println("content-type : ", contentType)
+		// fmt.Println(m.Ctx.Input.Request.Header)
+		body := m.Ctx.Input.CopyBody()
+		fmt.Println("body => " + string(body))
+		type GamePara struct {
+			ID    []string
+			MapID string
+		}
+		var para GamePara
+		if err := json.Unmarshal([]byte(body), &para); err != nil {
+			return nil, err
+		}
+		fmt.Println(para)
+		game := NewGame(para.ID, para.MapID, default_time_of_one_loop)
+		return nil, startNewGame(game)
+
+		// return nil, nil
+	})
+}
 func (m *MainController) RestartGame() {
-	restartGame()
+	game := NewGame([]string{"d01", "d02", "d03"}[:1], "", default_time_of_one_loop)
+	startNewGame(game)
+	// restartGame()
 	m.ServeJson()
 }
+
+func (m *MainController) GameListIndex() {
+	m.TplNames = "gameListIndex.tpl"
+}
 func (m *MainController) RankIndex() {
+	m.Data["gameID"] = m.GetString("gameID")
 	m.TplNames = "rankIndex.tpl"
 }
 func (m *MainController) Index() {
 	m.Data["HOST"] = fmt.Sprintf("%s:%d", m.Ctx.Input.Host(), m.Ctx.Input.Port())
 	distributorID := m.GetString("id")
-	d := g_UnitCenter.distributors.findOne(func(d *Distributor) bool { return d.ID == distributorID })
+	d := g_distributorStore.findOne(func(d *Distributor) bool { return d.ID == distributorID })
 	// d := g_UnitCenter.distributors.find(distributorID)
 	if d == nil {
 		panic("没有配送员 " + distributorID)
@@ -70,7 +157,7 @@ func (m *MainController) Login() {
 func (m *MainController) DistributionIndex() {
 	m.Data["HOST"] = fmt.Sprintf("%s:%d", m.Ctx.Input.Host(), m.Ctx.Input.Port())
 	distributorID := m.GetString("id")
-	d := g_UnitCenter.distributors.findOne(func(d *Distributor) bool { return d.ID == distributorID })
+	d := g_distributorStore.findOne(func(d *Distributor) bool { return d.ID == distributorID })
 	// d := g_UnitCenter.distributors.find(distributorID)
 	if d == nil {
 		panic("没有配送员 " + distributorID)
@@ -81,14 +168,17 @@ func (m *MainController) DistributionIndex() {
 }
 
 //载入地图数据
-func loadMapData() *MapData {
+func loadMapData(mapName string) *MapData {
 	var mapData MapData
-	file := "mapdata/data.toml"
-	if dry.FileExists(file) == false {
-		DebugInfoF("地图文件 %s 不存在", file)
+	if len(mapName) <= 0 {
+		mapName = "data"
+	}
+	mapFilePath := default_map_data_dir + mapName + ".toml"
+	if dry.FileExists(mapFilePath) == false {
+		DebugInfoF("地图文件 %s 不存在", mapFilePath)
 		return nil
 	}
-	_, err := toml.DecodeFile(file, &mapData)
+	_, err := toml.DecodeFile(mapFilePath, &mapData)
 	if err != nil {
 		DebugMustF("载入地图数据时出错：%s", err)
 		return nil
@@ -106,61 +196,66 @@ func loadMapData() *MapData {
 
 //上传编辑后的地图数据
 func (m *MainController) UploadMapData() {
-	response := NewResponseMsg(0)
-	defer func() {
-		m.Data["json"] = response
-		m.ServeJson()
-	}()
-	values := m.Input()
-	value, ok := values["data"]
-	if !ok {
-		response = NewResponseMsg(1, "地图数据格式异常")
-		DebugMust("地图数据格式异常")
-		return
-	}
-	if len(value) <= 0 {
-		DebugMust("没有地图数据上传")
-		response = NewResponseMsg(1, "没有地图数据上传")
-		return
-	}
-	rawData := values["data"][0]
-	fmt.Println(rawData)
-	var mapData MapData
-	err := json.Unmarshal([]byte(rawData), &mapData)
-	if err != nil {
-		DebugMustF("解析上传地图数据时出错：%s", err)
-		response = NewResponseMsg(1, "解析上传地图数据时出错")
-		return
-	}
-	// fmt.Println(mapData)
-	// filter := func(pos *Position) bool { return pos.IsBornPoint }
-	bornPoints := mapData.Points.filter(func(pos *Position) bool { return pos.IsBornPoint })
-	if len(bornPoints) <= 0 {
-		response = NewResponseMsg(1, "地图不符合要求，至少设置一个出生点")
-		return
-	}
-	DebugInfoF("接收到上传的地图数据，统计：%d 个出生点 %d 个路径节点  %d 条路径", len(bornPoints), len(mapData.Points), len(mapData.Lines))
-	DebugPrintList_Info(mapData.Points)
-	DebugPrintList_Info(mapData.Lines)
+	responseHandler(m, func(m *MainController) (interface{}, error) {
+		mapID := m.GetString("id")
+		if len(mapID) <= 0 {
+			return nil, errors.New("地图名称没有指定")
+		}
+		values := m.Input()
+		value, ok := values["data"]
+		if !ok {
+			DebugMust("地图数据格式异常")
+			return nil, errors.New("地图数据格式异常")
+		}
+		if len(value) <= 0 {
+			DebugMust("没有地图数据上传")
+			return nil, errors.New("没有地图数据上传")
+		}
+		rawData := values["data"][0]
+		// fmt.Println(rawData)
+		var mapData MapData
+		err := json.Unmarshal([]byte(rawData), &mapData)
+		if err != nil {
+			DebugMustF("解析上传地图数据时出错：%s", err)
+			return nil, errors.New("解析上传地图数据时出错")
+		}
+		// fmt.Println(mapData)
+		bornPoints := mapData.Points.filter(func(pos *Position) bool { return pos.IsBornPoint })
+		if len(bornPoints) <= 0 {
+			return nil, errors.New("地图不符合要求，至少设置一个出生点")
+		}
+		DebugInfoF("接收到上传的地图数据，统计：%d 个出生点 %d 个路径节点  %d 条路径", len(bornPoints), len(mapData.Points), len(mapData.Lines))
+		DebugPrintList_Info(mapData.Points)
+		DebugPrintList_Info(mapData.Lines)
 
-	fileMapData, err := os.Create("./mapdata/data.toml")
-	if err != nil {
-		DebugMustF("创建地图文件出错：%s", err)
-		response = NewResponseMsg(1, "系统异常")
-		return
-	}
-	defer fileMapData.Close()
-	err = toml.NewEncoder(fileMapData).Encode(mapData)
-	if err != nil {
-		DebugMustF("保存地图数据到文件时出错：%s", err)
-		response = NewResponseMsg(1, "系统异常")
-	}
+		mapFilePath := fmt.Sprintf(default_map_data_dir+"%s.toml", mapID)
+		if dry.FileExists(mapFilePath) {
+			if e := os.Remove(mapFilePath); e != nil {
+				return nil, e
+			}
+		}
+		fileMapData, err := os.Create(mapFilePath)
+		if err != nil {
+			DebugMustF("创建地图文件出错：%s", err)
+			return nil, errors.New("创建地图文件出错")
+		}
+		defer fileMapData.Close()
+		err = toml.NewEncoder(fileMapData).Encode(mapData)
+		if err != nil {
+			DebugMustF("保存地图数据到文件时出错：%s", err)
+			return nil, errors.New("保存地图数据到文件时出错")
+		}
+		return nil, nil
+	})
+
 }
 
 //查询输出地图数据
 func (m *MainController) MapData() {
-	m.Data["json"] = loadMapData()
-	m.ServeJson()
+	responseHandler(m, func(m *MainController) (interface{}, error) {
+		mapName := m.GetString("id")
+		return loadMapData(mapName), nil
+	})
 }
 
 //地图编辑页面
@@ -170,7 +265,7 @@ func (m *MainController) AddressEditIndex() {
 func (m *MainController) OrderDistributeIndex() {
 	m.Data["HOST"] = fmt.Sprintf("%s:%d", m.Ctx.Input.Host(), m.Ctx.Input.Port())
 	distributorID := m.GetString("id")
-	d := g_UnitCenter.distributors.findOne(func(d *Distributor) bool { return d.ID == distributorID })
+	d := g_distributorStore.findOne(func(d *Distributor) bool { return d.ID == distributorID })
 	// d := g_UnitCenter.distributors.find(distributorID)
 	if d == nil {
 		panic("没有配送员 " + distributorID)
@@ -190,36 +285,40 @@ func setProData(m *MainController) {
 		m.Data[key] = value
 	}
 }
-func (m *MainController) Orders() {
-	id := m.GetString("id")
-	if len(id) <= 0 {
-		m.Data["json"] = g_UnitCenter.orders
-	} else {
-		d := g_UnitCenter.orders.findOne(func(o interface{}) bool { return o.(*Order).ID == id })
-		// d := g_UnitCenter.orders.findByID(id)
-		if d == nil {
-			m.Data["json"] = OrderList{}
-		} else {
-			m.Data["json"] = OrderList{d}
-		}
-	}
-	m.ServeJson()
 
-}
 func (m *MainController) Distributors() {
-	id := m.GetString("id")
-	if len(id) <= 0 {
-		m.Data["json"] = g_UnitCenter.distributors
-	} else {
-		d := g_UnitCenter.distributors.findOne(func(d *Distributor) bool { return d.ID == id })
-		// d := g_UnitCenter.distributors.find(id)
-		if d == nil {
-			m.Data["json"] = DistributorList{}
-		} else {
-			m.Data["json"] = DistributorList{d}
+	responseHandler(m, func(m *MainController) (interface{}, error) {
+		id := m.GetString("id")
+		if len(id) > 0 {
+			return g_distributorStore.filter(func(d *Distributor) bool { return d.ID == id }), nil
 		}
-	}
-	m.ServeJson()
+		gameID := m.GetString("gameID")
+		if len(gameID) > 0 {
+			return g_distributorStore.filter(func(d *Distributor) bool { return d.GameID == gameID }), nil
+		}
+
+		atgame := m.GetString("atgame")
+		if len(atgame) > 0 {
+			if atgame == "0" {
+				return g_distributorStore.filter(func(d *Distributor) bool { return len(d.GameID) <= 0 }), nil
+			}
+		}
+		// 	gameID := m.GetString("gameID")
+		// 	if len(gameID) > 0 {
+		// 		unit := g_gameUnits.findOne(func(gu *GameUnit) bool { return gu.ID == gameID })
+		// 		if unit == nil {
+		// 			return nil, errors.New("no such game")
+		// 		}
+		// 		return unit.Distributors
+		// 	}
+
+		// }
+
+		return g_distributorStore, nil
+	})
+}
+func (m *MainController) NewGameIndex() {
+	m.TplNames = "newGameIndex.tpl"
 }
 func (m *MainController) UserListIndex() {
 	m.TplNames = "userListIndex.tpl"
@@ -230,114 +329,3 @@ func (m *MainController) ViewerIndex() {
 	m.Data["ID"] = getViewerID()
 	m.TplNames = "ViewerIndex.tpl"
 }
-
-/*
-//启动分发控制器后，控制器开始分发订单，并将分发结果通过消息发送给维护在线配送员终端的列表
-//配送终端接收到消息后，开始订单的接受或者拒绝
-//正常情况，订单被某配送员抢中，该选择作为消息，发送到分发中心 （极端情况：所有的配送员选择拒绝，订单随机分配）
-//分发中心接受两种消息反馈：超时和配送员客户端的消息。超时表示所有分发的订单没有别任何配送员接收（之前需要确认不是因为客户端掉线的原因）
-// 接收到客户端的反馈可以开始下次分发，直至分发完毕，自行停止运作
-
-
-
-//订单分发的控制器（和路由无关）
-//控制订单分发的节奏
-type OrderDistributeController struct {
-	chanRunning         chan bool
-	chanStopRunning     chan bool
-	OrdersDistributed   OrderList       //已经分配的订单
-	OrdersUndistributed OrderList       //尚未分配的订单
-	Distributors        DistributorList //所有配送员
-	// chanDistributionResponse chan *OrderDistribution //接收反馈消息
-
-}
-
-// //接收订单分配的反馈
-// //如果反馈被接受，则成为分配结果，相应地订单也会发生变化
-// func (o *OrderDistributeController) AcceptDistributionResponse(od *OrderDistribution) {
-// 	o.chanDistributionResponse <- od
-// }
-
-//向配送员发送要分配的订单信息
-func (o *OrderDistributeController) distributeProposal() {
-	list, err := o.createDistributionProposal()
-	if err != nil {
-
-	}
-	chanDistributionResponse := make(chan *OrderDistribution) //接收反馈消息
-	go func() {                                               //开始监听配送员的反馈，只接收一个接收订单的信息
-		for {
-			od := <-chanDistributionResponse
-			distributor := o.Distributors.find(od.DistributorID) //首先确保配送员满足订单分配条件，当前条件是已分配的订单未达到最大可接收数量
-			if distributor == nil {
-				// return nil, ERR_NO_SUCH_DISTRIBUTOR
-				continue
-			}
-			if distributor.full() {
-				// return nil, ERR_DISTRIBUTOR_FULL
-				continue
-			}
-			//其次订单满足分配条件，当前的条件是尚未分配
-			order := o.OrdersUndistributed.findByID(od.OrderID)
-			if order == nil {
-				// return nil, ERR_CANNOT_FIND_ORDER_FOR_DISTRIBUTION
-				continue
-			}
-			//确定结果
-			o.OrdersUndistributed.remove(order)
-			o.OrdersDistributed = append(o.OrdersDistributed, order)
-			distributor.acceptOrder(order)
-			break
-		}
-	}()
-	notifyDistributorsOrder(list)
-}
-
-//只是生成一个分配建议，不是最终的分配结果
-func (o *OrderDistributeController) createDistributionProposal() (list OrderDistributionList, err error) {
-	if len(o.OrdersUndistributed) <= 0 {
-		err = ERR_NO_ENOUGH_ORDER_TO_DISTRIBUTE
-		return
-	}
-	distributorsNotFull := o.Distributors.notFull()
-	if len(o.OrdersUndistributed) < len(distributorsNotFull) {
-		DebugMustF("There is %d orders and %d distributors", len(o.OrdersUndistributed), len(distributorsNotFull))
-		err = ERR_NO_ENOUGH_ORDER
-		return
-	}
-	order := o.OrdersUndistributed[0]
-	for _, distributor := range o.Distributors {
-		list = list.add(NewOrderDistribution(order.ID, distributor.ID))
-	}
-	return
-}
-
-// //停止监听运行
-// func (o *OrderDistributeController) Stop() {
-// 	o.chanStopRunning <- true
-// }
-
-// //新一轮分发
-// func (o *OrderDistributeController) Newloop() {
-// 	o.chanRunning <- true
-// }
-
-// //启动控制器，开始分发订单
-// func (o *OrderDistributeController) Start() {
-// 	go func() {
-// 		for {
-// 			select {
-// 			case <-o.chanRunning: //下一轮的订单分发
-// 				// if usersOnline() {
-// 				o.distributeProposal()
-// 				// }
-// 			case result := <-o.chanStopRunning: //true,then stop
-// 				if result == true {
-// 					break
-// 				}
-// 			}
-
-// 		}
-// 	}()
-// }
-*/

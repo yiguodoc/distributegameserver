@@ -35,17 +35,17 @@ func getClientMessageTypeCodeList() (l []ClientMessageTypeCode) {
 type ClientMessageTypeCode int
 
 type MessageWithClientHandler func(*MessageWithClient)
-type MessageWithClientHandlerGenerator (func(interface{}) MessageWithClientHandler)
+type MessageWithClientHandlerGenerator (func(*GameUnit) MessageWithClientHandler)
 
 // type MessageWithClientHandlerGenerator (func(*DistributorProcessUnit) MessageWithClientHandler)
 type ProHandlerGeneratorMap map[ClientMessageTypeCode]MessageWithClientHandlerGenerator
 type ProHandlerMap map[ClientMessageTypeCode]MessageWithClientHandler
 
-func (p ProHandlerGeneratorMap) generateHandlerMap(codes []ClientMessageTypeCode, obj interface{}) ProHandlerMap {
+func (p ProHandlerGeneratorMap) generateHandlerMap(codes []ClientMessageTypeCode, center *GameUnit) ProHandlerMap {
 	m := make(ProHandlerMap)
 	for _, code := range codes {
 		if generator, ok := p[code]; ok {
-			m[code] = generator(obj)
+			m[code] = generator(center)
 		} else {
 			DebugSysF("未定义事件 %s 的处理函数", code.name())
 		}

@@ -16,10 +16,15 @@ func init() {
 	// beego.Router("/wsViewer", &controllers.MainController{}, "GET:ServerWSViewer")
 	beego.Router("/addressEdit", &controllers.MainController{}, "GET:AddressEditIndex")
 	beego.Router("/rankIndex", &controllers.MainController{}, "GET:RankIndex")
+	beego.Router("/newGameIndex", &controllers.MainController{}, "GET:NewGameIndex")
+	beego.Router("/gameListIndex", &controllers.MainController{}, "GET:GameListIndex")
 
 	beego.Router("/distributors", &controllers.MainController{}, "GET:Distributors")
-	beego.Router("/orders", &controllers.MainController{}, "GET:Orders")
+	beego.Router("/gameList", &controllers.MainController{}, "GET:GameList")
+	beego.Router("/mapNameList", &controllers.MainController{}, "GET:MapNameList")
+	// beego.Router("/orders", &controllers.MainController{}, "GET:Orders")
 	beego.Router("/uploadMapData", &controllers.MainController{}, "POST:UploadMapData")
 	beego.Router("/mapData", &controllers.MainController{}, "GET:MapData")
 	beego.Router("/restartGame", &controllers.MainController{}, "GET:RestartGame")
+	beego.Router("/newGame", &controllers.MainController{}, "post:NewGame")
 }
