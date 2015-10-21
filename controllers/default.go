@@ -79,8 +79,9 @@ func getMapList() []string {
 }
 
 type MapData struct {
-	Points PositionList
-	Lines  LineList
+	Points     PositionList
+	Lines      LineList
+	TimeLength int //minites
 }
 
 func (m *MainController) MapNameList() {

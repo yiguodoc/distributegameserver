@@ -1,3 +1,5 @@
+TimeLength = 2
+
 [[Points]]
   ID = 1
   Lng = 116.639373
@@ -319,7 +321,7 @@
     Score = 0
 
 [[Lines]]
-  Distance = 360.4574194788641
+  Distance = 360.45741947886404
   Busy = false
   [Lines.Start]
     ID = 8
@@ -339,7 +341,7 @@
     Score = 0
 
 [[Lines]]
-  Distance = 229.70634894900581
+  Distance = 229.70634894900584
   Busy = false
   [Lines.Start]
     ID = 9
@@ -399,7 +401,7 @@
     Score = 1
 
 [[Lines]]
-  Distance = 219.50417751156832
+  Distance = 219.50417751156837
   Busy = false
   [Lines.Start]
     ID = 8

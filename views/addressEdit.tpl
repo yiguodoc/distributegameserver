@@ -56,16 +56,35 @@
                 <a href="javascript:void(0);" onclick="switchControl(6)" class="sui-btn  btn-info" style="width:70%;margin-bottom:10px;">选择点</a></br>
                 <a href="javascript:void(0);" onclick="switchControl(0)" class="sui-btn  btn-info" style="width:70%;margin-bottom:10px;">添加点</a></br>
                 <a href="javascript:void(0);" onclick="switchControl(1)" class="sui-btn  btn-danger" style="width:70%;margin-bottom:10px;">删除点</a></br>
+                
+                 <div style="width:70%;border-bottom: solid 1px rgba(100,100,100,0.3);margin-bottom: 10px; margin-top: 5px;margin-left:15%;"></div>
+                
                 <a href="javascript:void(0);" onclick="switchControl(2)" class="sui-btn  btn-info" style="width:70%;margin-bottom:10px;">添加路径</a></br>
                 <a href="javascript:void(0);" onclick="switchControl(3)" class="sui-btn  btn-info" style="width:70%;margin-bottom:10px;">移除路径</a></br>
+
+                 <div style="width:70%;border-bottom: solid 1px rgba(100,100,100,0.3);margin-bottom: 10px; margin-top: 5px;margin-left:15%;"></div>
+
                 <a href="javascript:void(0);" onclick="switchControl(10)" class="sui-btn  btn-info" style="width:70%;margin-bottom:10px;">设为路径节点</a></br>
                 <a href="javascript:void(0);" onclick="switchControl(7)" class="sui-btn  btn-info" style="width:70%;margin-bottom:10px;">设为配送中心</a></br>
                 <a href="javascript:void(0);" onclick="switchControl(8)" class="sui-btn  btn-info" style="width:70%;margin-bottom:10px;">设为出生点</a></br>
                 <a href="javascript:void(0);" onclick="switchControl(9)" class="sui-btn  btn-info" style="width:70%;margin-bottom:10px;">设为非出生点</a></br>
+                
+                 <div style="width:70%;border-bottom: solid 1px rgba(100,100,100,0.3);margin-bottom: 10px; margin-top: 5px;margin-left:15%;"></div>
+
                 <a href="javascript:void(0);" onclick="switchControl(4)" class="sui-btn  btn-info" style="width:70%;margin-bottom:10px;">添加订单</a></br>
                 <a href="javascript:void(0);" onclick="switchControl(5)" class="sui-btn  btn-danger" style="width:70%;margin-bottom:10px;">移除订单</a></br>
-                <a href="javascript:void(0);" onclick="clearMapData()" class="sui-btn btn-danger" style="width:70%;margin-bottom:30px;">清除地图数据</a></br>
-                <a href="javascript:void(0);" onclick="onSaveData()" class="sui-btn btn-xlarge btn-success" style="width:70%;margin-bottom:10px;">保存地图</a></br>
+                
+                 <div style="width:70%;border-bottom: solid 1px rgba(100,100,100,0.3);margin-bottom: 10px; margin-top: 5px;margin-left:15%;"></div>
+
+                <a href="javascript:void(0);" onclick="clearMapData()" class="sui-btn btn-danger" style="width:70%;margin-bottom:10px;">清除地图数据</a></br>
+
+                 <div style="width:70%;border-bottom: solid 1px rgba(100,100,100,0.3);margin-bottom: 10px; margin-top: 5px;margin-left:15%;"></div>
+
+                <div style="font-size: 14px; margin-bottom: 5px;">游戏时长（分钟）</div>
+                <input id="gameTimeLength" type="number" value="" style="width:70%;text-align:center;">
+
+
+                <a href="javascript:void(0);" onclick="onSaveData()" class="sui-btn btn-xlarge btn-success" style="width:70%;margin-top:20px;margin-bottom:10px;">保存地图</a></br>
             </div>
         </div>
         <div class="content" style="height:100%;margin-left: 195px; margin-right: 5px;border-left: 3px solid rgba(100,100,100,0.3); padding-left: 2px;">
@@ -90,7 +109,7 @@
  -->
         </div>
     </div>
-    <div style="width: 100%; text-align: center; font-size: 13px; padding-top: 10px; border-top: 1px solid rgba(100,100,100,0.3); color: rgba(100,100,100,0.8); margin-top: 5px;">配送大师团队技术支持</div>
+    <!-- <div style="width: 100%; text-align: center; font-size: 13px; padding-top: 10px; border-top: 1px solid rgba(100,100,100,0.3); color: rgba(100,100,100,0.8); margin-top: 5px;">配送大师团队技术支持</div> -->
     <script type="text/javascript">
     var POSITION_TYPE_WAREHOUSE = 0 //仓库
     var POSITION_TYPE_ORDER_ROUTE = 1 //路径节点
@@ -298,7 +317,7 @@
     	            console.log("line count: %d", index + 1)
     	        }
     	    })
-
+            $("#gameTimeLength").val(mapInfo.TimeLength)
     	    currentMapID = mapID
     	})
     }
@@ -492,7 +511,8 @@
 
         var uploadMapData = {
             Points: pointsData,
-            Lines: linesData
+            Lines: linesData,
+            TimeLength: parseInt($("#gameTimeLength").val())
         }
         console.log(uploadMapData)
         console.log(JSON.stringify(uploadMapData))
