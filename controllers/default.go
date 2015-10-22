@@ -111,24 +111,36 @@ func (m *MainController) NewGame() {
 		type GamePara struct {
 			ID    []string
 			MapID string
+			Mode  string
 		}
 		var para GamePara
 		if err := json.Unmarshal([]byte(body), &para); err != nil {
 			return nil, err
 		}
 		fmt.Println(para)
-		game := NewGame(para.ID, para.MapID, default_time_of_one_loop)
+		if dry.StringListContains(getMapList(), para.MapID) == false {
+			return nil, errors.New("地图不存在")
+		}
+		mapData := loadMapData(para.MapID)
+		if mapData == nil {
+			return nil, errors.New("载入地图时出错")
+		}
+		if mapData.TimeLength <= 0 {
+			mapData.TimeLength = default_time_of_one_loop
+		}
+		game := NewGame(para.ID, para.MapID, mapData.TimeLength, para.Mode)
 		return nil, startNewGame(game)
 
 		// return nil, nil
 	})
 }
-func (m *MainController) RestartGame() {
-	game := NewGame([]string{"d01", "d02", "d03"}[:1], "", default_time_of_one_loop)
-	startNewGame(game)
-	// restartGame()
-	m.ServeJson()
-}
+
+// func (m *MainController) RestartGame() {
+// 	game := NewGame([]string{"d01", "d02", "d03"}[:1], "", default_time_of_one_loop)
+// 	startNewGame(game)
+// 	// restartGame()
+// 	m.ServeJson()
+// }
 
 func (m *MainController) GameListIndex() {
 	m.TplNames = "gameListIndex.tpl"

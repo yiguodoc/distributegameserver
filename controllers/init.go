@@ -28,16 +28,18 @@ type Game struct {
 	distributorIDList []string
 	mapName           string
 	game_time_loop    int
+	mode              string //dual or team
 }
 
 func (g *Game) String() string {
 	return fmt.Sprintf("地图名称: %s  时长: %d   参与者: %s", g.mapName, g.game_time_loop, g.distributorIDList)
 }
-func NewGame(list []string, mapName string, loop int) *Game {
+func NewGame(list []string, mapName string, loop int, mode string) *Game {
 	return &Game{
 		distributorIDList: list,
 		mapName:           mapName,
 		game_time_loop:    loop,
+		mode:              mode,
 	}
 }
 

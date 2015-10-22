@@ -43,7 +43,7 @@
     <script src="/dataTable/js/jquery.dataTables.js"></script>
     <script src="javascripts/lodash.js"></script>
     <script src="javascripts/string-format.js"></script>
-    <title>比分排名</title>
+    <title>创建新游戏</title>
 </head>
 
 <body style="height:100%;">
@@ -84,13 +84,22 @@
                 <!-- <div>选择地图</div> -->
                 <div style="margin-bottom: 30px;padding-left: 8px; margin-top: 30px;">
                     <div style="font-size: 14px; margin-bottom: 5px; color: rgba(100,100,100,0.6);">选择地图</div>
-                    <div style="width:50%; border-bottom: solid 1px rgba(100,100,100,0.2);margin-bottom: 10px; margin-top: 5px;"></div>
+                    <div style="width:50%; border-bottom: dotted 1px rgba(100,100,100,0.2);margin-bottom: 10px; margin-top: 5px;"></div>
                     <select id="selectMap" style="width: 150px; height: 22px;">
                         <!-- <option value="saab">Saab</option> -->
                     </select>
                 </div>
+                <div style="margin-bottom: 30px;padding-left: 8px; margin-top: 30px;">
+                    <div style="font-size: 14px; margin-bottom: 5px; color: rgba(100,100,100,0.6);">选择模式</div>
+                    <div style="width:50%; border-bottom: dotted 1px rgba(100,100,100,0.2);margin-bottom: 10px; margin-top: 5px;"></div>
+                    <select id="selectMode" style="width: 150px; height: 22px;">
+                        <option value="dual">个人对抗</option>
+                        <option value="team">团队任务</option>
+                    </select>
+                </div>
+
                 <div style="font-size: 14px; margin-bottom: 5px; color: rgba(100,100,100,0.6); padding-left: 8px;">选择成员</div>
-                <div style="width:100%; border-bottom: solid 1px rgba(100,100,100,0.2);margin-bottom: 10px; margin-top: 5px; margin-left:8px;"></div>
+                <div style="width:100%; border-bottom: dotted 1px rgba(100,100,100,0.2);margin-bottom: 10px; margin-top: 5px; margin-left:8px;"></div>
                 <div style="margin-bottom:-20px; margin-top: -25px;">
                     <a href="javascript:void(0);" onclick="refreshUserTable()" class="sui-btn btn-bordered btn-info" style="width:150px;  margin-top: 25px; margin-left: 8px;">刷新</a></br>
                 </div>
@@ -185,11 +194,13 @@
         }
 
         var selectedOption = $options[0]
+        var mode = $("#selectMode option:selected").val()
         console.log("select map => " + selectedOption.value)
-
+        console.log("select mode => " + mode)
         var postData = {
             id: idList,
-            mapID: selectedOption.value
+            mapID: selectedOption.value,
+            mode: mode
         }
         console.log(postData)
         postData = JSON.stringify(postData)

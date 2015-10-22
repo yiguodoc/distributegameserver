@@ -25,6 +25,6 @@ func init() {
 	// beego.Router("/orders", &controllers.MainController{}, "GET:Orders")
 	beego.Router("/uploadMapData", &controllers.MainController{}, "POST:UploadMapData")
 	beego.Router("/mapData", &controllers.MainController{}, "GET:MapData")
-	beego.Router("/restartGame", &controllers.MainController{}, "GET:RestartGame")
 	beego.Router("/newGame", &controllers.MainController{}, "post:NewGame")
+	// beego.Router("/restartGame", &controllers.MainController{}, "GET:RestartGame")
 }
