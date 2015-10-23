@@ -56,9 +56,9 @@
                 <a href="javascript:void(0);" onclick="switchControl(6)" class="sui-btn  btn-info" style="width:70%;margin-bottom:10px;">选择点</a></br>
                 <a href="javascript:void(0);" onclick="switchControl(0)" class="sui-btn  btn-info" style="width:70%;margin-bottom:10px;">添加点</a></br>
                 <a href="javascript:void(0);" onclick="switchControl(1)" class="sui-btn  btn-danger" style="width:70%;margin-bottom:10px;">删除点</a></br>
-                
+
                  <div style="width:70%;border-bottom: solid 1px rgba(100,100,100,0.3);margin-bottom: 10px; margin-top: 5px;margin-left:15%;"></div>
-                
+
                 <a href="javascript:void(0);" onclick="switchControl(2)" class="sui-btn  btn-info" style="width:70%;margin-bottom:10px;">添加路径</a></br>
                 <a href="javascript:void(0);" onclick="switchControl(3)" class="sui-btn  btn-info" style="width:70%;margin-bottom:10px;">移除路径</a></br>
 
@@ -68,12 +68,12 @@
                 <a href="javascript:void(0);" onclick="switchControl(7)" class="sui-btn  btn-info" style="width:70%;margin-bottom:10px;">设为配送中心</a></br>
                 <a href="javascript:void(0);" onclick="switchControl(8)" class="sui-btn  btn-info" style="width:70%;margin-bottom:10px;">设为出生点</a></br>
                 <a href="javascript:void(0);" onclick="switchControl(9)" class="sui-btn  btn-info" style="width:70%;margin-bottom:10px;">设为非出生点</a></br>
-                
+
                  <div style="width:70%;border-bottom: solid 1px rgba(100,100,100,0.3);margin-bottom: 10px; margin-top: 5px;margin-left:15%;"></div>
 
                 <a href="javascript:void(0);" onclick="switchControl(4)" class="sui-btn  btn-info" style="width:70%;margin-bottom:10px;">添加订单</a></br>
                 <a href="javascript:void(0);" onclick="switchControl(5)" class="sui-btn  btn-danger" style="width:70%;margin-bottom:10px;">移除订单</a></br>
-                
+
                  <div style="width:70%;border-bottom: solid 1px rgba(100,100,100,0.3);margin-bottom: 10px; margin-top: 5px;margin-left:15%;"></div>
 
                 <a href="javascript:void(0);" onclick="clearMapData()" class="sui-btn btn-danger" style="width:70%;margin-bottom:10px;">清除地图数据</a></br>
@@ -281,7 +281,7 @@
                 })
             })
     })
-	
+
     function mapInit() {
         map = new BMap.Map("allmap");
         var point = new BMap.Point(116.644691, 39.934758); //北京物资学院
@@ -472,15 +472,15 @@
     		console.info("map ID wrong")
     		return
     	}
-        console.log("保存地图数据")
+      var timeLengthMinites = parseInt($("#gameTimeLength").val())
+      if(timeLengthMinites <= 0){
+        alert("游戏时间长度不能为0")
+        return
+      }
+      console.log("保存地图数据")
             //保存两类数据，点和线
-        var i = 0
             // console.log(linesData)
         var pointsData = _.map(markers, function(marker, index) {
-            if (marker.bornPoint != null) {
-                i++
-                console.info("发现 %d 个出生点", i)
-            }
             var p = marker.getPosition()
             return {
                 ID: index + 1,
@@ -512,7 +512,7 @@
         var uploadMapData = {
             Points: pointsData,
             Lines: linesData,
-            TimeLength: parseInt($("#gameTimeLength").val())
+            TimeLength: timeLengthMinites * 60
         }
         console.log(uploadMapData)
         console.log(JSON.stringify(uploadMapData))
