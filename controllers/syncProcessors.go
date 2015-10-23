@@ -40,6 +40,7 @@ func pro_game_timeout_handlerGenerator(gu *GameUnit) MessageWithClientHandler {
 			d.setCheckPoint(checkpoint_flag_game_over)
 			gu.sendMsgToSpecialSubscriber(d, pro_2c_end_game, d)
 		})
+		//记录游戏结果，相关记录包括游戏模式等等都需要
 	}
 	return f
 }
