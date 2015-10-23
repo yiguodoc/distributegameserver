@@ -11,29 +11,29 @@
     td.highlight {
         background-color: rgba(0, 256, 0, 0.1) !important;
     }
-    
+
     tr.highlight {
         background-color: rgba(0, 256, 0, 0.1) !important;
     }
-    
+
     #dtProcess {
         text-align: center;
     }
-    
+
     th {
         text-align: center;
     }
-    
+
     .title {
         font-size: 32px;
         font-weight: 800;
         margin-bottom: 10px;
     }
-    
+
     .itemActive {
         background-color: rgba(0, 0, 0, 0.1);
     }
-    
+
     .itemUnactive {
         background-color: rgba(0, 0, 0, 0);
     }
@@ -84,10 +84,16 @@
                 <!-- <div>选择地图</div> -->
                 <div style="margin-bottom: 30px;padding-left: 8px; margin-top: 30px;">
                     <div style="font-size: 14px; margin-bottom: 5px; color: rgba(100,100,100,0.6);">选择地图</div>
-                    <div style="width:50%; border-bottom: dotted 1px rgba(100,100,100,0.2);margin-bottom: 10px; margin-top: 5px;"></div>
+                    <div style="width:80%; border-bottom: dotted 1px rgba(100,100,100,0.2);margin-bottom: 10px; margin-top: 5px;"></div>
                     <select id="selectMap" style="width: 150px; height: 22px;">
                         <!-- <option value="saab">Saab</option> -->
                     </select>
+                    <div style="width:40%; border-bottom: dotted 1px rgba(100,100,100,0.2);margin-bottom: 5px; margin-top: 15px;color: rgba(100,100,100,0.6);">地图信息</div>
+                    <div style="margin-top: 0px;">
+                      <span style="color:gray;">游戏时长：</span><span id="mapInfoGameLength"></span>
+                      <span style="margin-left:60px;color:gray;">订单数：</span><span id="mapInfoOrderCount"></span>
+                      <span style="margin-left:60px;color:gray;">出生点：</span><span id="mapInfoBornPointCount">
+                    </div>
                 </div>
                 <div style="margin-bottom: 30px;padding-left: 8px; margin-top: 30px;">
                     <div style="font-size: 14px; margin-bottom: 5px; color: rgba(100,100,100,0.6);">选择模式</div>
@@ -127,7 +133,9 @@
             _.each(mapNameList, function(name) {
                 $selectMapList.append('<option value="' + name + '">' + name + '</option>')
             })
+            refreshMapDetail()
         })
+        $("#selectMap").bind("change", refreshMapDetail)
 
         table = $('#dtProcess').DataTable({
             "columnDefs": [],
@@ -185,7 +193,7 @@
                 list.push(row.ID)
                 return list
             }, [])
-            // var postData = {id: JSON.stringify(idList)}//form 
+            // var postData = {id: JSON.stringify(idList)}//form
 
         var $options = $("#selectMap option:selected")
         if ($options.length <= 0) {
@@ -234,6 +242,20 @@
     }
     function refreshUserTable(){
         table.ajax.reload()
+    }
+    function refreshMapDetail(){
+      //下载地图信息
+      var selectedMapID = $("#selectMap  option:selected").val()
+      if (selectedMapID!=null && selectedMapID.length > 0) {
+        $.get("/mapData?id="+selectedMapID,function(data){
+          if(data.Code == 0){
+            var mapData = data.Data
+            $("#mapInfoGameLength").text(transformTimeElapseToStandardFormat(mapData.TimeLength))
+            $("#mapInfoOrderCount").text(_.size(_.where(mapData.Points, {PointType: 2})))
+            $("#mapInfoBornPointCount").text(_.size(_.where(mapData.Points, {IsBornPoint: true})))
+          }
+        })
+      }
     }
     function transformTimeElapseToStandardFormat(i) {
         return String.format("{0}:{1}", padLeft(Math.floor(i / 60).toFixed(0), 2), padLeft((i % 60).toFixed(0), 2))
