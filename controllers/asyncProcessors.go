@@ -37,7 +37,7 @@ func pro_game_time_tick_handlerGenerator(center *GameUnit) MessageWithClientHand
 			if distributor.NormalSpeed > 0 {
 				if distributor.StartPos != nil && distributor.DestPos != nil && distributor.line != nil {
 					if distributor.StartPos.equals(distributor.DestPos) == false {
-						DebugTraceF("配送员 %s 运行路线 %s => %s", distributor.Name, distributor.StartPos.SimpleString(), distributor.DestPos.SimpleString())
+						DebugTraceF("配送员 %s 运行路线 %s => %s", distributor.UserInfo.ID, distributor.StartPos.SimpleString(), distributor.DestPos.SimpleString())
 						line := distributor.line
 						crtSpeed := distributor.NormalSpeed
 						if line.isBusy() == true {
@@ -63,7 +63,7 @@ func pro_game_time_tick_handlerGenerator(center *GameUnit) MessageWithClientHand
 							})
 							// distributor.StartPos = unit.center.mapData.Points.findLngLat(distributor.DestPos.Lng, distributor.DestPos.Lat)
 							distributor.DestPos = nil
-							line.removeDistributor(distributor.ID)
+							line.removeDistributor(distributor.UserInfo.ID)
 							distributor.line = nil
 							// unit.center.wsRoom.sendMsgToSpecialSubscriber(distributor.ID, pro_2c_move_to_new_position, distributor) //通知客户端移动到新坐标
 							center.sendMsgToSpecialSubscriber(distributor, pro_2c_reach_route_node, distributor) //通知客户端移动到新坐标
@@ -77,7 +77,7 @@ func pro_game_time_tick_handlerGenerator(center *GameUnit) MessageWithClientHand
 							just_move_to_route := false //测算一下是否是从节点上路的第一步
 							if distributor.CurrentPos.equals(distributor.StartPos) {
 								just_move_to_route = true
-								DebugInfoF("配送员 %s 上路了", distributor.Name)
+								DebugInfoF("配送员 %s 上路了", distributor.UserInfo.Name)
 							}
 							distributor.CurrentPos.addLngLat(lngPerFrame, latPerFrame)
 							DebugTraceF("配送员实时位置：%s", distributor.PosString())
@@ -114,8 +114,8 @@ func pro_reset_destination_request_handlerGenerator(center *GameUnit) MessageWit
 					return
 				}
 				distributor := msg.Target
-				if distributor.ID != list[1].(string) {
-					DebugMustF("重置目标点出错，不存在配送员[%s]", distributor.ID)
+				if distributor.UserInfo.ID != list[1].(string) {
+					DebugMustF("重置目标点出错，不存在配送员[%s]", distributor.UserInfo.ID)
 					return
 				}
 				if distributor.CurrentPos.equals(posWanted) {
@@ -179,7 +179,7 @@ func pro_change_state_request_handlerGenerator(center *GameUnit) MessageWithClie
 
 			if list, err := mappedValue(msg.Data.(map[string]interface{})).Getter("DistributorID", "State"); err == nil {
 				distributor := msg.Target
-				if distributor.ID != list[0].(string) {
+				if distributor.UserInfo.ID != list[0].(string) {
 					DebugMustF("重置目标点出错，不存在配送员[%s]", list[0].(string))
 					return
 				}
@@ -190,7 +190,7 @@ func pro_change_state_request_handlerGenerator(center *GameUnit) MessageWithClie
 					distributor.NormalSpeed = defaultSpeed
 				}
 				center.sendMsgToSpecialSubscriber(distributor, pro_2c_change_state, distributor)
-				DebugInfoF("配送员 %s 当前速度：%f", distributor.Name, distributor.NormalSpeed)
+				DebugInfoF("配送员 %s 当前速度：%f", distributor.UserInfo.Name, distributor.NormalSpeed)
 			} else {
 				DebugMustF("更改运动状态时，客户端数据格式错误: %s", err)
 			}
@@ -215,7 +215,7 @@ func pro_sign_order_request_handlerGenerator(center *GameUnit) MessageWithClient
 
 			if list, err := mappedValue(msg.Data.(map[string]interface{})).Getter("DistributorID", "OrderID"); err == nil {
 				distributor := msg.Target
-				if distributor.ID != list[0].(string) {
+				if distributor.UserInfo.ID != list[0].(string) {
 					DebugMustF("订单签收出错，不存在配送员[%s]", list[0].(string))
 					center.sendMsgToSpecialSubscriber(distributor, pro_2c_sign_order, nil)
 					return
@@ -240,7 +240,7 @@ func pro_sign_order_request_handlerGenerator(center *GameUnit) MessageWithClient
 				order.sign(distributor.TimeElapse)
 				DebugInfoF("签收订单 %s , 时间 %d", order.ID, order.SignTime)
 				center.sendMsgToSpecialSubscriber(distributor, pro_2c_sign_order, distributor)
-				DebugInfoF("配送员 %s 签收了订单 %s", distributor.Name, orderID)
+				DebugInfoF("配送员 %s 签收了订单 %s", distributor.UserInfo.Name, orderID)
 				distributor.Score += order.Score
 				// DebugPrintList_Info(g_orders)
 				if distributor.AcceptedOrders.all(func(o interface{}) bool { return o.(*Order).Signed == true }) {

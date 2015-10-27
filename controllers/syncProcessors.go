@@ -58,7 +58,7 @@ func pro_end_game_request_handlerGenerator(gu *GameUnit) MessageWithClientHandle
 			msg.Target.setCheckPoint(checkpoint_flag_game_over)
 			gu.sendMsgToSpecialSubscriber(msg.Target, pro_2c_end_game, msg.Target)
 			gu.Distributors.forEach(func(d *Distributor) {
-				if d.ID != msg.Target.ID {
+				if d.UserInfo.ID != msg.Target.UserInfo.ID {
 					gu.sendMsgToSpecialSubscriber(d, pro_2c_rank_change, d)
 				}
 			})
@@ -121,7 +121,7 @@ func pro_order_select_response_handlerGenerator(center *GameUnit) MessageWithCli
 		//系统设定，配送员需要在仓库位置才能选择订单
 		warehousePointlist := center.mapData.Points.filter(func(pos *Position) bool { return pos.PointType == POSITION_TYPE_WAREHOUSE })
 		if warehousePointlist.contains(func(pos *Position) bool { return distributor.CurrentPos.equals(pos) }) == false {
-			DebugInfoF("配送员 %s 所处位置无法选择订单", distributor.Name)
+			DebugInfoF("配送员 %s 所处位置无法选择订单", distributor.UserInfo.Name)
 			center.sendMsgToSpecialSubscriber(distributor, pro_2c_order_select_result, nil, "所处位置无法选择订单", strconv.Itoa(distributor.TimeElapse))
 			return
 		}
@@ -134,7 +134,7 @@ func pro_order_select_response_handlerGenerator(center *GameUnit) MessageWithCli
 		//将分配结果通知到各方，包括获得订单的客户端、群通知，并引发分配结果事件，使得观察者也可以得到通知
 		center.sendMsgToSpecialSubscriber(distributor, pro_2c_order_select_result, distributor)
 
-		log := fmt.Sprintf("订单[%s]已经由配送员[%s]选定", orderID, distributor.Name)
+		log := fmt.Sprintf("订单[%s]已经由配送员[%s]选定", orderID, distributor.UserInfo.Name)
 		// center.wsRoom.broadcastMsgToSubscribers(pro_2c_message_broadcast, msg)
 		DebugInfoF(log)
 
@@ -166,7 +166,7 @@ func sendOrderProposal(gu *GameUnit) {
 
 func pro_prepared_for_select_order_handlerGenerator(gu *GameUnit) MessageWithClientHandler {
 	f := func(msg *MessageWithClient) {
-		DebugInfoF("配送员[%s]准备好订单的分发了", msg.Target.Name)
+		DebugInfoF("配送员[%s]准备好订单的分发了", msg.Target.UserInfo.Name)
 
 		msg.Target.setCheckPoint(checkpoint_flag_prepared_for_game)
 		//提醒尚未准备好进入游戏者
@@ -185,7 +185,7 @@ func pro_off_line_handlerGenerator(gu *GameUnit) MessageWithClientHandler {
 	f := func(msg *MessageWithClient) {
 		msg.Target.SetOffline()
 		DebugTraceF("%s", msg)
-		DebugInfoF("配送员 %s 离线", msg.Target.Name)
+		DebugInfoF("配送员 %s 离线", msg.Target.UserInfo.Name)
 
 		//提醒尚未准备好进入游戏者
 		distributorsOfflineAndNotprepared := gu.Distributors.filter(func(d *Distributor) bool {
@@ -211,17 +211,17 @@ func onReconnect(gu *GameUnit, distributor *Distributor) {
 	//如果在分配订单中，应该推送给其正在选择的订单
 	switch distributor.CheckPoint {
 	case checkpoint_flag_origin:
-		DebugTraceF("配送员 %s 上线，状态 %d 初始化", distributor.Name, checkpoint_flag_origin)
+		DebugTraceF("配送员 %s 上线，状态 %d 初始化", distributor.UserInfo.Name, checkpoint_flag_origin)
 	case checkpoint_flag_prepared_for_game:
-		DebugTraceF("配送员 %s 上线，状态 %d 准备好游戏了", distributor.Name, checkpoint_flag_prepared_for_game)
+		DebugTraceF("配送员 %s 上线，状态 %d 准备好游戏了", distributor.UserInfo.Name, checkpoint_flag_prepared_for_game)
 		//如果之前配送员已经提交准备好的请求，现在是掉线重连状态，那么客户端方面就不会重新请求，因此如果是最后一个
 	case checkpoint_flag_game_started:
-		DebugTraceF("配送员 %s 上线，状态 %d 游戏进行中", distributor.Name, checkpoint_flag_game_started)
+		DebugTraceF("配送员 %s 上线，状态 %d 游戏进行中", distributor.UserInfo.Name, checkpoint_flag_game_started)
 		// broadOrderSelectProposal(gu.distributors, gu.orders)
 		proposals := getOrderSelectProposal(gu.Distributors, gu.orders)
 		gu.sendMsgToSpecialSubscriber(distributor, pro_2c_order_distribution_proposal, proposals)
 	case checkpoint_flag_game_over:
-		DebugTraceF("配送员 %s 上线，状态 %d 配送完成", distributor.Name, checkpoint_flag_game_over)
+		DebugTraceF("配送员 %s 上线，状态 %d 配送完成", distributor.UserInfo.Name, checkpoint_flag_game_over)
 	}
 }
 

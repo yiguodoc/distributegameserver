@@ -1,71 +1,53 @@
 package controllers
 
 import (
-	// "github.com/ssor/fauxgaux"
-	// "github.com/gorilla/websocket"
-	// "encoding/json"
-	// "time"
-	// "strings"
-	"fmt"
-	// "reflect"
-	// "math/rand"
+// "github.com/ssor/GobDB"
+// "github.com/ssor/fauxgaux"
+// "github.com/gorilla/websocket"
+// "encoding/json"
+// "time"
+// "strings"
+// "fmt"
+// "reflect"
+// "math/rand"
 )
-
-var default_time_of_one_loop = 5 * 60
 
 var (
-	// g_UnitCenter       *GameUnit
-	g_gameUnits        GameUnitList = GameUnitList{}
-	g_distributorStore              = DistributorList{ //配送员列表
-		NewDistributor("d01", "张军", color_orange),
-		NewDistributor("d02", "刘晓莉", color_red),
-		NewDistributor("d03", "桑鸿庆", color_purple),
-	}
+	default_time_of_one_loop = 5 * 60
+
+// g_UnitCenter       *GameUnit
+// g_gameUnits        GameUnitList = GameUnitList{}
+// g_distributorStore = DistributorList{ //配送员列表
+// 	NewDistributor("d01", "张军", color_orange),
+// 	NewDistributor("d02", "刘晓莉", color_red),
+// 	NewDistributor("d03", "桑鸿庆", color_purple),
+// }
 )
+var g_var *global_var = &global_var{}
 
-type GamePreditor func(*Game) bool
-type Game struct {
-	distributorIDList []string
-	mapName           string
-	game_time_loop    int
-	mode              string //dual or team
-}
-
-func (g *Game) String() string {
-	return fmt.Sprintf("地图名称: %s  时长: %d   参与者: %s", g.mapName, g.game_time_loop, g.distributorIDList)
-}
-func NewGame(list []string, mapName string, loop int, mode string) *Game {
-	return &Game{
-		distributorIDList: list,
-		mapName:           mapName,
-		game_time_loop:    loop,
-		mode:              mode,
-	}
+type global_var struct {
+	distributors DistributorList
+	gameUnits    GameUnitList
+	userdb       *UserGobDB
 }
 
-type GameList []*Game
+func (g *global_var) init() {
+	g.gameUnits = GameUnitList{}
+	g.distributors = DistributorList{} //配送员列表
+	g.userdb = NewUserGobDB()
 
-func (gl GameList) findOne(p GamePreditor) *Game {
-	if len(gl) <= 0 {
-		return nil
-	}
-	if p(gl[0]) {
-		return gl[0]
-	} else {
-		return gl[1:].findOne(p)
-	}
-}
-func (gl GameList) find(p GamePreditor) GameList {
-	return gl.findRecursive(p, GameList{})
-}
-func (gl GameList) findRecursive(p GamePreditor, l GameList) GameList {
-	if len(gl) <= 0 {
-		return l
-	}
-	if p(gl[0]) {
-		l = append(l, gl[0])
-	}
-	return gl[1:].findRecursive(p, l)
+	g.userdb.init()
+	DebugInfoF("load %d user", g_var.userdb.count())
+
+	g.userdb.every(func(u *User) {
+		g.distributors = append(g.distributors, NewDistributor(u))
+	})
+	// g.distributors = DistributorList{ //配送员列表
+	// NewDistributor(NewUser("d01", "张军", color_orange, g.distributors)),
+	// NewDistributor(NewUser("d02", "刘晓莉", color_red, g.distributors)),
+	// NewDistributor(NewUser("d03", "桑鸿庆", color_purple, g.distributors)),
+	// }
+
 }
 
 func init() {
@@ -73,6 +55,7 @@ func init() {
 	if err := clientMessageTypeCodeCheck(); err != nil {
 		DebugSysF(err.Error())
 	}
+	g_var.init()
 	// maps := getMapList()
 	// fmt.Println(maps)
 	// game := NewGame([]string{"d01", "d02", "d03"}[:1], "", default_time_of_one_loop)
@@ -92,7 +75,7 @@ func startNewGame(game *Game) error {
 	gameUnit := NewGameUnit(game.distributorIDList, game.mapName, game.game_time_loop)
 	if gameUnit != nil {
 		gameUnit.start()
-		g_gameUnits = append(g_gameUnits, gameUnit)
+		g_var.gameUnits = append(g_var.gameUnits, gameUnit)
 
 		DebugInfoF("创建游戏完成: ")
 		DebugInfoF("%s", game)

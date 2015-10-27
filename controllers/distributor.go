@@ -44,12 +44,13 @@ var (
 
 // 配送员
 type Distributor struct {
-	ID                string
-	Name              string
+	// ID                string
+	// Name              string
+	// Color             string //地图上marker颜色
+	UserInfo          *User
 	AcceptedOrders    OrderList
 	CheckPoint        CheckPoint //所处的关卡
 	Online            bool
-	Color             string    //地图上marker颜色
 	StartPos, DestPos *Position //配送时设置的出发和目的路径点
 	CurrentPos        *Position //配送时实时所在的路径
 	NormalSpeed       float64   //运行速度 km/h
@@ -66,28 +67,29 @@ type Distributor struct {
 	// MaxAcceptedOrdersCount int             `json:"-"` //配送员可以接收的最大订单数量
 }
 
-func NewDistributor(id, name string, color string) *Distributor {
+func NewDistributor(user *User) *Distributor {
 	return &Distributor{
-		ID:             id,
-		Name:           name,
+		UserInfo:       user,
 		AcceptedOrders: OrderList{},
 		CheckPoint:     checkpoint_flag_origin,
-		Color:          color,
+		// ID:             id,
+		// Name:           name,
+		// Color:          color,
 		// MaxAcceptedOrdersCount: maxCount,
 	}
 }
 func (this *Distributor) String() string {
 	return fmt.Sprintf("ID: %-3s  Name: %-4s 游戏进程：%d  接收的订单：%2d online:%t score: %d timeElapse: %d rank: %d checkPoint: %d",
-		this.ID, this.Name, this.CheckPoint, len(this.AcceptedOrders), this.IsOnline(), this.Score, this.TimeElapse, this.Rank, this.CheckPoint)
+		this.UserInfo.ID, this.UserInfo.Name, this.CheckPoint, len(this.AcceptedOrders), this.IsOnline(), this.Score, this.TimeElapse, this.Rank, this.CheckPoint)
 }
 func (d *Distributor) PosString() string {
 	if d.CurrentPos == nil {
-		return fmt.Sprintf("ID: %-3s  Name: %-4s  未设定当前位置", d.ID, d.Name)
+		return fmt.Sprintf("ID: %-3s  Name: %-4s  未设定当前位置", d.UserInfo.ID, d.UserInfo.Name)
 	}
 	if d.DestPos == nil {
-		return fmt.Sprintf("ID: %-3s  Name: %-4s  (%f, %f) %fkm/h", d.ID, d.Name, d.CurrentPos.Lng, d.CurrentPos.Lat, d.CurrentSpeed)
+		return fmt.Sprintf("ID: %-3s  Name: %-4s  (%f, %f) %fkm/h", d.UserInfo.ID, d.UserInfo.Name, d.CurrentPos.Lng, d.CurrentPos.Lat, d.CurrentSpeed)
 	}
-	return fmt.Sprintf("ID: %-3s  Name: %-4s  (%f, %f) => (%f, %f) %fkm/h", d.ID, d.Name, d.CurrentPos.Lng, d.CurrentPos.Lat, d.DestPos.Lng, d.DestPos.Lat, d.CurrentSpeed)
+	return fmt.Sprintf("ID: %-3s  Name: %-4s  (%f, %f) => (%f, %f) %fkm/h", d.UserInfo.ID, d.UserInfo.Name, d.CurrentPos.Lng, d.CurrentPos.Lat, d.DestPos.Lng, d.DestPos.Lat, d.CurrentSpeed)
 }
 
 // //接收了订单数量的上限
@@ -116,7 +118,7 @@ func (d *Distributor) IsOnline() bool {
 	return d.Conn != nil
 }
 func (d *Distributor) GetID() string {
-	return d.ID
+	return d.UserInfo.ID
 }
 func (d *Distributor) SetConn(conn *websocket.Conn) {
 	d.Conn = conn
@@ -130,7 +132,7 @@ func (d *Distributor) SendBinaryMessage(msg []byte) error {
 	return error_no_websocket_connection
 }
 func (d *Distributor) IdEqals(id string) bool {
-	return d.ID == id
+	return d.UserInfo.ID == id
 	// return d.Is(func(dr *Distributor) bool { return dr.ID == id })
 }
 func (d *Distributor) SetOffline() error {
@@ -140,10 +142,10 @@ func (d *Distributor) SetOffline() error {
 	if d.Conn != nil {
 		if err := d.Conn.Close(); err == nil {
 			d.Conn = nil
-			DebugSysF("[%s] OffLine, close websocket ", d.Name)
+			DebugSysF("[%s] OffLine, close websocket ", d.UserInfo.Name)
 			// DebugInfoF("[%s] OffLine WebSocket closed", d.ID)
 		} else {
-			DebugMustF("[%s] OffLine,But close websocket err: %s", d.Name, err)
+			DebugMustF("[%s] OffLine,But close websocket err: %s", d.UserInfo.Name, err)
 			return err
 		}
 	}
@@ -155,11 +157,12 @@ func (d *Distributor) setCheckPoint(check CheckPoint) {
 }
 func (d *Distributor) copyAll() *Distributor {
 	return &Distributor{
-		ID:             d.ID,
-		Name:           d.Name,
+		UserInfo:       d.UserInfo.copy(),
 		AcceptedOrders: OrderList{},
 		CheckPoint:     d.CheckPoint,
-		Color:          d.Color,
+		// ID:             d.ID,
+		// Name:           d.Name,
+		// Color: d.Color,
 		// MaxAcceptedOrdersCount: d.MaxAcceptedOrdersCount,
 	}
 }

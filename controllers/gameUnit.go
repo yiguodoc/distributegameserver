@@ -104,20 +104,20 @@ func NewGameUnit(distributorIDList []string, mapName string, timeMaxLength int) 
 	return unit
 }
 func (gu *GameUnit) containsDistributor(id string) *Distributor {
-	return gu.Distributors.findOne(func(d *Distributor) bool { return d.ID == id })
+	return gu.Distributors.findOne(func(d *Distributor) bool { return d.UserInfo.ID == id })
 }
 
 // 上线
 func (gu *GameUnit) distributorOnLine(distributor *Distributor, conn *websocket.Conn) {
 	// distributor.SetConn(conn)
 	//处理上线事件
-	DebugInfoF("配送员 %s 上线", distributor.Name)
+	DebugInfoF("配送员 %s 上线", distributor.UserInfo.Name)
 	gu.Process(NewMessageWithClient(pro_on_line, distributor, conn))
 }
 
 func (gu *GameUnit) distributorOffLine(distributor *Distributor) {
 	// distributor.SetOffline()
-	DebugInfoF("配送员 %s 离线", distributor.Name)
+	DebugInfoF("配送员 %s 离线", distributor.UserInfo.Name)
 	//处理下线事件
 	gu.Process(NewMessageWithClient(pro_off_line, distributor, distributor))
 }
@@ -167,7 +167,7 @@ func (dpc *GameUnit) sendMsgToSpecialSubscriber(distributor *Distributor, protoc
 	// 	DebugSysF("系统异常，无法向 %d 发送消息", id)
 	// }
 	if protocal != pro_2c_sys_time_elapse {
-		DebugTraceF("=>  %s : %v", distributor.ID, msg)
+		DebugTraceF("=>  %s : %v", distributor.UserInfo.ID, msg)
 	}
 }
 
@@ -192,7 +192,7 @@ func (gu *GameUnit) start() *GameUnit {
 		return append(list.(OrderList), o)
 	}).(OrderList).random(rand.New(rand.NewSource(time.Now().UnixNano())), OrderList{})
 
-	gu.Distributors = g_distributorStore.filter(func(d *Distributor) bool { return dry.StringListContains(gu.distributorIDList, d.ID) })
+	gu.Distributors = g_var.distributors.filter(func(d *Distributor) bool { return dry.StringListContains(gu.distributorIDList, d.UserInfo.ID) })
 	DebugSysF("%d distributors from %s", len(gu.Distributors), gu.distributorIDList)
 	bornPoints := gu.mapData.Points.filter(func(p *Position) bool { return p.IsBornPoint }).random(rand.New(rand.NewSource(time.Now().UnixNano())), PositionList{})
 	// i := len(bornPoints)

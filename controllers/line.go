@@ -42,19 +42,19 @@ func (l *Line) isDistributorOn(id string) bool {
 	// _, ok := l.DistributorsOn[id]
 	// return ok
 
-	return l.DistributorsOn.findOne(func(d *Distributor) bool { return d.ID == id }) != nil
+	return l.DistributorsOn.findOne(func(d *Distributor) bool { return d.UserInfo.ID == id }) != nil
 }
 func (l *Line) addDistributor(d *Distributor) {
 	if l.DistributorsOn == nil {
 		l.DistributorsOn = DistributorList{}
 	}
-	if l.isDistributorOn(d.ID) == false {
+	if l.isDistributorOn(d.UserInfo.ID) == false {
 		l.DistributorsOn = append(l.DistributorsOn, d)
 	}
 }
 func (l *Line) removeDistributor(id string) {
 	// delete(l.DistributorsOn, id)
-	l.DistributorsOn = l.DistributorsOn.filter(func(d *Distributor) bool { return d.ID != id })
+	l.DistributorsOn = l.DistributorsOn.filter(func(d *Distributor) bool { return d.UserInfo.ID != id })
 }
 func (l *Line) withEnd(pos1, pos2 *Position) bool {
 	f := func(pos *Position) positionPredictor {

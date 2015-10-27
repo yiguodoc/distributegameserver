@@ -93,9 +93,9 @@ func (m *MainController) GameList() {
 	responseHandler(m, func(m *MainController) (interface{}, error) {
 		id := m.GetString("gameID")
 		if len(id) > 0 {
-			return g_gameUnits.find(func(u *GameUnit) bool { return u.ID == id }), nil
+			return g_var.gameUnits.find(func(u *GameUnit) bool { return u.ID == id }), nil
 		} else {
-			return g_gameUnits, nil
+			return g_var.gameUnits, nil
 		}
 	})
 	// m.Data["json"] = g_gameUnits
@@ -152,7 +152,7 @@ func (m *MainController) RankIndex() {
 func (m *MainController) Index() {
 	m.Data["HOST"] = fmt.Sprintf("%s:%d", m.Ctx.Input.Host(), m.Ctx.Input.Port())
 	distributorID := m.GetString("id")
-	d := g_distributorStore.findOne(func(d *Distributor) bool { return d.ID == distributorID })
+	d := g_var.distributors.findOne(func(d *Distributor) bool { return d.UserInfo.ID == distributorID })
 	// d := g_UnitCenter.distributors.find(distributorID)
 	if d == nil {
 		panic("没有配送员 " + distributorID)
@@ -170,7 +170,7 @@ func (m *MainController) Login() {
 func (m *MainController) DistributionIndex() {
 	m.Data["HOST"] = fmt.Sprintf("%s:%d", m.Ctx.Input.Host(), m.Ctx.Input.Port())
 	distributorID := m.GetString("id")
-	d := g_distributorStore.findOne(func(d *Distributor) bool { return d.ID == distributorID })
+	d := g_var.distributors.findOne(func(d *Distributor) bool { return d.UserInfo.ID == distributorID })
 	// d := g_UnitCenter.distributors.find(distributorID)
 	if d == nil {
 		panic("没有配送员 " + distributorID)
@@ -278,7 +278,7 @@ func (m *MainController) AddressEditIndex() {
 func (m *MainController) OrderDistributeIndex() {
 	m.Data["HOST"] = fmt.Sprintf("%s:%d", m.Ctx.Input.Host(), m.Ctx.Input.Port())
 	distributorID := m.GetString("id")
-	d := g_distributorStore.findOne(func(d *Distributor) bool { return d.ID == distributorID })
+	d := g_var.distributors.findOne(func(d *Distributor) bool { return d.UserInfo.ID == distributorID })
 	// d := g_UnitCenter.distributors.find(distributorID)
 	if d == nil {
 		panic("没有配送员 " + distributorID)
@@ -303,17 +303,17 @@ func (m *MainController) Distributors() {
 	responseHandler(m, func(m *MainController) (interface{}, error) {
 		id := m.GetString("id")
 		if len(id) > 0 {
-			return g_distributorStore.filter(func(d *Distributor) bool { return d.ID == id }), nil
+			return g_var.distributors.filter(func(d *Distributor) bool { return d.UserInfo.ID == id }), nil
 		}
 		gameID := m.GetString("gameID")
 		if len(gameID) > 0 {
-			return g_distributorStore.filter(func(d *Distributor) bool { return d.GameID == gameID }), nil
+			return g_var.distributors.filter(func(d *Distributor) bool { return d.GameID == gameID }), nil
 		}
 
 		atgame := m.GetString("atgame")
 		if len(atgame) > 0 {
 			if atgame == "0" {
-				return g_distributorStore.filter(func(d *Distributor) bool { return len(d.GameID) <= 0 }), nil
+				return g_var.distributors.filter(func(d *Distributor) bool { return len(d.GameID) <= 0 }), nil
 			}
 		}
 		// 	gameID := m.GetString("gameID")
@@ -327,7 +327,7 @@ func (m *MainController) Distributors() {
 
 		// }
 
-		return g_distributorStore, nil
+		return g_var.distributors, nil
 	})
 }
 func (m *MainController) NewGameIndex() {

@@ -240,9 +240,9 @@ type MessageWithClient struct {
 
 func (m *MessageWithClient) String() string {
 	if len(m.ErrorMsg) > 0 {
-		return fmt.Sprintf("type: %s(%d) TargetID: %s data: %s uid: %d err: %s", m.MessageType.name(), m.MessageType, m.Target.ID, m.Data, m.uid, m.ErrorMsg)
+		return fmt.Sprintf("type: %s(%d) TargetID: %s data: %s uid: %d err: %s", m.MessageType.name(), m.MessageType, m.Target.UserInfo.ID, m.Data, m.uid, m.ErrorMsg)
 	} else {
-		return fmt.Sprintf("type: %s(%d) TargetID: %s data: %s uid: %d ", m.MessageType.name(), m.MessageType, m.Target.ID, m.Data, m.uid)
+		return fmt.Sprintf("type: %s(%d) TargetID: %s data: %s uid: %d ", m.MessageType.name(), m.MessageType, m.Target.UserInfo.ID, m.Data, m.uid)
 	}
 
 }
