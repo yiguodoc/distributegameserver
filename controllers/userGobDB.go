@@ -33,6 +33,13 @@ func (db *UserGobDB) count() int {
 func (db *UserGobDB) AddUser(user *User) error {
 	return db.Put(user.ID, user)
 }
+func (db *UserGobDB) users() UserList {
+	list := UserList{}
+	for _, v := range db.DB.ObjectsMap {
+		list = append(list, v.(*User))
+	}
+	return list
+}
 func (db *UserGobDB) Put(id string, user *User) error {
 	return db.DB.Put(id, user)
 }

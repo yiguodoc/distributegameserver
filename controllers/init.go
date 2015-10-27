@@ -14,6 +14,7 @@ import (
 
 var (
 	default_time_of_one_loop = 5 * 60
+	default_password         = "111"
 
 // g_UnitCenter       *GameUnit
 // g_gameUnits        GameUnitList = GameUnitList{}

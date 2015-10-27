@@ -630,7 +630,9 @@
 	    }
 
 	    function pro_2c_move_to_new_position_handler(msg){
-    		distributor = msg.Data
+    		// distributor = msg.Data
+    		//Position
+    		distributor.CurrentPos = msg.Data
 			refreshMyLocation()
 			console.info("配送员位置发生变化")
 	    }

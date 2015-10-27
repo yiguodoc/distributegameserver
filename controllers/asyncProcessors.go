@@ -87,7 +87,7 @@ func pro_game_time_tick_handlerGenerator(center *GameUnit) MessageWithClientHand
 								center.Process(NewMessageWithClient(pro_move_from_node_to_route, distributor, line))
 								center.sendMsgToSpecialSubscriber(distributor, pro_2c_move_from_node, distributor) //通知客户端移动到新坐标
 							} else {
-								center.sendMsgToSpecialSubscriber(distributor, pro_2c_move_to_new_position, distributor) //通知客户端移动到新坐标
+								center.sendMsgToSpecialSubscriber(distributor, pro_2c_move_to_new_position, distributor.CurrentPos) //通知客户端移动到新坐标
 							}
 						}
 
