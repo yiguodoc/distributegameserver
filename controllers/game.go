@@ -4,8 +4,16 @@ import (
 	"fmt"
 )
 
+var game_index = 0
+
+func getGameUniqueID() string {
+	game_index++
+	return fmt.Sprintf("game_%d", game_index)
+}
+
 type GamePreditor func(*Game) bool
 type Game struct {
+	ID                string
 	distributorIDList []string
 	mapName           string
 	game_time_loop    int
@@ -17,6 +25,7 @@ func (g *Game) String() string {
 }
 func NewGame(list []string, mapName string, loop int, mode string) *Game {
 	return &Game{
+		ID:                getGameUniqueID(),
 		distributorIDList: list,
 		mapName:           mapName,
 		game_time_loop:    loop,

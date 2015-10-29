@@ -19,7 +19,7 @@ func (m *MainController) GameList() {
 	responseHandler(m, func(m *MainController) (interface{}, error) {
 		id := m.GetString("gameID")
 		if len(id) > 0 {
-			return g_var.gameUnits.find(func(u *GameUnit) bool { return u.ID == id }), nil
+			return g_var.gameUnits.find(func(u *GameUnit) bool { return u.BasicInfo.ID == id }), nil
 		} else {
 			return g_var.gameUnits, nil
 		}

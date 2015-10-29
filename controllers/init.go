@@ -30,12 +30,14 @@ type global_var struct {
 	distributors DistributorList
 	gameUnits    GameUnitList
 	userdb       *UserGobDB
+	gameRecords  *GameRecordDB
 }
 
 func (g *global_var) init() {
 	g.gameUnits = GameUnitList{}
 	g.distributors = DistributorList{} //配送员列表
 	g.userdb = NewUserGobDB()
+	g.gameRecords = NewGameRecordDB()
 
 	g.userdb.init()
 	DebugInfoF("load %d user", g_var.userdb.count())
@@ -43,6 +45,8 @@ func (g *global_var) init() {
 	g.userdb.every(func(u *User) {
 		g.distributors = append(g.distributors, NewDistributor(u))
 	})
+
+	g.gameRecords.init()
 	// g.distributors = DistributorList{ //配送员列表
 	// NewDistributor(NewUser("d01", "张军", color_orange, g.distributors)),
 	// NewDistributor(NewUser("d02", "刘晓莉", color_red, g.distributors)),
@@ -73,7 +77,7 @@ func startNewGame(game *Game) error {
 	// distributors := g_distributorStore.filter(func(d *Distributor) bool { return stringInArray(d.ID, game.distributorIDList) })
 	// DebugSysF("%d", len(distributors))
 
-	gameUnit := NewGameUnit(game.distributorIDList, game.mapName, game.game_time_loop)
+	gameUnit := NewGameUnit(game)
 	if gameUnit != nil {
 		gameUnit.start()
 		g_var.gameUnits = append(g_var.gameUnits, gameUnit)

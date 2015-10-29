@@ -17,7 +17,7 @@
 
 
   </head>
-  <body class="theme-lightblue"  distributorID = "{{.distributor.ID}}">
+  <body class="theme-lightblue"  distributorID = "{{.distributor.UserInfo.ID}}">
     <!-- Status bar overlay for full screen mode (PhoneGap) -->
     <div class="statusbar-overlay"></div>
     <!-- Panels overlay-->
@@ -26,7 +26,7 @@
     <div class="panel panel-left panel-reveal">
         <!-- 左侧栏 -->
         <div class="content-block">
-        	<div id = "distributorName" style="  color: rgba(200,200,200,1); font-size: 20px; border-bottom: 1px solid rgba(200,200,200,0.7); padding-bottom: 10px;">{{.distributor.Name}}</div>
+        	<div id = "distributorName" style="  color: rgba(200,200,200,1); font-size: 20px; border-bottom: 1px solid rgba(200,200,200,0.7); padding-bottom: 10px;">{{.distributor.UserInfo.Name}}</div>
               <!-- Click on link with "close-panel" class will close panel -->
               <p><a href="#" class="">历史排名</a></p>
               <p><a href="#" class="">设置</a></p>
@@ -177,7 +177,6 @@
                 <div data-page="processGo2Distribution" class="page  no-swipeback" id="4">
 					<div class="page-content "> 
 					    <div class="content-block" style="margin-top: 100px;">
-					            <!-- <p style="text-align: center;">我是{{.distributor.Name}}</p> -->
 					            <p style="text-align: center;">订单选择已经完成</p>
 					            <div class=" login-btn-content">
 					                  <a href="#" class="button button-big button-fill" id="" onclick="onPreparedToStartGame()">开始配送</a>
@@ -261,7 +260,6 @@
 		              <!-- Scrollable page content -->
 		              <div class="page-content "> 
 				        <div class="content-block" style="margin-top: 100px;">
-				                <!-- <p style="text-align: center;">我是{{.distributor.Name}}</p> -->
 				                <p style="text-align: center;">我准备好了</p>
 				                <div class=" login-btn-content">
 				                      <a href="#" class="button button-big button-fill" id="" onclick="onPreparedToStartGame()">进入游戏</a>
@@ -478,10 +476,10 @@
 
     <script type="text/javascript">
     	var restartingGame = false
-	    var mainView, map, mapData, $$, myApp, mySwiper, conn;
-	    var distributorID = "{{.distributor.ID}}"
+	    var mainView, map, mapData, $$, myApp, mySwiper, conn, distributor;
+	    var distributorID = "{{.distributor.UserInfo.ID}}"
 	    // var orders = []
-	    var wsUrl = "ws://{{.HOST}}/wsOrderDistribution?id={{.distributor.ID}}" 
+	    var wsUrl = "ws://{{.HOST}}/wsOrderDistribution?id={{.distributor.UserInfo.ID}}" 
 	    var myLocationMarker = null
 	    var markerAim = null//准星环绕的marker
 	    var markerDest = null//目的地的准星
@@ -1075,7 +1073,7 @@
 	    	})
 	    	if(orderTemp != null){
 	    		console.log("签收订单 %s", orderTemp.ID)
-		        send({MessageType: {{.pro_sign_order_request}}, Data: {OrderID: orderTemp.ID, DistributorID: distributor.ID}})//请求重置目标点
+		        send({MessageType: {{.pro_sign_order_request}}, Data: {OrderID: orderTemp.ID, DistributorID: distributor.UserInfo.ID}})//请求重置目标点
 	    	}
 	    }
         function onFocusOnNextNode(){
@@ -1096,7 +1094,7 @@
 	    		    console.warn("没有查找到选中的点")
 	    		    return
 	    		}else{
-	    		    send({MessageType: {{.pro_reset_destination_request}}, Data: {PositionID: p.ID, DistributorID: distributor.ID}})//请求重置目标点
+	    		    send({MessageType: {{.pro_reset_destination_request}}, Data: {PositionID: p.ID, DistributorID: distributor.UserInfo.ID}})//请求重置目标点
 	    		}
 	    		// myApp.alert('操作完成', '');
 	    		// setTimeout(function () {

@@ -3,20 +3,13 @@ package controllers
 import (
 	// "errors"
 	"encoding/json"
-	"fmt"
+	// "fmt"
 	// "math"
 	"github.com/gorilla/websocket"
 	"github.com/ungerik/go-dry"
 	"math/rand"
 	"time"
 )
-
-var game_index = 0
-
-func getGameUnitID() string {
-	game_index++
-	return fmt.Sprintf("game_%d", game_index)
-}
 
 type GameUnitPreditor func(*GameUnit) bool
 type GameUnitList []*GameUnit
@@ -56,11 +49,9 @@ func (gl GameUnitList) findRecursive(p GameUnitPreditor, l GameUnitList) GameUni
 }
 
 type GameUnit struct {
-	ID                string
+	BasicInfo         *Game
 	Distributors      DistributorList
 	orders            OrderList
-	MapName           string
-	GameTimeMaxLength int                                                //游戏最大时长
 	TimeElapse        int                                                //运行时间
 	chanEvent         chan *MessageWithClient                            `json:"-"`
 	chanStop          chan bool                                          `json:"-"`
@@ -69,19 +60,21 @@ type GameUnit struct {
 	distributorIDList []string                                           `json:"-"`
 	mapData           *MapData                                           `json:"-"`
 	gameStarted       bool                                               `json:"-"`
+	// MapName           string
+	// GameTimeMaxLength int                                                //游戏最大时长
+	// ID                string
 	// units             DistributorProcessUnitList
 	// mapDataLoader     func() *MapData
 	// wsRoom            *WsRoom
 }
 
-func NewGameUnit(distributorIDList []string, mapName string, timeMaxLength int) *GameUnit {
+func NewGameUnit(gameInfo *Game) *GameUnit {
+	// func NewGameUnit(distributorIDList []string, mapName string, timeMaxLength int) *GameUnit {
 	unit := &GameUnit{
-		ID:                getGameUnitID(),
-		chanEvent:         make(chan *MessageWithClient, 128),
-		chanStop:          make(chan bool),
-		MapName:           mapName,
-		processors:        make(ProHandlerMap),
-		distributorIDList: distributorIDList,
+		BasicInfo:  gameInfo,
+		chanEvent:  make(chan *MessageWithClient, 128),
+		chanStop:   make(chan bool),
+		processors: make(ProHandlerMap),
 		supportPro: []ClientMessageTypeCode{
 			pro_game_start,
 			pro_order_select_response,
@@ -98,7 +91,11 @@ func NewGameUnit(distributorIDList []string, mapName string, timeMaxLength int) 
 			pro_sign_order_request,
 			pro_distributor_info_request,
 		},
-		GameTimeMaxLength: timeMaxLength,
+		// GameTimeMaxLength: timeMaxLength,
+		// ID:                getGameUnitID(),
+		// MapName:           mapName,
+		// distributorIDList: distributorIDList,
+
 	}
 	unit.processors = handler_map.generateHandlerMap(unit.supportPro, unit)
 	return unit
@@ -172,18 +169,19 @@ func (dpc *GameUnit) sendMsgToSpecialSubscriber(distributor *Distributor, protoc
 }
 
 func (gu *GameUnit) stop() {
+	gu.gameStarted = false
 	// gu.stopAllUnits()
 	if gu.chanStop != nil {
 		gu.chanStop <- true
 		gu.chanStop = nil
 	}
 	gu.Distributors.forEach(func(d *Distributor) {
-		d.GameID = ""
+		d.GameID = "" //表名不在游戏中
 	})
 	// time.Sleep(2 * time.Second)
 }
 func (gu *GameUnit) start() *GameUnit {
-	gu.mapData = loadMapData(gu.MapName)
+	gu.mapData = loadMapData(gu.BasicInfo.mapName)
 
 	gu.orders = gu.mapData.Points.filter(func(pos *Position) bool {
 		return pos.PointType == POSITION_TYPE_ORDER
@@ -216,13 +214,13 @@ func (gu *GameUnit) start() *GameUnit {
 	}
 	gu.Distributors.forEach(func(distributor *Distributor) {
 		distributor.setCheckPoint(checkpoint_flag_origin)
-		distributor.GameTimeMaxLength = gu.GameTimeMaxLength
+		distributor.GameTimeMaxLength = gu.BasicInfo.game_time_loop
 		distributor.StartPos = positionGenerator(bornPoints)()
 		distributor.CurrentPos = distributor.StartPos.copyTemp(true)
 		distributor.NormalSpeed = defaultSpeed
 		distributor.CurrentSpeed = defaultSpeed
 		distributor.AcceptedOrders = OrderList{}
-		distributor.GameID = gu.ID
+		distributor.GameID = gu.BasicInfo.ID
 		// newUnit(gu, distributor)
 	})
 
@@ -239,12 +237,12 @@ func (gu *GameUnit) start() *GameUnit {
 					DebugSysF("未找到消息处理单位：%s", msg)
 				}
 			case <-timer:
-				if gu.TimeElapse < gu.GameTimeMaxLength && gu.gameStarted == true { //尚处于单局游戏时间内
+				if gu.TimeElapse < gu.BasicInfo.game_time_loop && gu.gameStarted == true { //尚处于单局游戏时间内
 					gu.TimeElapse++
 					gu.Distributors.forEach(func(distributor *Distributor) {
 						gu.Process(NewMessageWithClient(pro_game_time_tick, distributor, nil))
 					})
-				} else if gu.gameStarted == true && gu.TimeElapse >= gu.GameTimeMaxLength { //游戏时间到达最终时限
+				} else if gu.gameStarted == true && gu.TimeElapse >= gu.BasicInfo.game_time_loop { //游戏时间到达最终时限
 					DebugSysF("游戏到达最终时限，开始统计成绩")
 					gu.Process(NewMessageWithClient(pro_game_timeout, nil, gu))
 				} else {

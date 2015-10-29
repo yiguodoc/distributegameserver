@@ -13,6 +13,10 @@ import (
 经纬度变化1秒/帧
 路径两点的经纬度和长度是确定的，配送员的速度确定，那么运行时间就可以确定，根据系统时间与现实时间的比例，确定系统时间每秒行走的距离和改变的经纬度
 
+
+记录得分分析：
+1. dual 模式：游戏结束时，记录每个参与者的成绩
+2. team 模式：游戏结束时，计算团队总得分和耗时
 */
 
 var (
@@ -24,45 +28,66 @@ var (
 	ERR_order_already_selected        = errors.New("订单已经被分配过")
 )
 
-//整个游戏结束
+//游戏计时结束，需要处理未主动结束游戏的参与者，
 func pro_game_timeout_handlerGenerator(gu *GameUnit) MessageWithClientHandler {
 	f := func(msg *MessageWithClient) {
-		gu.gameStarted = false
-		gu.Distributors.forEach(func(d *Distributor) {
-			d.caculateScore()
-		})
-		gu.Distributors.Rank().forEach(func(d *Distributor) {
-			gu.sendMsgToSpecialSubscriber(d, pro_2c_rank_change, d)
-		})
-		DebugPrintList_Info(gu.Distributors)
-		gu.Distributors.filter(func(d *Distributor) bool { return d.whetherHasEndTheGame() == false }).
-			forEach(func(d *Distributor) {
-			d.setCheckPoint(checkpoint_flag_game_over)
-			gu.sendMsgToSpecialSubscriber(d, pro_2c_end_game, d)
-		})
-		//记录游戏结果，相关记录包括游戏模式等等都需要
+		stopGameGracefully(gu, msg)
 	}
 	return f
+}
+
+// 以及其它关于该局游戏本身的事项
+func stopGameGracefully(gu *GameUnit, msg *MessageWithClient) {
+	// gu.gameStarted = false
+	gameID := gu.BasicInfo.ID
+	gu.stop()
+	gu.Distributors.forEach(func(d *Distributor) {
+		d.caculateScore()
+	})
+	gu.Distributors.Rank()
+	gu.Distributors.forEach(func(d *Distributor) {
+		gu.sendMsgToSpecialSubscriber(d, pro_2c_rank_change, d)
+	})
+	DebugPrintList_Info(gu.Distributors)
+	gu.Distributors.filter(func(d *Distributor) bool { return d.whetherHasEndTheGame() == false }).
+		forEach(func(d *Distributor) {
+		d.setCheckPoint(checkpoint_flag_game_over)
+		gu.sendMsgToSpecialSubscriber(d, pro_2c_end_game, d)
+	})
+	gu.stop()
+	//记录游戏结果，相关记录包括游戏模式等等都需要
+	gu.Distributors.forEach(func(d *Distributor) {
+		g_var.gameRecords.add(NewGameScoreRecord(gameID, d.GetID(), gu.BasicInfo.mapName, gu.BasicInfo.mode, d.Score, d.TimeElapse))
+	})
 }
 
 //单独申请配送结束
 func pro_end_game_request_handlerGenerator(gu *GameUnit) MessageWithClientHandler {
 	f := func(msg *MessageWithClient) {
-		go func() {
-			//计算得分
-			//签收完一个订单得到该订单对应的分数，没有完成的订单减去惩罚分数
-			msg.Target.caculateScore()
-			//计算排名
-			gu.Distributors.Rank()
-			DebugPrintList_Info(gu.Distributors)
-			msg.Target.setCheckPoint(checkpoint_flag_game_over)
-			gu.sendMsgToSpecialSubscriber(msg.Target, pro_2c_end_game, msg.Target)
+		//计算得分
+		//签收完一个订单得到该订单对应的分数，没有完成的订单减去惩罚分数
+		msg.Target.caculateScore()
+		//计算排名
+		gu.Distributors.Rank()
+		DebugPrintList_Info(gu.Distributors)
+		msg.Target.setCheckPoint(checkpoint_flag_game_over)
+		gu.sendMsgToSpecialSubscriber(msg.Target, pro_2c_end_game, msg.Target)
+
+		//如果所有参与者都结束游戏，可以直接结束该局游戏
+		if gu.Distributors.every(func(d *Distributor) bool {
+			return d.CheckPoint == checkpoint_flag_game_over
+		}) {
+			stopGameGracefully(gu, msg)
+		} else {
 			gu.Distributors.forEach(func(d *Distributor) {
 				if d.UserInfo.ID != msg.Target.UserInfo.ID {
 					gu.sendMsgToSpecialSubscriber(d, pro_2c_rank_change, d)
 				}
 			})
-		}()
+		}
+		// go func() {
+
+		// }()
 	}
 	return f
 }
