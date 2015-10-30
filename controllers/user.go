@@ -16,6 +16,15 @@ type User struct {
 type userPredictor func(*User) bool
 type UserList []*User
 
+func (ul UserList) every(p userPredictor) bool {
+	for _, u := range ul {
+		if p(u) == false {
+			return false
+		}
+	}
+	return true
+}
+
 func NewUser(id, name, color string, dbLink *UserGobDB) *User {
 	return &User{
 		ID:     id,
@@ -24,7 +33,17 @@ func NewUser(id, name, color string, dbLink *UserGobDB) *User {
 		dbLink: dbLink,
 	}
 }
-
+func (u *User) inTeam(name string) bool {
+	return u.Team == name
+}
+func (u *User) leaveTeam() error {
+	u.Team = ""
+	return u.dbLink.updateUser(u)
+}
+func (u *User) joinTeam(name string) error {
+	u.Team = name
+	return u.dbLink.updateUser(u)
+}
 func (u *User) copy() *User {
 	return &User{
 		ID:     u.ID,

@@ -209,9 +209,46 @@
 
         }
     }
+
+    function groupUser(){
+        var list = getSelectedID()
+        if(_.size(list) > 0 ){
+            $("#modalAddGroup").modal("show")
+        }
+    }
+    function leaveGroup(){
+        var list = getSelectedID()
+        if(_.size(list) > 0){
+            $.confirm({
+                body: "确实要选中的人从团队中离开？",
+                width: 'normal',
+                backdrop: true,
+                bgcolor: 'none',
+                okHide: function() {
+                    $.ajax({
+                        url: '/teams',
+                        type: 'DELETE',
+                        contentType: "application/json;charset=UTF-8",
+                        data: JSON.stringify(list),
+                        success: function(data) {
+                            if (data.Code != 0) {
+                                $.alert(data.Message)
+                            } else {
+                                refresh_grid()
+                            }
+                        }
+                    });
+                },
+                cancelHide: function() {
+                    console.log('cancelHide')
+                },
+            })
+
+        }
+    }
     </script>
 
-    <!-- Modal-->
+    <!-- Modal 添加新用户-->
     <div id="myModal" tabindex="-1" role="dialog" data-hasfoot="false" class="sui-modal hide fade">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -262,6 +299,77 @@
         }
         </script>
     </div>
+
+    <!-- Modal 组队-->
+    <div id="modalAddGroup" tabindex="-1" role="dialog" data-hasfoot="false" class="sui-modal hide fade">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" data-dismiss="modal" aria-hidden="true" class="sui-close">×</button>
+                    <h4 id="myModalLabel" class="modal-title">加入团队</h4>
+                </div>
+                <div class="modal-body">
+                    <form class="sui-form form-horizontal">
+                        <div style="margin-bottom: 20px;"><span> 创建一个新团队，或者加入已经创建的团队 </span> </div>
+                        <div class="control-group">
+                            <label for="inputEmail" class="control-label">团队名称：</label>
+                            <div class="controls">
+                                <input type="text" id="inputGroupName" placeholder="猛虎队">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" data-ok="modal" class="sui-btn btn-primary btn-large" onclick="joinTeam()">添加</button>
+                    <button type="button" data-dismiss="modal" class="sui-btn btn-default btn-large" onclick="cancelModalGroup()">取消</button>
+                </div>
+            </div>
+        </div>
+        <script type="text/javascript">
+        function cancelModalGroup() {
+            $("#modalAddGroup").modal("hide")
+        }
+
+        function joinTeam() {
+            var gropuName = $("#inputGroupName").val()
+            if(gropuName.length <= 0){
+                alert("填写一个有效的团队名称")
+                return
+            }
+            var list = getSelectedID()
+            var obj = {
+                list: list,
+                name: gropuName,
+            }
+            $.ajax({
+                url: "/teams",
+                type: "post",
+                contentType: "application/json;charset=UTF-8",
+                processData: false,
+                data: JSON.stringify(obj),
+                success: function(data) {
+                    if (data.Code != 0) {
+                        alert(data.Message)
+                    }else{
+                        alert('成功加入团队！')
+                        refresh_grid()
+                    }
+                    cancel()
+                }
+
+            })
+            // $.post("/users", obj, function(data) {
+            //     if (data.Code == 0) {
+            //         refresh_grid()
+            //     } else {
+            //         alert(data.Message)
+            //     }
+            //     cancel()
+            // })
+        }
+        </script>
+    </div>
+
 </body>
 
 </html>

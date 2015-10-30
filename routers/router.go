@@ -25,6 +25,9 @@ func init() {
 	beego.Router("/resetpwd", &controllers.MainController{}, "PATCH:Resetpwd")
 	beego.Router("/users", &controllers.MainController{}, "DELETE:DeleteUser")
 
+	beego.Router("/teams", &controllers.MainController{}, "POST:AddTeam")
+	beego.Router("/teams", &controllers.MainController{}, "delete:LeaveTeam")
+
 	beego.Router("/gameList", &controllers.MainController{}, "GET:GameList")
 	beego.Router("/mapNameList", &controllers.MainController{}, "GET:MapNameList")
 	// beego.Router("/orders", &controllers.MainController{}, "GET:Orders")
