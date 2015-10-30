@@ -8,8 +8,9 @@ import (
 type User struct {
 	ID       string
 	Name     string
-	Password string
+	password string
 	Color    string //地图上marker颜色
+	Team     string
 	dbLink   *UserGobDB
 }
 type userPredictor func(*User) bool
@@ -36,7 +37,7 @@ func (u *User) setNewPwd(p userPredictor, pwdNew string) error {
 	id := u.ID
 	if p(u) {
 		_, err := u.dbLink.forOne(func(u *User) {
-			u.Password = pwdNew
+			u.password = pwdNew
 		}, func(_u *User) bool {
 			return _u.ID == id
 		})

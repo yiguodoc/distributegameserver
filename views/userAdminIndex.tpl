@@ -58,10 +58,12 @@
             </div>
             <div>
                 <div style="margin-bottom:-18px;">
-                    <a href="javascript:void(0);" onclick="refresh_grid()" class="sui-btn btn-xlarge btn-bordered btn-info" style="width:150px;  margin-top: 25px; margin-left: 8px;">刷新</a>
-                    <a href="javascript:void(0);" onclick="add()" class="sui-btn btn-xlarge btn-success" style="width:150px;  margin-top: 25px; margin-left: 8px;">增加</a>
-                    <a href="javascript:void(0);" onclick="resetpwd()" class="sui-btn btn-xlarge btn-success" style="width:150px;  margin-top: 25px; margin-left: 8px;">重置密码</a>
-                    <a href="javascript:void(0);" onclick="deleteUser()" class="sui-btn btn-xlarge btn-success" style="width:150px;  margin-top: 25px; margin-left: 8px;">删除</a>
+                    <a href="javascript:void(0);" onclick="refresh_grid()" class="sui-btn btn-xlarge btn-bordered btn-info" style="width:100px;  margin-top: 25px; margin-left: 8px;">刷新</a>
+                    <a href="javascript:void(0);" onclick="add()" class="sui-btn btn-xlarge btn-success" style="width:100px;  margin-top: 25px; margin-left: 8px;">增加</a>
+                    <a href="javascript:void(0);" onclick="resetpwd()" class="sui-btn btn-xlarge btn-success" style="width:100px;  margin-top: 25px; margin-left: 8px;">重置密码</a>
+                    <a href="javascript:void(0);" onclick="deleteUser()" class="sui-btn btn-xlarge btn-success" style="width:100px;  margin-top: 25px; margin-left: 8px;">删除</a> 
+                    <a href="javascript:void(0);" onclick="groupUser()" class="sui-btn btn-xlarge btn-success" style="width:100px;  margin-top: 25px; margin-left: 8px;">组队</a>
+                    <a href="javascript:void(0);" onclick="leaveGroup()" class="sui-btn btn-xlarge btn-success" style="width:100px;  margin-top: 25px; margin-left: 8px;">离开团队</a>
                 </div>
                 <!-- <div style="border-bottom: solid 1px rgba(0,0,0,0.1); margin-top: 5px;"></div> -->
                 <table id="dtProcess" class="display" cellspacing="0" width="100%">
@@ -69,6 +71,7 @@
                         <tr>
                             <th>学号</th>
                             <th>姓名</th>
+                            <th>团队</th>
                         </tr>
                     </thead>
                 </table>
@@ -95,10 +98,13 @@
             },
             "columns": [{
                 "data": "ID",
-                "width": "50%"
+                "width": "20%"
             }, {
                 "data": "Name",
-                "width": "50%"
+                "width": "40%"
+            }, {
+                "data": "Team",
+                "width": "40%"
             }]
         });
         $('#dtProcess tbody').on('click', 'tr', function() {
@@ -106,12 +112,10 @@
             if ($(this).hasClass('selected')) {
                 $(this).removeClass('selected');
             } else {
-                table.$('tr.selected').removeClass('selected');
+                // table.$('tr.selected').removeClass('selected');
                 $(this).addClass('selected');
             }
 
-            //可以选中多行
-            // $(this).toggleClass('selected');
         });
 
     })
@@ -129,26 +133,33 @@
         var data = table.rows(".selected").data()
         if (data.length <= 0) {
             alert("请先选择一个用户！")
-            return null
+            return []
         } else {
-            var id = data[0].ID
-            return id
+            return _.pluck(data, "ID")
+            // var id = data[0].ID
+            // return id
         }
     }
 
     function deleteUser() {
-        var id = getSelectedID()
-        if (id != null) {
-            console.log("delete user ", id)
+        var list = getSelectedID()
+        if(_.size(list) > 0) {
+            console.log("delete users ", list)
+            var body = '删除该信息将无法恢复，确定删除吗？'
+            if(_.size(list) > 1){
+                body = '删除该信息将无法恢复，而且是同时删除多条信息，确定删除吗？'
+            }
             $.confirm({
-                body: '删除该信息将无法恢复，确定删除吗？',
+                body: body,
                 width: 'normal',
                 backdrop: true,
                 bgcolor: 'none',
                 okHide: function() {
                     $.ajax({
-                        url: '/users?id=' + id,
+                        url: '/users',
                         type: 'DELETE',
+                        contentType: "application/json;charset=UTF-8",
+                        data: JSON.stringify(list),
                         success: function(data) {
                             if (data.Code != 0) {
                                 $.alert(data.Message)
@@ -166,17 +177,31 @@
     }
 
     function resetpwd() {
-        var id = getSelectedID()
-        if (id != null) {
+        var list = getSelectedID()
+        console.log("resetpwd users ", list)
+        if (_.size(list) > 0) {
+            var body = '该用户密码将会被重置为默认密码，请尽快修改该密码以保证安全！'
+            if(_.size(list) > 1){
+                body = '多个用户的密码将会被重置为默认密码，请尽快修改该密码以保证安全！'
+            }
             $.confirm({
-                body: '该用户密码将会被重置为默认密码，请尽快修改该密码以保证安全！',
+                body: body,
                 width: 'normal',
                 backdrop: true,
                 bgcolor: 'none',
                 okHide: function() {
-                    $.get("/resetpwd?id=" + id, function(data) {
-                        if (data.Code != 0) {
-                            alert(data.Message)
+                    $.ajax({
+                        url: "/resetpwd", 
+                        type: "PATCH",
+                        contentType: "application/json;charset=UTF-8",
+                        processData: false,
+                        data: JSON.stringify(list),
+                        success: function(data) {
+                            if (data.Code != 0) {
+                                alert(data.Message)
+                            }else{
+                                alert('重置密码成功！')
+                            }
                         }
                     })
                 },

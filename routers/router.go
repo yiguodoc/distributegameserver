@@ -22,7 +22,7 @@ func init() {
 	beego.Router("/distributors", &controllers.MainController{}, "GET:Distributors")
 	beego.Router("/users", &controllers.MainController{}, "GET:UserList")
 	beego.Router("/users", &controllers.MainController{}, "POST:AddUser")
-	beego.Router("/resetpwd", &controllers.MainController{}, "GET:Resetpwd")
+	beego.Router("/resetpwd", &controllers.MainController{}, "PATCH:Resetpwd")
 	beego.Router("/users", &controllers.MainController{}, "DELETE:DeleteUser")
 
 	beego.Router("/gameList", &controllers.MainController{}, "GET:GameList")
