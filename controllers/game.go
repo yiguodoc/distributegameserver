@@ -14,22 +14,22 @@ func getGameUniqueID() string {
 type GamePreditor func(*Game) bool
 type Game struct {
 	ID                string
-	distributorIDList []string
-	mapName           string
-	game_time_loop    int
-	mode              string //dual or team
+	DistributorIDList []string
+	MapName           string
+	Game_time_loop    int
+	Mode              string //dual or team
 }
 
 func (g *Game) String() string {
-	return fmt.Sprintf("地图名称: %s  时长: %d   参与者: %s", g.mapName, g.game_time_loop, g.distributorIDList)
+	return fmt.Sprintf("地图名称: %s  时长: %d   参与者: %s", g.MapName, g.Game_time_loop, g.DistributorIDList)
 }
 func NewGame(list []string, mapName string, loop int, mode string) *Game {
 	return &Game{
 		ID:                getGameUniqueID(),
-		distributorIDList: list,
-		mapName:           mapName,
-		game_time_loop:    loop,
-		mode:              mode,
+		DistributorIDList: list,
+		MapName:           mapName,
+		Game_time_loop:    loop,
+		Mode:              mode,
 	}
 }
 

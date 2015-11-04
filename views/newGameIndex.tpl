@@ -47,33 +47,10 @@
 </head>
 
 <body style="height:100%;">
-  <div class='container'>
-    <div class="sui-navbar navbar-inverse">
-      <div class="navbar-inner" style="height:60px;">
-        <div class="sui-container" style="margin-top: 10px; font-size: 14px;margin-left: 32px;"><a href="#" class="sui-brand">配送大师</a>
-          <ul class="sui-nav" style="margin-left: 28px;">
-            <li class="active"><a href="#">首页</a></li>
-            <!-- <li><a href="#">组件</a></li> -->
-            <li class="sui-dropdown"><a href="javascript:void(0);" data-toggle="dropdown" class="dropdown-toggle">其他 <i class="caret"></i></a>
-              <ul role="menu" class="sui-dropdown-menu">
-                <li role="presentation"><a role="menuitem" tabindex="-1" href="#">关于</a></li>
-                <li role="presentation"><a role="menuitem" tabindex="-1" href="#">项目组成员</a></li>
-                <li role="presentation"><a role="menuitem" tabindex="-1" href="#">版权</a></li>
-              </ul>
-            </li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  </div>
+  {{template "topNav.tpl" .}}
+
   <div class="sui-layout" style="height:85%;margin-top:0px;">
-    <div class="sidebar" style="position: static;">
-      <div style="text-align:center;border-top: 1px solid rgba(100,100,100,0.3);">
-        <!-- <div style="  margin-bottom: 20px; margin-top: 10px; font-size: 16px; border-bottom: solid 1px rgba(100,100,100,0.2); padding-bottom: 10px; color: rgba(100,100,100,0.7);">新游戏</div> -->
-        <a href="javascript:void(0);" class="sui-btn btn-xlarge btn-info" style="width:150px;  margin-top: 25px; margin-left: 8px;">新游戏</a></br>
-        <a href="/gameListIndex" class="sui-btn btn-xlarge btn-info" style="width:150px;  margin-top: 25px; margin-left: 8px;">游戏列表</a></br>
-      </div>
-    </div>
+    {{template "sidebar.tpl" .}}
     <div class="content" style="height:100%;margin-left: 195px; margin-right: 5px;border-left: 3px solid rgba(100,100,100,0.3); padding-left: 2px;">
       <div style="  border-top: solid 1px rgba(100,100,100,0.3);  border-bottom: solid 1px rgba(100,100,100,0.3); height:80px;">
         <div style="font-size: 18px; margin-top: 10px; padding-left: 5px;">创建一个新游戏</div>
@@ -90,7 +67,7 @@
           </select>
           <div style="width:40%; border-bottom: dotted 1px rgba(100,100,100,0.2);margin-bottom: 5px; margin-top: 15px;color: rgba(100,100,100,0.6);">地图信息</div>
           <div style="margin-top: 0px;">
-            <span style="color:gray;">游戏时长：</span>
+            <span style="color:gray;">游戏时长(分钟)：</span>
             <span id="mapInfoGameLength"></span>
             <span style="margin-left:60px;color:gray;">订单数：</span>
             <span id="mapInfoOrderCount"></span>
@@ -118,6 +95,7 @@
             <tr>
               <th>ID</th>
               <th>姓名</th>
+              <th>团队</th>
             </tr>
           </thead>
         </table>
@@ -154,11 +132,14 @@
           "dataSrc": "Data"
         },
         "columns": [{
-          "data": "ID",
+          "data": "UserInfo.ID",
           "width": "20%"
         }, {
-          "data": "Name",
-          "width": "20%"
+          "data": "UserInfo.Name",
+          "width": "40%"
+        }, {
+          "data": "UserInfo.Team",
+          "width": "40%"
         }, ]
       });
 
@@ -193,7 +174,7 @@
         console.log(row.ID + " " + row.Name)
       })
       var idList = _.reduce(rows, function(list, row) {
-          list.push(row.ID)
+          list.push(row.UserInfo.ID)
           return list
         }, [])
         // var postData = {id: JSON.stringify(idList)}//form

@@ -57,7 +57,7 @@ func stopGameGracefully(gu *GameUnit, msg *MessageWithClient) {
 	gu.stop()
 	//记录游戏结果，相关记录包括游戏模式等等都需要
 	gu.Distributors.forEach(func(d *Distributor) {
-		g_var.gameRecords.add(NewGameScoreRecord(gameID, d.GetID(), gu.BasicInfo.mapName, gu.BasicInfo.mode, d.Score, d.TimeElapse))
+		g_var.gameRecords.add(NewGameScoreRecord(gameID, d.GetID(), gu.BasicInfo.MapName, gu.BasicInfo.Mode, d.Score, d.TimeElapse))
 	})
 }
 

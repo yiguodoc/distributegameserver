@@ -84,13 +84,13 @@
             "columnDefs": [
                 {
                     "render": function ( data, type, row ) {
-                        return transformTimeElapseToStandardFormat(row.GameTimeMaxLength)
+                        return transformTimeElapseToStandardFormat(row.BasicInfo.Game_time_loop)
                     },
                     "targets": 1
                 },
                 {
                     "render": function ( data, type, row ) {
-                        return _.size(row.Distributors)
+                        return _.size(row.BasicInfo.DistributorIDList)
                     },
                     "targets": 2
                 },
@@ -107,7 +107,7 @@
                 "dataSrc": "Data"
             },
             "columns": [{
-                "data": "ID",
+                "data": "BasicInfo.ID",
                 "width": "20%"
             }, {
                 // "data": "Name",
@@ -116,7 +116,7 @@
                 // "data": "Name",
                 "width": "20%"
             }, {
-                "data": "MapName",
+                "data": "BasicInfo.MapName",
                 "width": "20%"
             }, ]
         });
@@ -145,7 +145,7 @@
     function GameDetail(){
         var rows = getSelectedRows()
         if(rows.length > 0){
-            window.location.href = "/rankIndex?gameID="+rows[0].ID
+            window.location.href = "/rankIndex?gameID="+rows[0].BasicInfo.ID
         }
     }
 

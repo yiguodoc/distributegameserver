@@ -11,6 +11,7 @@ type User struct {
 	password string
 	Color    string //地图上marker颜色
 	Team     string
+	Score    int
 	dbLink   *UserGobDB
 }
 type userPredictor func(*User) bool

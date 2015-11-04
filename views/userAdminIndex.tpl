@@ -59,11 +59,12 @@
             <div>
                 <div style="margin-bottom:-18px;">
                     <a href="javascript:void(0);" onclick="refresh_grid()" class="sui-btn btn-xlarge btn-bordered btn-info" style="width:100px;  margin-top: 25px; margin-left: 8px;">刷新</a>
-                    <a href="javascript:void(0);" onclick="add()" class="sui-btn btn-xlarge btn-success" style="width:100px;  margin-top: 25px; margin-left: 8px;">增加</a>
-                    <a href="javascript:void(0);" onclick="resetpwd()" class="sui-btn btn-xlarge btn-success" style="width:100px;  margin-top: 25px; margin-left: 8px;">重置密码</a>
-                    <a href="javascript:void(0);" onclick="deleteUser()" class="sui-btn btn-xlarge btn-success" style="width:100px;  margin-top: 25px; margin-left: 8px;">删除</a> 
-                    <a href="javascript:void(0);" onclick="groupUser()" class="sui-btn btn-xlarge btn-success" style="width:100px;  margin-top: 25px; margin-left: 8px;">组队</a>
-                    <a href="javascript:void(0);" onclick="leaveGroup()" class="sui-btn btn-xlarge btn-success" style="width:100px;  margin-top: 25px; margin-left: 8px;">离开团队</a>
+                    <a href="javascript:void(0);" onclick="add()" class="sui-btn btn-xlarge btn-success" style="width:100px;  margin-top: 25px; margin-left: 30px;">增加</a>
+                    <a href="javascript:void(0);" onclick="resetpwd()" class="sui-btn btn-xlarge btn-success" style="width:100px;  margin-top: 25px; margin-left: 5px;">重置密码</a>
+                    <a href="javascript:void(0);" onclick="deleteUser()" class="sui-btn btn-xlarge btn-success" style="width:100px;  margin-top: 25px; margin-left: 5px;">删除</a> 
+                    <a href="javascript:void(0);" onclick="groupUser()" class="sui-btn btn-xlarge btn-success" style="width:100px;  margin-top: 25px; margin-left: 30px;">组队</a>
+                    <a href="javascript:void(0);" onclick="leaveGroup()" class="sui-btn btn-xlarge btn-success" style="width:100px;  margin-top: 25px; margin-left: 5px;">离开团队</a>
+                    <a href="javascript:void(0);" onclick="userDetail()" class="sui-btn btn-xlarge btn-success" style="width:100px;  margin-top: 25px; margin-left: 30px;">个人详情</a>
                 </div>
                 <!-- <div style="border-bottom: solid 1px rgba(0,0,0,0.1); margin-top: 5px;"></div> -->
                 <table id="dtProcess" class="display" cellspacing="0" width="100%">
@@ -72,6 +73,7 @@
                             <th>学号</th>
                             <th>姓名</th>
                             <th>团队</th>
+                            <th>成就</th>
                         </tr>
                     </thead>
                 </table>
@@ -104,7 +106,10 @@
                 "width": "40%"
             }, {
                 "data": "Team",
-                "width": "40%"
+                "width": "30%"
+            }, {
+                "data": "Score",
+                "width": "10%"
             }]
         });
         $('#dtProcess tbody').on('click', 'tr', function() {
@@ -244,6 +249,13 @@
                 },
             })
 
+        }
+    }
+
+    function userDetail(){
+        var list = getSelectedID()
+        if(_.size(list) > 0){
+            window.location.href = "/userDetailIndex?id=" + list[0]
         }
     }
     </script>

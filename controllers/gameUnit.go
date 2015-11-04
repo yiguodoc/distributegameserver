@@ -11,6 +11,34 @@ import (
 	"time"
 )
 
+type game_status int
+
+const (
+	game_status_init  = 0
+	game_status_going = 1
+	game_status_end   = 2
+)
+
+type GameUnit struct {
+	BasicInfo         *Game
+	Distributors      DistributorList
+	orders            OrderList
+	TimeElapse        int                                                //运行时间
+	chanEvent         chan *MessageWithClient                            `json:"-"`
+	chanStop          chan bool                                          `json:"-"`
+	processors        map[ClientMessageTypeCode]MessageWithClientHandler `json:"-"`
+	supportPro        []ClientMessageTypeCode                            `json:"-"`
+	distributorIDList []string                                           `json:"-"`
+	mapData           *MapData                                           `json:"-"`
+	Status            game_status                                        //initialized,going,end
+	// gameStarted       bool                                               `json:"-"`
+	// MapName           string
+	// GameTimeMaxLength int                                                //游戏最大时长
+	// ID                string
+	// units             DistributorProcessUnitList
+	// mapDataLoader     func() *MapData
+	// wsRoom            *WsRoom
+}
 type GameUnitPreditor func(*GameUnit) bool
 type GameUnitList []*GameUnit
 
@@ -48,26 +76,6 @@ func (gl GameUnitList) findRecursive(p GameUnitPreditor, l GameUnitList) GameUni
 	return gl[1:].findRecursive(p, l)
 }
 
-type GameUnit struct {
-	BasicInfo         *Game
-	Distributors      DistributorList
-	orders            OrderList
-	TimeElapse        int                                                //运行时间
-	chanEvent         chan *MessageWithClient                            `json:"-"`
-	chanStop          chan bool                                          `json:"-"`
-	processors        map[ClientMessageTypeCode]MessageWithClientHandler `json:"-"`
-	supportPro        []ClientMessageTypeCode                            `json:"-"`
-	distributorIDList []string                                           `json:"-"`
-	mapData           *MapData                                           `json:"-"`
-	gameStarted       bool                                               `json:"-"`
-	// MapName           string
-	// GameTimeMaxLength int                                                //游戏最大时长
-	// ID                string
-	// units             DistributorProcessUnitList
-	// mapDataLoader     func() *MapData
-	// wsRoom            *WsRoom
-}
-
 func NewGameUnit(gameInfo *Game) *GameUnit {
 	// func NewGameUnit(distributorIDList []string, mapName string, timeMaxLength int) *GameUnit {
 	unit := &GameUnit{
@@ -75,6 +83,7 @@ func NewGameUnit(gameInfo *Game) *GameUnit {
 		chanEvent:  make(chan *MessageWithClient, 128),
 		chanStop:   make(chan bool),
 		processors: make(ProHandlerMap),
+		Status:     game_status_init,
 		supportPro: []ClientMessageTypeCode{
 			pro_game_start,
 			pro_order_select_response,
@@ -98,6 +107,8 @@ func NewGameUnit(gameInfo *Game) *GameUnit {
 
 	}
 	unit.processors = handler_map.generateHandlerMap(unit.supportPro, unit)
+	unit.Distributors = g_var.distributors.filter(func(d *Distributor) bool { return dry.StringListContains(gameInfo.DistributorIDList, d.UserInfo.ID) })
+
 	return unit
 }
 func (gu *GameUnit) containsDistributor(id string) *Distributor {
@@ -169,7 +180,8 @@ func (dpc *GameUnit) sendMsgToSpecialSubscriber(distributor *Distributor, protoc
 }
 
 func (gu *GameUnit) stop() {
-	gu.gameStarted = false
+	// gu.gameStarted = false
+	gu.Status = game_status_end
 	// gu.stopAllUnits()
 	if gu.chanStop != nil {
 		gu.chanStop <- true
@@ -181,7 +193,7 @@ func (gu *GameUnit) stop() {
 	// time.Sleep(2 * time.Second)
 }
 func (gu *GameUnit) start() *GameUnit {
-	gu.mapData = loadMapData(gu.BasicInfo.mapName)
+	gu.mapData = loadMapData(gu.BasicInfo.MapName)
 
 	gu.orders = gu.mapData.Points.filter(func(pos *Position) bool {
 		return pos.PointType == POSITION_TYPE_ORDER
@@ -190,7 +202,7 @@ func (gu *GameUnit) start() *GameUnit {
 		return append(list.(OrderList), o)
 	}).(OrderList).random(rand.New(rand.NewSource(time.Now().UnixNano())), OrderList{})
 
-	gu.Distributors = g_var.distributors.filter(func(d *Distributor) bool { return dry.StringListContains(gu.distributorIDList, d.UserInfo.ID) })
+	// gu.Distributors = g_var.distributors.filter(func(d *Distributor) bool { return dry.StringListContains(gu.distributorIDList, d.UserInfo.ID) })
 	DebugSysF("%d distributors from %s", len(gu.Distributors), gu.distributorIDList)
 	bornPoints := gu.mapData.Points.filter(func(p *Position) bool { return p.IsBornPoint }).random(rand.New(rand.NewSource(time.Now().UnixNano())), PositionList{})
 	// i := len(bornPoints)
@@ -214,7 +226,7 @@ func (gu *GameUnit) start() *GameUnit {
 	}
 	gu.Distributors.forEach(func(distributor *Distributor) {
 		distributor.setCheckPoint(checkpoint_flag_origin)
-		distributor.GameTimeMaxLength = gu.BasicInfo.game_time_loop
+		distributor.GameTimeMaxLength = gu.BasicInfo.Game_time_loop
 		distributor.StartPos = positionGenerator(bornPoints)()
 		distributor.CurrentPos = distributor.StartPos.copyTemp(true)
 		distributor.NormalSpeed = defaultSpeed
@@ -237,13 +249,14 @@ func (gu *GameUnit) start() *GameUnit {
 					DebugSysF("未找到消息处理单位：%s", msg)
 				}
 			case <-timer:
-				if gu.TimeElapse < gu.BasicInfo.game_time_loop && gu.gameStarted == true { //尚处于单局游戏时间内
+				if gu.Status == game_status_going { //尚处于单局游戏时间内
 					gu.TimeElapse++
 					gu.Distributors.forEach(func(distributor *Distributor) {
 						gu.Process(NewMessageWithClient(pro_game_time_tick, distributor, nil))
 					})
-				} else if gu.gameStarted == true && gu.TimeElapse >= gu.BasicInfo.game_time_loop { //游戏时间到达最终时限
+				} else if gu.TimeElapse >= gu.BasicInfo.Game_time_loop { //游戏时间到达最终时限
 					DebugSysF("游戏到达最终时限，开始统计成绩")
+					gu.Status = game_status_end
 					gu.Process(NewMessageWithClient(pro_game_timeout, nil, gu))
 				} else {
 					// DebugSysF("没有逻辑处理")
@@ -271,8 +284,9 @@ func (dpc *GameUnit) restart() {
 	dpc.start()
 	DebugInfoF("游戏重新启动完成")
 }
-func (dpc *GameUnit) startGameTiming() {
-	dpc.gameStarted = true
+func (gu *GameUnit) startGameTiming() {
+	// dpc.gameStarted = true
+	gu.Status = game_status_going
 }
 func (dpc *GameUnit) Process(msg *MessageWithClient) {
 	DebugInfoF("<- %s", msg)
@@ -281,31 +295,3 @@ func (dpc *GameUnit) Process(msg *MessageWithClient) {
 		dpc.chanEvent <- msg
 	}
 }
-
-// func (dpc *GameUnit) stopAllUnits() {
-// 	for id, _ := range dpc.units {
-// 		dpc.stopUnit(id)
-// 		// go u.stop()
-// 	}
-// }
-// func (dpc *GameUnit) stopUnit(id string) {
-// 	if u, ok := dpc.units[id]; ok {
-// 		go u.stop()
-// 		// delete(dpc.units, id)
-// 	} else {
-// 		DebugSysF("配送处理单元 %s 不存在", id)
-// 	}
-// }
-
-// func (dpc *GameUnit) startUnit(id string) {
-// 	if unit, ok := dpc.units[id]; ok {
-// 		unit.start()
-// 	} else {
-// 		DebugSysF("启动配送处理单元出错，指定的单元 %s 不存在", id)
-// 	}
-// }
-// func (dpc *GameUnit) startAlltUnit() {
-// 	for _, unit := range dpc.units {
-// 		unit.start()
-// 	}
-// }

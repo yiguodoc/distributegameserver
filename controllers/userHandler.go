@@ -133,3 +133,7 @@ func (m *MainController) UserList() {
 		return g_var.userdb.users(), nil
 	})
 }
+
+func (m *MainController) UserDetailIndex() {
+	m.TplNames = "userDetailIndex.tpl"
+}

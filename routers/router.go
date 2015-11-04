@@ -19,6 +19,7 @@ func init() {
 	beego.Router("/newGameIndex", &controllers.MainController{}, "GET:NewGameIndex")
 	beego.Router("/gameListIndex", &controllers.MainController{}, "GET:GameListIndex")
 
+	beego.Router("/userDetailIndex", &controllers.MainController{}, "GET:UserDetailIndex")
 	beego.Router("/distributors", &controllers.MainController{}, "GET:Distributors")
 	beego.Router("/users", &controllers.MainController{}, "GET:UserList")
 	beego.Router("/users", &controllers.MainController{}, "POST:AddUser")
